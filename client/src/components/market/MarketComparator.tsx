@@ -407,7 +407,10 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                     </Chip>
                   </div>
                   <span className="text-[11px] text-slate-500 mt-1 block">
-                    {stats.deltaMarketRent >= 0 ? 'Nájom je nad priemerom' : 'Nájom je pod priemerom'}
+                    {stats.deltaMarketRent >= 0 ? 'Nájom je nad priemerom' : 'Nájom je pod priemerom'}{' '}
+                    <span className="font-semibold text-slate-700">
+                      (odporúčaná cena €{stats.targetEstimatedMarketRent.toLocaleString()})
+                    </span>
                   </span>
                 </>
               ) : (
@@ -418,7 +421,10 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-500 mt-1 block">
-                    Byt nemá aktívny nájom
+                    Byt nemá aktívny nájom{' '}
+                    <span className="font-semibold text-slate-700">
+                      (odporúčaná cena €{stats.targetEstimatedMarketRent.toLocaleString()})
+                    </span>
                   </span>
                 </>
               )}
@@ -458,23 +464,6 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
               </span>
             </CardBody>
           </Card>
-        </div>
-      )}
-
-      {/* 5. Strategic Recommendation Banner */}
-      {stats && (
-        <div className="p-4 rounded-xl bg-slate-900 text-white flex items-start gap-3 shadow-xs">
-          <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0 mt-0.5">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-xs font-semibold text-emerald-300 uppercase tracking-wider">
-              Odporúčaná cenová stratégia prenajímateľa
-            </h4>
-            <p className="text-xs text-slate-200 mt-1 leading-relaxed">
-              {stats.recommendation}
-            </p>
-          </div>
         </div>
       )}
 
