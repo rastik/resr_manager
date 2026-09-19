@@ -24,7 +24,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
   onSelectProperty,
   onOpenAddProperty,
 }) => {
-  const { properties, searchQuery, setSearchQuery, statusFilter, setStatusFilter } = useProperty();
+  const { properties, leases, searchQuery, setSearchQuery, statusFilter, setStatusFilter } = useProperty();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [sortField, setSortField] = useState<'unitNumber' | 'name' | 'city' | 'sizeSqm' | 'rentAmount' | 'status'>('unitNumber');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -256,7 +256,11 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                 </TableCell>
                 <TableCell className="text-slate-600">{property.sizeSqm} m²</TableCell>
                 <TableCell>
-                  <Badge variant={property.status} />
+                  {(() => {
+                    const al = leases.find(l => l.propertyId === property.id && l.status === 'active');
+                    const bv = property.status === 'occupied' && al?.leaseType === 'hotel_operator' ? 'hotel' : property.status;
+                    return <Badge variant={bv as any} />;
+                  })()}
                 </TableCell>
                 <TableCell className="font-semibold text-slate-900">
                   {property.rentAmount && property.rentAmount > 0 ? (

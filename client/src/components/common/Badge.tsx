@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface BadgeProps {
-  variant?: 'occupied' | 'vacant' | 'maintenance' | 'active' | 'expired' | 'draft' | 'warning' | 'neutral' | 'success';
+  variant?: 'occupied' | 'vacant' | 'maintenance' | 'active' | 'expired' | 'draft' | 'warning' | 'neutral' | 'success' | 'hotel';
   children?: React.ReactNode;
   className?: string;
   size?: 'sm' | 'md';
@@ -17,6 +17,7 @@ const slovakStatusLabels: Record<string, string> = {
   warning: 'Upozornenie',
   neutral: 'Všeobecné',
   success: 'V poriadku',
+  hotel: 'Hotel',
 };
 
 const badgeStyles: Record<string, { bg: string; text: string; dot: string; border: string }> = {
@@ -37,6 +38,12 @@ const badgeStyles: Record<string, { bg: string; text: string; dot: string; borde
     text: 'text-white',
     dot: 'bg-emerald-200',
     border: 'border-emerald-500/80 shadow-xs',
+  },
+  hotel: {
+    bg: 'bg-amber-500 text-white',
+    text: 'text-white',
+    dot: 'bg-amber-200',
+    border: 'border-amber-400/80 shadow-xs',
   },
   vacant: {
     bg: 'bg-rose-600 text-white',

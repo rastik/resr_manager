@@ -27,6 +27,11 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
       'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80';
     const imgUrl = property.imageUrl || fallbackImg;
 
+    const activeLease = leases.find(l => l.propertyId === property.id && l.status === 'active');
+    const badgeVariant = (property.status === 'occupied' && activeLease?.leaseType === 'hotel_operator')
+      ? 'hotel'
+      : property.status;
+
     return (
       <Card
         key={property.id}
@@ -51,7 +56,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
             <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold border border-white/20">
               {property.propertyType === 'apartment' ? 'Apartmán' : 'Byt'} {property.unitNumber}
             </span>
-            <Badge variant={property.status} />
+            <Badge variant={badgeVariant as any} />
           </div>
 
           {/* Bottom: Info, Specs & Price */}
