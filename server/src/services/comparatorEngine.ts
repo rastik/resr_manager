@@ -305,17 +305,20 @@ export class ComparatorEngine {
     const targetEstimatedMarketRent =
       avgRentPerSqm > 0 && target.sizeSqm > 0
         ? Math.round(avgRentPerSqm * target.sizeSqm)
-        : medianRent || target.rentAmount;
+        : medianRent || 0;
 
-    const deltaMarketRent = target.rentAmount - targetEstimatedMarketRent;
+    const hasCurrentRent = target.rentAmount && target.rentAmount > 0;
+    const deltaMarketRent = hasCurrentRent ? target.rentAmount - targetEstimatedMarketRent : 0;
     const deltaMarketPercent =
-      targetEstimatedMarketRent > 0
+      hasCurrentRent && targetEstimatedMarketRent > 0
         ? Number(((deltaMarketRent / targetEstimatedMarketRent) * 100).toFixed(1))
         : 0;
 
     // Strategy recommendation
     let recommendation = "";
-    if (deltaMarketPercent < -7) {
+    if (!hasCurrentRent) {
+      recommendation = `Byt momentálne nemá aktívnu zmluvu. Na základe trhovej analýzy v lokalite ${target.city} odporúčame nastaviť uvádzací nájom na cca ${targetEstimatedMarketRent} €/mes. (priemer ${avgRentPerSqm} €/m²).`;
+    } else if (deltaMarketPercent < -7) {
       recommendation = `Váš nájom (${target.rentAmount} €) je pod trhovým priemerom. Pri obnove zmluvy máte priestor na zvýšenie o +${Math.abs(deltaMarketRent)} €/mes.`;
     } else if (deltaMarketPercent > 7) {
       recommendation = `Váš nájom (${target.rentAmount} €) je o +${deltaMarketPercent} % vyšší než porovnateľné byty. Zamerajte sa na udržanie spokojnosti nájomcu.`;

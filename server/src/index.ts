@@ -845,7 +845,7 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
     let targetCriteria: TargetPropertyCriteria = {
       sizeSqm: Number(sizeSqm) || 60,
       bedrooms: Number(rooms) || 2,
-      rentAmount: Number(rentAmount) || 1000,
+      rentAmount: rentAmount !== undefined && rentAmount !== null && !isNaN(Number(rentAmount)) ? Number(rentAmount) : 0,
       city: (city as string) || 'Bratislava',
       neighborhood: (neighborhood as string) || 'Staré Mesto',
       hasParking: true,
@@ -871,7 +871,7 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
           sizeSqm: Number(p.sizeSqm) || 60,
           bedrooms: Number(p.bedrooms) || 2,
           bathrooms: Number(p.bathrooms) || 1,
-          rentAmount: Number(p.rentAmount) || 1000,
+          rentAmount: p.rentAmount !== undefined && p.rentAmount !== null && !isNaN(Number(p.rentAmount)) ? Number(p.rentAmount) : 0,
           baseRent: p.baseRent !== undefined && p.baseRent !== null ? Number(p.baseRent) : null,
           utilitiesAmount: p.utilitiesAmount !== undefined && p.utilitiesAmount !== null ? Number(p.utilitiesAmount) : null,
           city: (city as string) || (['Berlin', 'Central'].includes(p.city) ? 'Bratislava' : (p.city || 'Bratislava')),

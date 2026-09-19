@@ -241,7 +241,9 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                       {property.bedrooms} izby • {property.sizeSqm} m²
                     </span>
                     <span className="font-bold text-slate-900">
-                      €{property.rentAmount.toLocaleString()}
+                      {property.rentAmount && property.rentAmount > 0
+                        ? `€${property.rentAmount.toLocaleString()}`
+                        : <span className="text-slate-400 font-normal">Bez nájmu</span>}
                     </span>
                   </div>
                 </div>
@@ -320,24 +322,38 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                   Náš celkový nájom
                 </span>
                 <div className="flex items-baseline md:justify-end gap-1.5 mt-0.5">
-                  <span className="text-xl sm:text-2xl font-black text-slate-950">
-                    €{activeProperty.rentAmount.toLocaleString()}
-                  </span>
-                  <span className="text-xs font-semibold text-slate-500">/ mes.</span>
+                  {activeProperty.rentAmount && activeProperty.rentAmount > 0 ? (
+                    <>
+                      <span className="text-xl sm:text-2xl font-black text-slate-950">
+                        €{activeProperty.rentAmount.toLocaleString()}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">/ mes.</span>
+                    </>
+                  ) : (
+                    <span className="text-sm sm:text-base font-bold text-slate-400">
+                      Bez nájomnej zmluvy
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Subtitle with rent + utilities */}
               <div className="text-left md:text-right mt-1">
-                {activeProperty.baseRent && activeProperty.utilitiesAmount ? (
-                  <div className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200/80 text-[11px] font-medium text-emerald-900">
-                    <span>€{activeProperty.baseRent} nájom</span>
-                    <span className="mx-1 text-emerald-500">+</span>
-                    <span className="font-semibold text-emerald-700">€{activeProperty.utilitiesAmount} energie</span>
-                  </div>
+                {activeProperty.rentAmount && activeProperty.rentAmount > 0 ? (
+                  activeProperty.baseRent && activeProperty.utilitiesAmount ? (
+                    <div className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200/80 text-[11px] font-medium text-emerald-900">
+                      <span>€{activeProperty.baseRent} nájom</span>
+                      <span className="mx-1 text-emerald-500">+</span>
+                      <span className="font-semibold text-emerald-700">€{activeProperty.utilitiesAmount} energie</span>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      €{(activeProperty.rentAmount / activeProperty.sizeSqm).toFixed(2)}/m²
+                    </span>
+                  )
                 ) : (
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    €{(activeProperty.rentAmount / activeProperty.sizeSqm).toFixed(2)}/m²
+                  <span className="text-[11px] text-amber-600 font-medium">
+                    Voľný k prenájmu
                   </span>
                 )}
               </div>
@@ -371,26 +387,41 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
               <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
                 Rozdiel nášho nájmu vs trh
               </span>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span
-                  className={`text-2xl font-bold ${
-                    stats.deltaMarketRent >= 0 ? 'text-emerald-600' : 'text-amber-600'
-                  }`}
-                >
-                  {stats.deltaMarketRent >= 0 ? `+€${stats.deltaMarketRent}` : `-€${Math.abs(stats.deltaMarketRent)}`}
-                </span>
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  color={stats.deltaMarketRent >= 0 ? 'success' : 'warning'}
-                  className="text-[10px] font-semibold h-5"
-                >
-                  {stats.deltaMarketPercent >= 0 ? `+${stats.deltaMarketPercent}%` : `${stats.deltaMarketPercent}%`}
-                </Chip>
-              </div>
-              <span className="text-[11px] text-slate-500 mt-1 block">
-                {stats.deltaMarketRent >= 0 ? 'Nájom je nad priemerom' : 'Nájom je pod priemerom'}
-              </span>
+              {activeProperty.rentAmount && activeProperty.rentAmount > 0 ? (
+                <>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span
+                      className={`text-2xl font-bold ${
+                        stats.deltaMarketRent >= 0 ? 'text-emerald-600' : 'text-amber-600'
+                      }`}
+                    >
+                      {stats.deltaMarketRent >= 0 ? `+€${stats.deltaMarketRent}` : `-€${Math.abs(stats.deltaMarketRent)}`}
+                    </span>
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      color={stats.deltaMarketRent >= 0 ? 'success' : 'warning'}
+                      className="text-[10px] font-semibold h-5"
+                    >
+                      {stats.deltaMarketPercent >= 0 ? `+${stats.deltaMarketPercent}%` : `${stats.deltaMarketPercent}%`}
+                    </Chip>
+                  </div>
+                  <span className="text-[11px] text-slate-500 mt-1 block">
+                    {stats.deltaMarketRent >= 0 ? 'Nájom je nad priemerom' : 'Nájom je pod priemerom'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-slate-400">
+                      —
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 mt-1 block">
+                    Byt nemá aktívny nájom
+                  </span>
+                </>
+              )}
             </CardBody>
           </Card>
 
@@ -682,7 +713,7 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                         </div>
 
                         {/* Delta vs Our Property */}
-                        {activeProperty && item.totalRentPrice && (
+                        {activeProperty && Boolean(activeProperty.rentAmount && activeProperty.rentAmount > 0) && item.totalRentPrice && (
                           <div className="text-[11px] mt-1.5 flex items-center gap-1 font-medium">
                             {item.deltaAmount < 0 ? (
                               <span className="text-emerald-700 flex items-center">
