@@ -151,3 +151,85 @@ export interface UserProfile {
   name: string;
   role: string;
 }
+
+export interface MarketMatchBreakdown {
+  roomsScore: number;
+  roomsMax: number;
+  roomsLabel: string;
+  sizeScore: number;
+  sizeMax: number;
+  sizeLabel: string;
+  locationScore: number;
+  locationMax: number;
+  locationLabel: string;
+  amenitiesScore: number;
+  amenitiesMax: number;
+  amenitiesLabel: string;
+}
+
+export interface MarketComparableItem {
+  id: string;
+  title: string;
+  location: string;
+  district?: string;
+  totalRentPrice: number;
+  baseRent: number;
+  utilitiesAmount: number | null;
+  isUtilitiesInclusive: boolean;
+  priceBreakdownText: string;
+  rentPrice: number; // For backward compatibility
+  sizeSqm: number | null;
+  rooms: number | null;
+  hasParking: boolean;
+  hasBalcony: boolean;
+  hasCellar: boolean;
+  isFurnished: boolean;
+  hasAC: boolean;
+  photoUrl: string | null;
+  detailUrl: string;
+  confidenceScore: number;
+  confidenceTier: 'high' | 'good' | 'moderate';
+  pricePerSqm: number | null;
+  deltaAmount: number;
+  deltaPercent: number;
+  furnishingStatus?: 'furnished' | 'partially' | 'unfurnished';
+  buildingCondition?: 'new_building' | 'reconstructed' | 'original';
+  sourceAI?: 'jev' | 'rules';
+  breakdown: MarketMatchBreakdown;
+}
+
+export interface MarketSummaryStats {
+  comparablesCount: number;
+  hasJevAI?: boolean;
+  medianRent: number;
+  avgRent: number;
+  avgRentPerSqm: number;
+  minRent: number;
+  maxRent: number;
+  targetCurrentRent: number;
+  targetEstimatedMarketRent: number;
+  deltaMarketRent: number;
+  deltaMarketPercent: number;
+  recommendation: string;
+}
+
+export interface MarketComparisonResponse {
+  target: {
+    id?: string;
+    name?: string;
+    unitNumber?: string;
+    sizeSqm: number;
+    bedrooms: number;
+    bathrooms?: number;
+    rentAmount: number;
+    baseRent?: number | null;
+    utilitiesAmount?: number | null;
+    city: string;
+    neighborhood?: string;
+    hasParking?: boolean;
+    hasCellar?: boolean;
+  };
+  stats: MarketSummaryStats;
+  comparables: MarketComparableItem[];
+}
+
