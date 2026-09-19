@@ -1,7 +1,11 @@
 import { Pool, types } from 'pg';
+import path from 'path';
 import dotenv from 'dotenv';
 
+// Load .env from cwd, server directory, and project root
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 // Prevent node-postgres from shifting DATE values to UTC midnight ISO strings
 types.setTypeParser(1082, (val: string) => val);

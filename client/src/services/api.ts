@@ -1,4 +1,4 @@
-import { Property, Lease, HotelRevenueMonth, InventoryItem, Expense, MarketComp, VaultDocument, PortfolioAnalytics, UserProfile } from '../types';
+import { Property, Lease, HotelRevenueMonth, InventoryItem, Expense, MarketComp, VaultDocument, PortfolioAnalytics, UserProfile, MarketComparisonResponse } from '../types';
 import { initialProperties, initialLeases, initialInventory, initialExpenses, initialMarketComps, initialDocuments, initialUser } from './mockData';
 
 const BASE_URL = '/api';
@@ -307,6 +307,37 @@ class ApiService {
       console.warn('API fallback for market comps', e);
     }
     return initialMarketComps;
+  }
+
+  // Live Market Comparables from Nehnutelnosti.sk
+  async getMarketComparables(params?: {
+    propertyId?: string;
+    city?: string;
+    neighborhood?: string;
+    rooms?: number;
+    sizeSqm?: number;
+    rentAmount?: number;
+  }): Promise<MarketComparisonResponse | null> {
+    try {
+      const searchParams = new URLSearchParams();
+      if (params?.propertyId) searchParams.set('propertyId', params.propertyId);
+      if (params?.city) searchParams.set('city', params.city);
+      if (params?.neighborhood) searchParams.set('neighborhood', params.neighborhood);
+      if (params?.rooms) searchParams.set('rooms', String(params.rooms));
+      if (params?.sizeSqm) searchParams.set('sizeSqm', String(params.sizeSqm));
+      if (params?.rentAmount) searchParams.set('rentAmount', String(params.rentAmount));
+
+      const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+      const res = await fetch(`${BASE_URL}/market/comparables${query}`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.warn('API error fetching market comparables', e);
+    }
+    return null;
   }
 
   // Vault Documents

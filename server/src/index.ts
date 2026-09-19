@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { pool, toCamelCase } from './db';
+import { NehnutelnostiService } from './services/nehnutelnostiService';
+import { ComparatorEngine, TargetPropertyCriteria } from './services/comparatorEngine';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -69,6 +71,8 @@ async function initDb() {
     await pool.query(`
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS base_rent NUMERIC(10, 2);
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS utilities_amount NUMERIC(10, 2);
+      ALTER TABLE properties ADD COLUMN IF NOT EXISTS notes TEXT;
+      ALTER TABLE properties ADD COLUMN IF NOT EXISTS property_type VARCHAR(64) DEFAULT 'apartment';
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS base_rent NUMERIC(10, 2);
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS utilities_amount NUMERIC(10, 2);
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS move_in_photos TEXT[] DEFAULT '{}';
@@ -829,6 +833,68 @@ app.get('/api/market-comps', async (req: Request, res: Response) => {
     const result = await pool.query('SELECT * FROM market_comps ORDER BY neighborhood ASC');
     res.json(toCamelCase(result.rows));
   } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/market/comparables', async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const { propertyId, city, neighborhood, rooms, sizeSqm, rentAmount } = req.query;
+
+  try {
+    let targetCriteria: TargetPropertyCriteria = {
+      sizeSqm: Number(sizeSqm) || 60,
+      bedrooms: Number(rooms) || 2,
+      rentAmount: Number(rentAmount) || 1000,
+      city: (city as string) || 'Bratislava',
+      neighborhood: (neighborhood as string) || 'Staré Mesto',
+      hasParking: true,
+      hasCellar: true,
+    };
+
+    if (propertyId) {
+      const propResult = await pool.query(
+        'SELECT * FROM properties WHERE id = $1 AND user_id = $2',
+        [propertyId, userId]
+      );
+      if (propResult.rows.length > 0) {
+        const p = toCamelCase(propResult.rows[0]);
+        const notesAndName = `${p.notes || ''} ${p.name || ''}`.toLowerCase();
+        const hasAC = /klimatiz|kl[ií]m/i.test(notesAndName);
+        const hasBalcony = /balk[oó]n|lod[zž]i|teras/i.test(notesAndName);
+        const isNewBuilding = /novostavb|arboria|rezidenc|urban/i.test(notesAndName);
+
+        targetCriteria = {
+          id: p.id,
+          name: p.name,
+          unitNumber: p.unitNumber,
+          sizeSqm: Number(p.sizeSqm) || 60,
+          bedrooms: Number(p.bedrooms) || 2,
+          bathrooms: Number(p.bathrooms) || 1,
+          rentAmount: Number(p.rentAmount) || 1000,
+          baseRent: p.baseRent !== undefined && p.baseRent !== null ? Number(p.baseRent) : null,
+          utilitiesAmount: p.utilitiesAmount !== undefined && p.utilitiesAmount !== null ? Number(p.utilitiesAmount) : null,
+          city: (city as string) || (['Berlin', 'Central'].includes(p.city) ? 'Bratislava' : (p.city || 'Bratislava')),
+          neighborhood: (neighborhood as string) || (p.neighborhood || 'Staré Mesto'),
+          hasParking: Boolean(p.hasParking),
+          hasCellar: Boolean(p.hasCellar),
+          hasAC,
+          hasBalcony,
+          furnishingStatus: /nezariaden/i.test(notesAndName) ? 'unfurnished' : 'furnished',
+          buildingCondition: isNewBuilding ? 'new_building' : 'reconstructed',
+        };
+      }
+    }
+
+    const searchCity = (city as string) || targetCriteria.city || 'Bratislava';
+    const searchRooms = rooms ? Number(rooms) : targetCriteria.bedrooms;
+
+    const listings = await NehnutelnostiService.getListings(searchCity, searchRooms);
+    const comparisonResult = ComparatorEngine.compare(targetCriteria, listings);
+
+    res.json(comparisonResult);
+  } catch (error: any) {
+    console.error('Error fetching market comparables:', error);
     res.status(500).json({ error: error.message });
   }
 });
