@@ -128,13 +128,23 @@ export class ComparatorEngine {
     const compLocationLower = (comp.location || "").toLowerCase();
     const compDistrictLower = (comp.district || "").toLowerCase();
 
-    // Check district/quarter matching (avoiding generic word 'central')
+    const targetNameLower = (target.name || "").toLowerCase();
+    const targetAddressLower = (target.name || "").toLowerCase() + " " + (target.id || "");
+
+    // Check district/quarter/project matching (e.g. Arboria, Cukrovar, Ružinov, Staré Mesto, Veterná)
+    const knownZones = ["arboria", "cukrovar", "hliny", "družba", "prednádražie", "kopánka", "linčianska", "ružinov", "staré mesto", "petržalka", "nové mesto", "dúbravka", "karlova ves", "kollwitz", "spreeufer"];
+    const matchedZone = knownZones.find(z => 
+      (targetNeighborhood.includes(z) || targetNameLower.includes(z) || (comp.district || "").toLowerCase().includes(z)) &&
+      (compLocationLower.includes(z) || compDistrictLower.includes(z))
+    );
+
     const districtMatch =
-      targetNeighborhood &&
+      Boolean(matchedZone) ||
+      (targetNeighborhood &&
       targetNeighborhood !== "central" &&
       (compLocationLower.includes(targetNeighborhood) ||
         compDistrictLower.includes(targetNeighborhood) ||
-        targetNeighborhood.includes(compDistrictLower));
+        targetNeighborhood.includes(compDistrictLower)));
 
     // Check city matching
     const cityMatch =

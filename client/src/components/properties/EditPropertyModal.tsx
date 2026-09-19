@@ -35,6 +35,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const [hasParking, setHasParking] = useState(Boolean(property.hasParking));
   const [parkingSpotNumber, setParkingSpotNumber] = useState(property.parkingSpotNumber || '');
   const [hasAC, setHasAC] = useState(Boolean(property.hasAC));
+  const [hasBalcony, setHasBalcony] = useState(Boolean(property.hasBalcony));
   const [furnishingStatus, setFurnishingStatus] = useState<'furnished' | 'unfurnished'>(
     property.furnishingStatus || 'furnished'
   );
@@ -56,6 +57,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
       setHasParking(Boolean(property.hasParking));
       setParkingSpotNumber(property.parkingSpotNumber || '');
       setHasAC(Boolean(property.hasAC));
+      setHasBalcony(Boolean(property.hasBalcony));
       setFurnishingStatus(property.furnishingStatus || 'furnished');
       setNotes(property.notes || '');
     }
@@ -86,6 +88,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
         hasParking,
         parkingSpotNumber: hasParking ? parkingSpotNumber : undefined,
         hasAC,
+        hasBalcony,
         furnishingStatus,
         notes,
       });
@@ -380,8 +383,8 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
           <span className="text-xs font-semibold text-slate-900 block">Vybavenie nehnuteľnosti</span>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {/* Klimatizácia */}
-            <div className="flex items-center">
+            {/* Klimatizácia a Balkón */}
+            <div className="flex flex-col gap-2 justify-center">
               <Checkbox
                 size="sm"
                 isSelected={hasAC}
@@ -392,6 +395,18 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
               >
                 <Wind className="w-3.5 h-3.5 text-slate-500" />
                 <span>Klimatizácia</span>
+              </Checkbox>
+
+              <Checkbox
+                size="sm"
+                isSelected={hasBalcony}
+                onValueChange={setHasBalcony}
+                classNames={{
+                  label: 'text-xs font-medium text-slate-700 select-none flex items-center gap-1.5',
+                }}
+              >
+                <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Balkón / Lodžia / Terasa</span>
               </Checkbox>
             </div>
 

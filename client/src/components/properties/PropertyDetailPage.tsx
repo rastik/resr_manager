@@ -999,6 +999,15 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100">
                     <span className="text-slate-500 flex items-center gap-1">
+                      <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                      Balkón / Lodžia:
+                    </span>
+                    <span className="font-medium text-slate-900">
+                      {property.hasBalcony ? 'Áno' : 'Nie'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1">
                       <Armchair className="w-3.5 h-3.5 text-slate-400" />
                       Zariadenie:
                     </span>

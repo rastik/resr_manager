@@ -74,6 +74,7 @@ async function initDb() {
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS notes TEXT;
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS property_type VARCHAR(64) DEFAULT 'apartment';
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS has_ac BOOLEAN DEFAULT false;
+      ALTER TABLE properties ADD COLUMN IF NOT EXISTS has_balcony BOOLEAN DEFAULT false;
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS furnishing_status VARCHAR(32) DEFAULT 'furnished';
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS base_rent NUMERIC(10, 2);
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS utilities_amount NUMERIC(10, 2);
@@ -264,6 +265,7 @@ app.post('/api/properties', async (req: Request, res: Response) => {
     notes = '',
     propertyType = 'apartment',
     hasAC = false,
+    hasBalcony = false,
     furnishingStatus = 'furnished',
   } = req.body;
 
@@ -279,8 +281,8 @@ app.post('/api/properties', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `INSERT INTO properties 
-       (id, user_id, name, unit_number, address, postal_code, city, neighborhood, size_sqm, bedrooms, bathrooms, rent_amount, status, image_url, has_cellar, cellar_area_sqm, cellar_number, has_parking, parking_spot_number, photos, notes, property_type, base_rent, utilities_amount, has_ac, furnishing_status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+       (id, user_id, name, unit_number, address, postal_code, city, neighborhood, size_sqm, bedrooms, bathrooms, rent_amount, status, image_url, has_cellar, cellar_area_sqm, cellar_number, has_parking, parking_spot_number, photos, notes, property_type, base_rent, utilities_amount, has_ac, has_balcony, furnishing_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
        RETURNING *`,
       [
         id,
@@ -290,7 +292,7 @@ app.post('/api/properties', async (req: Request, res: Response) => {
         address,
         postalCode,
         city,
-        neighborhood || 'Central',
+        neighborhood || '',
         Number(sizeSqm) || 50,
         Number(bedrooms) || 1,
         Number(bathrooms) || 1,
@@ -308,6 +310,7 @@ app.post('/api/properties', async (req: Request, res: Response) => {
         numBase,
         numUtils,
         Boolean(hasAC),
+        Boolean(hasBalcony),
         furnishingStatus || 'furnished',
       ]
     );
@@ -345,6 +348,7 @@ app.put('/api/properties/:id', async (req: Request, res: Response) => {
     notes,
     propertyType,
     hasAC,
+    hasBalcony,
     furnishingStatus,
   } = req.body;
 
@@ -375,8 +379,9 @@ app.put('/api/properties/:id', async (req: Request, res: Response) => {
            base_rent = COALESCE($22, base_rent),
            utilities_amount = COALESCE($23, utilities_amount),
            has_ac = COALESCE($24, has_ac),
-           furnishing_status = COALESCE($25, furnishing_status)
-       WHERE id = $26 AND user_id = $27
+           has_balcony = COALESCE($25, has_balcony),
+           furnishing_status = COALESCE($26, furnishing_status)
+       WHERE id = $27 AND user_id = $28
        RETURNING *`,
       [
         name,
@@ -403,6 +408,7 @@ app.put('/api/properties/:id', async (req: Request, res: Response) => {
         baseRent !== undefined ? Number(baseRent) : null,
         utilitiesAmount !== undefined ? Number(utilitiesAmount) : null,
         hasAC !== undefined ? Boolean(hasAC) : null,
+        hasBalcony !== undefined ? Boolean(hasBalcony) : null,
         furnishingStatus,
         id,
         userId,
@@ -873,9 +879,19 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
         const p = toCamelCase(propResult.rows[0]);
         const notesAndName = `${p.notes || ''} ${p.name || ''}`.toLowerCase();
         const hasAC = p.hasAc !== undefined && p.hasAc !== null ? Boolean(p.hasAc) : /klimatiz|kl[ií]m/i.test(notesAndName);
-        const hasBalcony = /balk[oó]n|lod[zž]i|teras/i.test(notesAndName);
+        const hasBalcony = p.hasBalcony !== undefined && p.hasBalcony !== null ? Boolean(p.hasBalcony) : /balk[oó]n|lod[zž]i|teras/i.test(notesAndName);
         const isNewBuilding = /novostavb|arboria|rezidenc|urban/i.test(notesAndName);
         const furnishingStatus = p.furnishingStatus || (/nezariaden/i.test(notesAndName) ? 'unfurnished' : 'furnished');
+
+        // Clean city: only convert actual foreign test strings, do not convert valid Slovak cities
+        let cleanCity = (city as string) || p.city || 'Trnava';
+        if (cleanCity === 'Central') cleanCity = 'Trnava';
+
+        // Clean neighborhood: do not default to Staré Mesto for Trnava or other cities
+        let cleanNeighborhood = (neighborhood as string) || p.neighborhood || '';
+        if (cleanNeighborhood.toLowerCase() === 'central') {
+          cleanNeighborhood = '';
+        }
 
         targetCriteria = {
           id: p.id,
@@ -887,8 +903,8 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
           rentAmount: p.rentAmount !== undefined && p.rentAmount !== null && !isNaN(Number(p.rentAmount)) ? Number(p.rentAmount) : 0,
           baseRent: p.baseRent !== undefined && p.baseRent !== null ? Number(p.baseRent) : null,
           utilitiesAmount: p.utilitiesAmount !== undefined && p.utilitiesAmount !== null ? Number(p.utilitiesAmount) : null,
-          city: (city as string) || (['Berlin', 'Central'].includes(p.city) ? 'Bratislava' : (p.city || 'Bratislava')),
-          neighborhood: (neighborhood as string) || (p.neighborhood || 'Staré Mesto'),
+          city: cleanCity,
+          neighborhood: cleanNeighborhood,
           hasParking: Boolean(p.hasParking),
           hasCellar: Boolean(p.hasCellar),
           hasAC,

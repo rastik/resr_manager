@@ -26,6 +26,7 @@ import {
   Home,
   Check,
   Building,
+  Building2,
   Armchair,
 } from 'lucide-react';
 import { useProperty } from '../../context/PropertyContext';
@@ -316,6 +317,12 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                     <span className="px-2 py-0.5 rounded bg-white border border-slate-200/80 font-medium text-slate-700 flex items-center gap-1">
                       <Wind className="w-3 h-3 text-cyan-600" />
                       Klíma
+                    </span>
+                  )}
+                  {activeProperty.hasBalcony && (
+                    <span className="px-2 py-0.5 rounded bg-white border border-slate-200/80 font-medium text-slate-700 flex items-center gap-1">
+                      <Building2 className="w-3 h-3 text-amber-600" />
+                      Balkón/Lodžia
                     </span>
                   )}
                   <span className="px-2 py-0.5 rounded bg-white border border-slate-200/80 font-medium text-slate-700 flex items-center gap-1">
