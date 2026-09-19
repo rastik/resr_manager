@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import {
   Property,
   Lease,
+  HotelRevenueMonth,
   InventoryItem,
   Expense,
   MarketComp,
@@ -21,6 +22,7 @@ interface Toast {
 interface PropertyContextType {
   properties: Property[];
   leases: Lease[];
+  hotelRevenue: HotelRevenueMonth[];
   inventory: InventoryItem[];
   expenses: Expense[];
   marketComps: MarketComp[];
@@ -49,6 +51,8 @@ interface PropertyContextType {
   deleteExpense: (id: string) => Promise<void>;
   addDocument: (data: Partial<VaultDocument>) => Promise<VaultDocument>;
   deleteDocument: (id: string) => Promise<void>;
+  addHotelRevenue: (data: Partial<HotelRevenueMonth>) => Promise<HotelRevenueMonth>;
+  deleteHotelRevenue: (id: string) => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -59,6 +63,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [leases, setLeases] = useState<Lease[]>([]);
+  const [hotelRevenue, setHotelRevenue] = useState<HotelRevenueMonth[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [marketComps, setMarketComps] = useState<MarketComp[]>([]);
@@ -86,9 +91,10 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const refreshData = useCallback(async () => {
     setLoading(true);
     try {
-      const [props, lss, inv, exp, comps, docs, anl] = await Promise.all([
+      const [props, lss, hrev, inv, exp, comps, docs, anl] = await Promise.all([
         api.getProperties(),
         api.getLeases(),
+        api.getHotelRevenue(),
         api.getInventory(),
         api.getExpenses(),
         api.getMarketComps(),
@@ -98,6 +104,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       setProperties(props);
       setLeases(lss);
+      setHotelRevenue(hrev);
       setInventory(inv);
       setExpenses(exp);
       setMarketComps(comps);
@@ -204,6 +211,21 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     refreshData();
   };
 
+  const addHotelRevenue = async (data: Partial<HotelRevenueMonth>): Promise<HotelRevenueMonth> => {
+    const created = await api.createHotelRevenue(data);
+    setHotelRevenue(prev => [created, ...prev.filter(r => r.month !== created.month || r.leaseId !== created.leaseId)]);
+    showToast(`Výnos za ${created.month} bol zaznamenaný`);
+    refreshData();
+    return created;
+  };
+
+  const deleteHotelRevenue = async (id: string) => {
+    setHotelRevenue(prev => prev.filter(r => r.id !== id));
+    await api.deleteHotelRevenue(id);
+    showToast('Záznam výnosu bol odstránený', 'info');
+    refreshData();
+  };
+
   const selectedProperty = properties.find(p => p.id === selectedPropertyId) || null;
 
   return (
@@ -211,6 +233,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       value={{
         properties,
         leases,
+        hotelRevenue,
         inventory,
         expenses,
         marketComps,
@@ -238,6 +261,8 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         deleteExpense,
         addDocument,
         deleteDocument,
+        addHotelRevenue,
+        deleteHotelRevenue,
         refreshData,
       }}
     >

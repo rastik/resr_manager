@@ -35,14 +35,17 @@ export interface Property {
 }
 
 export type LeaseStatus = 'active' | 'expired' | 'draft';
+export type LeaseType = 'standard' | 'hotel_operator';
 
 export interface Lease {
   id: string;
   userId: string;
   propertyId: string;
+  leaseType?: LeaseType;
   tenantName: string;
   tenantEmail: string;
   tenantPhone: string;
+  operatorCompany?: string;
   rentAmount: number;
   baseRent?: number;
   utilitiesAmount?: number;
@@ -56,6 +59,18 @@ export interface Lease {
   createdAt?: string;
   propertyName?: string;
   propertyUnit?: string;
+}
+
+export interface HotelRevenueMonth {
+  id: string;
+  userId: string;
+  propertyId: string;
+  leaseId: string;
+  month: string; // 'YYYY-MM'
+  revenueAmount: number;
+  occupancyPercent?: number;
+  notes?: string;
+  createdAt?: string;
 }
 
 export type InventoryCategory = 'appliance' | 'furniture' | 'fixture';

@@ -72,9 +72,29 @@ async function initDb() {
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS base_rent NUMERIC(10, 2);
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS utilities_amount NUMERIC(10, 2);
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS move_in_photos TEXT[] DEFAULT '{}';
+      ALTER TABLE leases ADD COLUMN IF NOT EXISTS lease_type VARCHAR(32) DEFAULT 'standard';
+      ALTER TABLE leases ADD COLUMN IF NOT EXISTS operator_company VARCHAR(255);
       ALTER TABLE inventory_items ALTER COLUMN purchase_date DROP NOT NULL;
       ALTER TABLE inventory_items ALTER COLUMN cost DROP NOT NULL;
     `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS hotel_revenue (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        property_id VARCHAR(64) NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+        lease_id VARCHAR(64) NOT NULL REFERENCES leases(id) ON DELETE CASCADE,
+        month VARCHAR(7) NOT NULL,
+        revenue_amount NUMERIC(10, 2) NOT NULL,
+        occupancy_percent NUMERIC(5, 2),
+        notes TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(lease_id, month)
+      );
+      CREATE INDEX IF NOT EXISTS idx_hotel_revenue_lease ON hotel_revenue(lease_id);
+      CREATE INDEX IF NOT EXISTS idx_hotel_revenue_property ON hotel_revenue(property_id);
+    `);
+
     console.log('PostgreSQL schema verified: columns are available.');
     await syncExpiredLeases();
   } catch (err: any) {
@@ -418,9 +438,11 @@ app.post('/api/leases', async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const {
     propertyId,
+    leaseType = 'standard',
     tenantName,
     tenantEmail,
     tenantPhone,
+    operatorCompany,
     rentAmount,
     baseRent,
     utilitiesAmount,
@@ -452,13 +474,15 @@ app.post('/api/leases', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `INSERT INTO leases
-       (id, user_id, property_id, tenant_name, tenant_email, tenant_phone, rent_amount, base_rent, utilities_amount, deposit_amount, start_date, end_date, status, contract_file_name, contract_file_url, move_in_photos)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       (id, user_id, property_id, lease_type, operator_company, tenant_name, tenant_email, tenant_phone, rent_amount, base_rent, utilities_amount, deposit_amount, start_date, end_date, status, contract_file_name, contract_file_url, move_in_photos)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
        RETURNING *`,
       [
         id,
         userId,
         propertyId,
+        leaseType || 'standard',
+        operatorCompany || null,
         tenantName,
         tenantEmail,
         tenantPhone,
@@ -498,6 +522,7 @@ app.put('/api/leases/:id', async (req: Request, res: Response) => {
     tenantName,
     tenantEmail,
     tenantPhone,
+    operatorCompany,
     rentAmount,
     baseRent,
     utilitiesAmount,
@@ -533,6 +558,7 @@ app.put('/api/leases/:id', async (req: Request, res: Response) => {
     const hasContractName = contractFileName !== undefined;
     const hasContractUrl = contractFileUrl !== undefined;
     const hasMoveInPhotos = moveInPhotos !== undefined;
+    const hasOperatorCompany = operatorCompany !== undefined;
 
     const result = await pool.query(
       `UPDATE leases
@@ -548,7 +574,8 @@ app.put('/api/leases/:id', async (req: Request, res: Response) => {
            utilities_amount = COALESCE($10, utilities_amount),
            contract_file_name = CASE WHEN $13 = true THEN $14 ELSE contract_file_name END,
            contract_file_url = CASE WHEN $15 = true THEN $16 ELSE contract_file_url END,
-           move_in_photos = CASE WHEN $17 = true THEN $18 ELSE move_in_photos END
+           move_in_photos = CASE WHEN $17 = true THEN $18 ELSE move_in_photos END,
+           operator_company = CASE WHEN $19 = true THEN $20 ELSE operator_company END
        WHERE id = $11 AND user_id = $12
        RETURNING *`,
       [
@@ -570,6 +597,8 @@ app.put('/api/leases/:id', async (req: Request, res: Response) => {
         contractFileUrl || null,
         hasMoveInPhotos,
         moveInPhotos || [],
+        hasOperatorCompany,
+        operatorCompany || null,
       ]
     );
     if (result.rows.length === 0) {
@@ -964,6 +993,84 @@ app.get('/api/analytics', async (req: Request, res: Response) => {
       upcomingLeases,
       cashFlowData,
     });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ----------------------------------------------------
+// Hotel Revenue API
+// ----------------------------------------------------
+app.get('/api/hotel-revenue', async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const { leaseId, propertyId } = req.query;
+  try {
+    let query = 'SELECT * FROM hotel_revenue WHERE user_id = $1';
+    const params: any[] = [userId];
+    if (leaseId) {
+      params.push(leaseId);
+      query += ` AND lease_id = $${params.length}`;
+    }
+    if (propertyId) {
+      params.push(propertyId);
+      query += ` AND property_id = $${params.length}`;
+    }
+    query += ' ORDER BY month DESC';
+    const result = await pool.query(query, params);
+    res.json(toCamelCase(result.rows));
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/hotel-revenue', async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const { leaseId, propertyId, month, revenueAmount, occupancyPercent, notes } = req.body;
+  const id = 'hrev_' + Date.now();
+  try {
+    const result = await pool.query(
+      `INSERT INTO hotel_revenue (id, user_id, property_id, lease_id, month, revenue_amount, occupancy_percent, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (lease_id, month) DO UPDATE SET
+         revenue_amount = EXCLUDED.revenue_amount,
+         occupancy_percent = EXCLUDED.occupancy_percent,
+         notes = EXCLUDED.notes
+       RETURNING *`,
+      [id, userId, propertyId, leaseId, month, Number(revenueAmount), occupancyPercent ? Number(occupancyPercent) : null, notes || null]
+    );
+    res.status(201).json(toCamelCase(result.rows[0]));
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/hotel-revenue/:id', async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+  const { revenueAmount, occupancyPercent, notes } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE hotel_revenue
+       SET revenue_amount = COALESCE($1, revenue_amount),
+           occupancy_percent = $2,
+           notes = COALESCE($3, notes)
+       WHERE id = $4 AND user_id = $5
+       RETURNING *`,
+      [revenueAmount !== undefined ? Number(revenueAmount) : null, occupancyPercent !== undefined ? Number(occupancyPercent) : null, notes, id, userId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(toCamelCase(result.rows[0]));
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/hotel-revenue/:id', async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM hotel_revenue WHERE id = $1 AND user_id = $2', [id, userId]);
+    res.json({ success: true });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

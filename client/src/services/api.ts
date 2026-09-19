@@ -1,4 +1,4 @@
-import { Property, Lease, InventoryItem, Expense, MarketComp, VaultDocument, PortfolioAnalytics, UserProfile } from '../types';
+import { Property, Lease, HotelRevenueMonth, InventoryItem, Expense, MarketComp, VaultDocument, PortfolioAnalytics, UserProfile } from '../types';
 import { initialProperties, initialLeases, initialInventory, initialExpenses, initialMarketComps, initialDocuments, initialUser } from './mockData';
 
 const BASE_URL = '/api';
@@ -357,6 +357,56 @@ class ApiService {
       if (res.ok) return true;
     } catch (e) {
       console.warn('API fallback for delete document', e);
+    }
+    return true;
+  }
+
+  // Hotel Revenue
+  async getHotelRevenue(leaseId?: string, propertyId?: string): Promise<HotelRevenueMonth[]> {
+    try {
+      const params = new URLSearchParams();
+      if (leaseId) params.set('leaseId', leaseId);
+      if (propertyId) params.set('propertyId', propertyId);
+      const res = await fetch(`${BASE_URL}/hotel-revenue?${params.toString()}`, { headers: this.getHeaders() });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn('API fallback for hotel revenue', e);
+    }
+    return [];
+  }
+
+  async createHotelRevenue(data: Partial<HotelRevenueMonth>): Promise<HotelRevenueMonth> {
+    try {
+      const res = await fetch(`${BASE_URL}/hotel-revenue`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn('API fallback for create hotel revenue', e);
+    }
+    return {
+      id: 'hrev_' + Date.now(),
+      userId: this.userId,
+      propertyId: data.propertyId!,
+      leaseId: data.leaseId!,
+      month: data.month!,
+      revenueAmount: Number(data.revenueAmount) || 0,
+      occupancyPercent: data.occupancyPercent,
+      notes: data.notes,
+    };
+  }
+
+  async deleteHotelRevenue(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${BASE_URL}/hotel-revenue/${id}`, {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+      });
+      if (res.ok) return true;
+    } catch (e) {
+      console.warn('API fallback for delete hotel revenue', e);
     }
     return true;
   }
