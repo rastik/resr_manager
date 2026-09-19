@@ -544,8 +544,10 @@ export class NehnutelnostiService {
       if (seenUrls.has(detailUrl)) continue;
       seenUrls.add(detailUrl);
 
-      const imgMatch = chunk.match(/src="(https:\/\/img\.unitedclassifieds\.sk\/foto\/[^"]+)"/);
-      const photoUrl = imgMatch ? imgMatch[1].replace(/&amp;/g, "&") : null;
+      const imgMatch = chunk.match(/(?:src|data-src|srcset)="((?:https:)?\/\/img\.(?:nehnutelnosti|unitedclassifieds)\.sk\/foto\/[^"]+)"/i);
+      const photoUrl = imgMatch
+        ? (imgMatch[1].startsWith("//") ? `https:${imgMatch[1]}` : imgMatch[1]).split(" ")[0].replace(/&amp;/g, "&")
+        : null;
 
       const texts = [...chunk.matchAll(/>([^<]+)</g)]
         .map(m => m[1].trim())
