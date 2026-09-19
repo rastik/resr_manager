@@ -73,6 +73,8 @@ async function initDb() {
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS utilities_amount NUMERIC(10, 2);
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS notes TEXT;
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS property_type VARCHAR(64) DEFAULT 'apartment';
+      ALTER TABLE properties ADD COLUMN IF NOT EXISTS has_ac BOOLEAN DEFAULT false;
+      ALTER TABLE properties ADD COLUMN IF NOT EXISTS furnishing_status VARCHAR(32) DEFAULT 'furnished';
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS base_rent NUMERIC(10, 2);
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS utilities_amount NUMERIC(10, 2);
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS move_in_photos TEXT[] DEFAULT '{}';
@@ -261,6 +263,8 @@ app.post('/api/properties', async (req: Request, res: Response) => {
     photos = [],
     notes = '',
     propertyType = 'apartment',
+    hasAC = false,
+    furnishingStatus = 'furnished',
   } = req.body;
 
   const id = 'prop_' + Date.now();
@@ -275,8 +279,8 @@ app.post('/api/properties', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `INSERT INTO properties 
-       (id, user_id, name, unit_number, address, postal_code, city, neighborhood, size_sqm, bedrooms, bathrooms, rent_amount, status, image_url, has_cellar, cellar_area_sqm, cellar_number, has_parking, parking_spot_number, photos, notes, property_type, base_rent, utilities_amount)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+       (id, user_id, name, unit_number, address, postal_code, city, neighborhood, size_sqm, bedrooms, bathrooms, rent_amount, status, image_url, has_cellar, cellar_area_sqm, cellar_number, has_parking, parking_spot_number, photos, notes, property_type, base_rent, utilities_amount, has_ac, furnishing_status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
        RETURNING *`,
       [
         id,
@@ -303,6 +307,8 @@ app.post('/api/properties', async (req: Request, res: Response) => {
         propertyType || 'apartment',
         numBase,
         numUtils,
+        Boolean(hasAC),
+        furnishingStatus || 'furnished',
       ]
     );
     res.status(201).json(toCamelCase(result.rows[0]));
@@ -338,6 +344,8 @@ app.put('/api/properties/:id', async (req: Request, res: Response) => {
     photos,
     notes,
     propertyType,
+    hasAC,
+    furnishingStatus,
   } = req.body;
 
   try {
@@ -365,8 +373,10 @@ app.put('/api/properties/:id', async (req: Request, res: Response) => {
            notes = COALESCE($20, notes),
            property_type = COALESCE($21, property_type),
            base_rent = COALESCE($22, base_rent),
-           utilities_amount = COALESCE($23, utilities_amount)
-       WHERE id = $24 AND user_id = $25
+           utilities_amount = COALESCE($23, utilities_amount),
+           has_ac = COALESCE($24, has_ac),
+           furnishing_status = COALESCE($25, furnishing_status)
+       WHERE id = $26 AND user_id = $27
        RETURNING *`,
       [
         name,
@@ -392,6 +402,8 @@ app.put('/api/properties/:id', async (req: Request, res: Response) => {
         propertyType,
         baseRent !== undefined ? Number(baseRent) : null,
         utilitiesAmount !== undefined ? Number(utilitiesAmount) : null,
+        hasAC !== undefined ? Boolean(hasAC) : null,
+        furnishingStatus,
         id,
         userId,
       ]
@@ -860,9 +872,10 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
       if (propResult.rows.length > 0) {
         const p = toCamelCase(propResult.rows[0]);
         const notesAndName = `${p.notes || ''} ${p.name || ''}`.toLowerCase();
-        const hasAC = /klimatiz|kl[ií]m/i.test(notesAndName);
+        const hasAC = p.hasAc !== undefined && p.hasAc !== null ? Boolean(p.hasAc) : /klimatiz|kl[ií]m/i.test(notesAndName);
         const hasBalcony = /balk[oó]n|lod[zž]i|teras/i.test(notesAndName);
         const isNewBuilding = /novostavb|arboria|rezidenc|urban/i.test(notesAndName);
+        const furnishingStatus = p.furnishingStatus || (/nezariaden/i.test(notesAndName) ? 'unfurnished' : 'furnished');
 
         targetCriteria = {
           id: p.id,
@@ -880,7 +893,7 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
           hasCellar: Boolean(p.hasCellar),
           hasAC,
           hasBalcony,
-          furnishingStatus: /nezariaden/i.test(notesAndName) ? 'unfurnished' : 'furnished',
+          furnishingStatus,
           buildingCondition: isNewBuilding ? 'new_building' : 'reconstructed',
         };
       }

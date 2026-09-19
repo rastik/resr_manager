@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button, Checkbox, Textarea } from '@heroui/react';
-import { Home, Building2 } from 'lucide-react';
+import { Home, Building2, Wind, Armchair } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useProperty } from '../../context/PropertyContext';
 
@@ -23,6 +23,8 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
   const [cellarNumber, setCellarNumber] = useState('');
   const [hasParking, setHasParking] = useState(false);
   const [parkingSpotNumber, setParkingSpotNumber] = useState('');
+  const [hasAC, setHasAC] = useState(false);
+  const [furnishingStatus, setFurnishingStatus] = useState<'furnished' | 'unfurnished'>('furnished');
   const [notes, setNotes] = useState('');
   const [propertyType, setPropertyType] = useState<'apartment' | 'flat'>('flat');
   const [loading, setLoading] = useState(false);
@@ -41,6 +43,8 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
       setParkingSpotNumber('');
       setHasCellar(false);
       setHasParking(false);
+      setHasAC(false);
+      setFurnishingStatus('furnished');
       setPropertyType('flat');
     }
   }, [isOpen]);
@@ -70,6 +74,8 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
         cellarNumber: hasCellar ? cellarNumber : undefined,
         hasParking,
         parkingSpotNumber: hasParking ? parkingSpotNumber : undefined,
+        hasAC,
+        furnishingStatus,
         photos: [defaultImageUrl],
         notes,
         propertyType,
@@ -349,6 +355,60 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Vybavenie a zariadenie: Klimatizácia a Zariadenosť */}
+        <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-3">
+          <span className="text-xs font-semibold text-slate-900 block">Vybavenie nehnuteľnosti</span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* Klimatizácia */}
+            <div className="flex items-center">
+              <Checkbox
+                size="sm"
+                isSelected={hasAC}
+                onValueChange={setHasAC}
+                classNames={{
+                  label: 'text-xs font-medium text-slate-700 select-none flex items-center gap-1.5',
+                }}
+              >
+                <Wind className="w-3.5 h-3.5 text-slate-500" />
+                <span>Klimatizácia</span>
+              </Checkbox>
+            </div>
+
+            {/* Zariadenie */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
+                <Armchair className="w-3.5 h-3.5 text-slate-500" />
+                <span>Stav zariadenia</span>
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFurnishingStatus('furnished')}
+                  className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
+                    furnishingStatus === 'furnished'
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-2xs'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  Zariadený
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFurnishingStatus('unfurnished')}
+                  className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
+                    furnishingStatus === 'unfurnished'
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-2xs'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  Nezariadený
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

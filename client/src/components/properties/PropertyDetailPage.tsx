@@ -47,6 +47,8 @@ import {
   Home,
   Building2,
   TrendingUp,
+  Wind,
+  Armchair,
 } from 'lucide-react';
 import { Property, Lease } from '../../types';
 import { useProperty } from '../../context/PropertyContext';
@@ -984,6 +986,24 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       {property.hasParking
                         ? `Áno (${property.parkingSpotNumber ? 'č. ' + property.parkingSpotNumber : 'priradené'})`
                         : 'Nie'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1">
+                      <Wind className="w-3.5 h-3.5 text-slate-400" />
+                      Klimatizácia:
+                    </span>
+                    <span className="font-medium text-slate-900">
+                      {property.hasAC ? 'Áno' : 'Nie'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1">
+                      <Armchair className="w-3.5 h-3.5 text-slate-400" />
+                      Zariadenie:
+                    </span>
+                    <span className="font-medium text-slate-900">
+                      {property.furnishingStatus === 'unfurnished' ? 'Nezariadený' : 'Zariadený'}
                     </span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100">

@@ -24,6 +24,8 @@ export interface Property {
   cellarNumber?: string;
   hasParking?: boolean;
   parkingSpotNumber?: string;
+  hasAC?: boolean;
+  furnishingStatus?: 'furnished' | 'unfurnished';
   photos?: string[];
   notes?: string;
   createdAt: string;

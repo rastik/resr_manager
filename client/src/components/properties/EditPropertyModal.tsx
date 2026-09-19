@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Button, Checkbox, Textarea } from '@heroui/react';
-import { Home, Building2 } from 'lucide-react';
+import { Home, Building2, Wind, Armchair } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { useProperty } from '../../context/PropertyContext';
 import { Property } from '../../types';
@@ -34,6 +34,10 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const [cellarNumber, setCellarNumber] = useState(property.cellarNumber || '');
   const [hasParking, setHasParking] = useState(Boolean(property.hasParking));
   const [parkingSpotNumber, setParkingSpotNumber] = useState(property.parkingSpotNumber || '');
+  const [hasAC, setHasAC] = useState(Boolean(property.hasAC));
+  const [furnishingStatus, setFurnishingStatus] = useState<'furnished' | 'unfurnished'>(
+    property.furnishingStatus || 'furnished'
+  );
   const [notes, setNotes] = useState(property.notes || '');
   const [loading, setLoading] = useState(false);
 
@@ -51,6 +55,8 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
       setCellarNumber(property.cellarNumber || '');
       setHasParking(Boolean(property.hasParking));
       setParkingSpotNumber(property.parkingSpotNumber || '');
+      setHasAC(Boolean(property.hasAC));
+      setFurnishingStatus(property.furnishingStatus || 'furnished');
       setNotes(property.notes || '');
     }
   }, [isOpen, property]);
@@ -79,6 +85,8 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
         cellarNumber: hasCellar ? cellarNumber : undefined,
         hasParking,
         parkingSpotNumber: hasParking ? parkingSpotNumber : undefined,
+        hasAC,
+        furnishingStatus,
         notes,
       });
       onClose();
@@ -364,6 +372,60 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Vybavenie a zariadenie: Klimatizácia a Zariadenosť */}
+        <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-3">
+          <span className="text-xs font-semibold text-slate-900 block">Vybavenie nehnuteľnosti</span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* Klimatizácia */}
+            <div className="flex items-center">
+              <Checkbox
+                size="sm"
+                isSelected={hasAC}
+                onValueChange={setHasAC}
+                classNames={{
+                  label: 'text-xs font-medium text-slate-700 select-none flex items-center gap-1.5',
+                }}
+              >
+                <Wind className="w-3.5 h-3.5 text-slate-500" />
+                <span>Klimatizácia</span>
+              </Checkbox>
+            </div>
+
+            {/* Zariadenie */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-semibold text-slate-600 flex items-center gap-1.5">
+                <Armchair className="w-3.5 h-3.5 text-slate-500" />
+                <span>Stav zariadenia</span>
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFurnishingStatus('furnished')}
+                  className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
+                    furnishingStatus === 'furnished'
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-2xs'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  Zariadený
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFurnishingStatus('unfurnished')}
+                  className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
+                    furnishingStatus === 'unfurnished'
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-2xs'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  Nezariadený
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -26,6 +26,7 @@ import {
   Home,
   Check,
   Building,
+  Armchair,
 } from 'lucide-react';
 import { useProperty } from '../../context/PropertyContext';
 import { api } from '../../services/api';
@@ -308,9 +309,19 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                   {activeProperty.hasCellar && (
                     <span className="px-2 py-0.5 rounded bg-white border border-slate-200/80 font-medium text-slate-700 flex items-center gap-1">
                       <Warehouse className="w-3 h-3 text-slate-500" />
-                      Pivnica
+                      Kobka/Pivnica
                     </span>
                   )}
+                  {activeProperty.hasAC && (
+                    <span className="px-2 py-0.5 rounded bg-white border border-slate-200/80 font-medium text-slate-700 flex items-center gap-1">
+                      <Wind className="w-3 h-3 text-cyan-600" />
+                      Klíma
+                    </span>
+                  )}
+                  <span className="px-2 py-0.5 rounded bg-white border border-slate-200/80 font-medium text-slate-700 flex items-center gap-1">
+                    <Armchair className="w-3 h-3 text-slate-500" />
+                    {activeProperty.furnishingStatus === 'unfurnished' ? 'Nezariadený' : 'Zariadený'}
+                  </span>
                 </div>
               </div>
             </div>

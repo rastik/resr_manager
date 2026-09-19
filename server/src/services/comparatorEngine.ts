@@ -169,10 +169,10 @@ export class ComparatorEngine {
       amenitiesScore += 1;
     }
 
-    // Cellar (Max: 4)
+    // Cellar / Kobka (Max: 4) - kobka aj pivnica sa rátajú ako to isté
     if (target.hasCellar && comp.hasCellar) {
       amenitiesScore += 4;
-      matchedFeatures.push("pivnica");
+      matchedFeatures.push("kobka/pivnica");
     } else if (!target.hasCellar && !comp.hasCellar) {
       amenitiesScore += 2;
     } else {
@@ -187,19 +187,29 @@ export class ComparatorEngine {
       amenitiesScore += 1;
     }
 
-    // AC (Max: 4)
-    if (comp.hasAC) {
+    // AC / Klimatizácia (Max: 4)
+    if (target.hasAC && comp.hasAC) {
       amenitiesScore += 4;
       matchedFeatures.push("klimatizácia");
+    } else if (!target.hasAC && !comp.hasAC) {
+      amenitiesScore += 3;
+    } else if (comp.hasAC) {
+      amenitiesScore += 2;
     } else {
       amenitiesScore += 1;
     }
 
     // Furnishing & Building Condition Alignment (Max: 3)
     let conditionBonus = 0;
-    if (comp.furnishingStatus === 'furnished' || comp.isFurnished) {
+    const targetFurnished = target.furnishingStatus !== 'unfurnished';
+    const compFurnished = comp.furnishingStatus === 'furnished' || comp.isFurnished;
+
+    if (targetFurnished && compFurnished) {
       conditionBonus += 2;
       matchedFeatures.push("zariadený");
+    } else if (!targetFurnished && comp.furnishingStatus === 'unfurnished') {
+      conditionBonus += 2;
+      matchedFeatures.push("nezariadený");
     } else if (comp.furnishingStatus === 'partially') {
       conditionBonus += 1;
     }
