@@ -1,0 +1,397 @@
+import React from 'react';
+import { Card, CardBody, Button, Chip } from '@heroui/react';
+import { Clock, ShieldAlert, Plus, MapPin, ArrowRight, AlertTriangle, CheckCircle2, Calendar, Home, Building2 } from 'lucide-react';
+import { useProperty } from '../../context/PropertyContext';
+import { Badge } from '../common/Badge';
+import { formatDate, getEffectiveLeaseStatus } from '../../utils/date';
+
+interface PortfolioOverviewProps {
+  onSelectProperty: (id: string) => void;
+  onOpenAddProperty: () => void;
+  onOpenAddExpense: () => void;
+  onNavigateToTab: (tab: string) => void;
+}
+
+export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
+  onSelectProperty,
+  onOpenAddProperty,
+  onNavigateToTab,
+}) => {
+  const { properties, analytics, inventory, leases } = useProperty();
+
+  const flats = properties.filter(p => (p.propertyType || 'flat') === 'flat');
+  const apartments = properties.filter(p => p.propertyType === 'apartment');
+
+  const renderPropertyCard = (property: typeof properties[0]) => {
+    const fallbackImg =
+      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80';
+    const imgUrl = property.imageUrl || fallbackImg;
+
+    return (
+      <Card
+        key={property.id}
+        isPressable
+        onPress={() => onSelectProperty(property.id)}
+        className="group relative h-40 rounded-xl overflow-hidden border border-slate-200/80 hover:border-slate-300 p-0 shadow-2xs hover:shadow-lg transition-all duration-250 text-left w-full"
+      >
+        {/* Background Image */}
+        <img
+          src={imgUrl}
+          alt={property.name}
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+
+        {/* Dark Gradient Overlay for optimal contrast & legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/45 to-slate-950/20 group-hover:from-slate-950/90 transition-colors" />
+
+        {/* Content Inside Card */}
+        <div className="relative z-10 h-full flex flex-col justify-between p-3 w-full">
+          {/* Top: Unit Badge & Status Badge */}
+          <div className="flex items-center justify-between w-full">
+            <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold border border-white/20">
+              {property.propertyType === 'apartment' ? 'Apartmán' : 'Byt'} {property.unitNumber}
+            </span>
+            <Badge variant={property.status} />
+          </div>
+
+          {/* Bottom: Info, Specs & Price */}
+          <div className="space-y-1 w-full">
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight group-hover:text-emerald-300 transition-colors truncate">
+                {property.name}
+              </h4>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-300 pt-0.5 border-t border-white/15">
+              <span>{property.sizeSqm} m²</span>
+              <span>•</span>
+              <span>{property.bedrooms} {property.bedrooms === 1 ? 'izba' : property.bedrooms < 5 ? 'izby' : 'izieb'}</span>
+            </div>
+
+            <div className="flex items-center justify-between pt-0.5 border-t border-white/10 w-full">
+              <div>
+                {property.rentAmount && property.rentAmount > 0 ? (
+                  <>
+                    <span className="text-xs sm:text-sm font-bold text-white">
+                      €{property.rentAmount.toLocaleString()}
+                    </span>
+                    <span className="text-[10px] text-slate-300"> / mes</span>
+                  </>
+                ) : (
+                  <span className="text-[11px] font-medium text-slate-300">Bez nájmu</span>
+                )}
+              </div>
+              <span className="text-[10px] text-slate-200 bg-white/15 backdrop-blur-md px-1.5 py-0.5 rounded font-medium truncate max-w-[100px]">
+                {property.tenantName || 'Voľný'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="space-y-4 w-full">
+      {/* Key Metrics Bar (Compact & Sleek single divided strip) */}
+      <div className="bg-white border border-slate-200/90 rounded-xl shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 overflow-hidden">
+        {/* 1. Mesačný nájom */}
+        <div className="p-2.5 sm:p-3 flex flex-col justify-between min-h-[62px]">
+          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block leading-tight">
+            Mesačný nájom
+          </span>
+          <div>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+                €{analytics?.monthlyGrossRent.toLocaleString() || 0}
+              </span>
+              <span className="text-[10px] text-slate-500 font-normal">/ mes</span>
+            </div>
+            <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+              Ročne: €{((analytics?.monthlyGrossRent || 0) * 12).toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        {/* 2. Obsadenosť portfólia */}
+        <div className="p-2.5 sm:p-3 flex flex-col justify-between min-h-[62px]">
+          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block leading-tight">
+            Obsadenosť portfólia
+          </span>
+          <div>
+            <div className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+              {analytics?.occupancyRate || 0}%
+            </div>
+            <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+              {analytics?.occupiedUnits || 0} z {analytics?.totalUnits || 0} jednotiek obsadených
+            </span>
+          </div>
+        </div>
+
+        {/* 3. Končiace zmluvy */}
+        <div className="p-2.5 sm:p-3 flex flex-col justify-between min-h-[62px]">
+          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block leading-tight">
+            Končiace zmluvy
+          </span>
+          <div>
+            <div className={`text-sm sm:text-base font-bold leading-tight ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+              {analytics?.expiringIn60DaysCount || 0}
+            </div>
+            <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+              V nasledujúcich 60 dňoch
+            </span>
+          </div>
+        </div>
+
+        {/* 4. Výdavky na údržbu */}
+        <div className="p-2.5 sm:p-3 flex flex-col justify-between min-h-[62px]">
+          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block leading-tight">
+            Výdavky na údržbu
+          </span>
+          <div>
+            <div className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+              €{analytics?.totalExpenses.toLocaleString() || 0}
+            </div>
+            <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+              Celkové evidované náklady
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Sekcia 1: Byty v správe */}
+      <div className="space-y-2 w-full">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+              <Home className="w-4 h-4 text-slate-600" /> Byty v správe ({flats.length})
+            </h3>
+          </div>
+          <Button
+            size="sm"
+            variant="light"
+            className="text-slate-600 hover:text-slate-900 font-medium inline-flex h-7 px-2"
+            onPress={() => onNavigateToTab('properties')}
+            endContent={<ArrowRight className="w-3.5 h-3.5" />}
+          >
+            Zobraziť v tabuľke
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3 w-full">
+          {flats.map(property => renderPropertyCard(property))}
+
+          {flats.length === 0 && (
+            <div className="col-span-full p-6 text-center bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">
+              Zatiaľ nie sú evidované žiadne byty.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Sekcia 2: Apartmány v správe */}
+      <div className="space-y-2 w-full">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+              <Building2 className="w-4 h-4 text-slate-600" /> Apartmány v správe ({apartments.length})
+            </h3>
+          </div>
+          <Button
+            size="sm"
+            variant="light"
+            className="text-slate-600 hover:text-slate-900 font-medium inline-flex h-7 px-2"
+            onPress={() => onNavigateToTab('properties')}
+            endContent={<ArrowRight className="w-3.5 h-3.5" />}
+          >
+            Zobraziť v tabuľke
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3 w-full">
+          {apartments.map(property => renderPropertyCard(property))}
+
+          {apartments.length === 0 && (
+            <div className="col-span-full p-6 text-center bg-white rounded-xl border border-slate-200 text-slate-400 text-sm">
+              Zatiaľ nie sú evidované žiadne apartmány.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Priority Action Items: Leases & Warranties (HeroUI Cards) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2 sm:pt-3">
+        {/* Leases requiring renewal - SORTED CLOSEST FIRST */}
+        <Card shadow="sm" className="border border-slate-200 bg-white">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-xs font-semibold text-slate-900 flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Končiace nájomné zmluvy (zoradené od najbližšej)</span>
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">Sledovanie expirácie a potreby obnovy zmlúv</p>
+              </div>
+              <Button
+                size="sm"
+                variant="light"
+                onPress={() => onNavigateToTab('properties')}
+                className="text-xs text-slate-500 hover:text-slate-900 font-medium h-7 px-2"
+                endContent={<ArrowRight className="w-3 h-3" />}
+              >
+                Všetky zmluvy
+              </Button>
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              {leases
+                .filter(l => getEffectiveLeaseStatus(l) === 'active')
+                .sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime())
+                .slice(0, 5)
+                .map(lease => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const end = new Date(lease.endDate);
+                  const diffDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+                  let chipColor: 'danger' | 'warning' | 'default' | 'success' = 'default';
+                  let statusText = '';
+
+                  if (diffDays < 0) {
+                    chipColor = 'danger';
+                    statusText = `Expirovala pred ${Math.abs(diffDays)} dňami`;
+                  } else if (diffDays === 0) {
+                    chipColor = 'danger';
+                    statusText = 'Končí dnes!';
+                  } else if (diffDays <= 30) {
+                    chipColor = 'danger';
+                    statusText = `Končí o ${diffDays} dní`;
+                  } else if (diffDays <= 60) {
+                    chipColor = 'warning';
+                    statusText = `Končí o ${diffDays} dní`;
+                  } else {
+                    chipColor = 'success';
+                    const months = Math.floor(diffDays / 30);
+                    statusText = `Zostáva ${months > 0 ? months + ' mes.' : diffDays + ' dní'}`;
+                  }
+
+                  return (
+                    <div
+                      key={lease.id}
+                      onClick={() => onSelectProperty(lease.propertyId)}
+                      className="py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 px-2 -mx-2 rounded-lg transition"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-900">
+                            {lease.propertyName} ({lease.propertyUnit})
+                          </span>
+                          <Chip size="sm" variant="flat" color={chipColor} className="text-[10px] h-5 px-1 font-medium">
+                            {statusText}
+                          </Chip>
+                        </div>
+                        <p className="text-[11px] text-slate-500">
+                          Nájomca: <span className="text-slate-700 font-medium">{lease.tenantName}</span> {lease.tenantPhone && `• ${lease.tenantPhone}`}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0 ml-3">
+                        <span className="text-xs text-slate-900 font-bold">€{lease.rentAmount}/mes</span>
+                        <p className="text-[11px] text-slate-400">Do: {formatDate(lease.endDate)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {leases.filter(l => getEffectiveLeaseStatus(l) === 'active').length === 0 && (
+                <p className="text-xs text-slate-400 py-3 text-center">Žiadne aktívne zmluvy.</p>
+              )}
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Appliance Warranties - SORTED CLOSEST EXPIRATION FIRST */}
+        <Card shadow="sm" className="border border-slate-200 bg-white">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-xs font-semibold text-slate-900 flex items-center gap-2">
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Záruky spotrebičov (zoradené od najskoršej)</span>
+                </h3>
+                <p className="text-[11px] text-slate-400 mt-0.5">Sledovanie garancií a potreby servisu</p>
+              </div>
+              <Button
+                size="sm"
+                variant="light"
+                onPress={() => onNavigateToTab('inventory')}
+                className="text-xs text-slate-500 hover:text-slate-900 font-medium h-7 px-2"
+                endContent={<ArrowRight className="w-3 h-3" />}
+              >
+                Celý inventár
+              </Button>
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              {inventory
+                .filter(i => i.warrantyExpiresAt)
+                .sort((a, b) => new Date(a.warrantyExpiresAt!).getTime() - new Date(b.warrantyExpiresAt!).getTime())
+                .slice(0, 5)
+                .map(item => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const exp = new Date(item.warrantyExpiresAt!);
+                  const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+                  let chipColor: 'danger' | 'warning' | 'default' | 'success' = 'default';
+                  let statusText = '';
+
+                  if (diffDays < 0) {
+                    chipColor = 'default';
+                    statusText = 'Po záruke';
+                  } else if (diffDays <= 30) {
+                    chipColor = 'danger';
+                    statusText = `Záruka končí o ${diffDays} dní!`;
+                  } else if (diffDays <= 90) {
+                    chipColor = 'warning';
+                    statusText = `Záruka končí o ${diffDays} dní`;
+                  } else {
+                    chipColor = 'success';
+                    const months = Math.floor(diffDays / 30);
+                    statusText = `Záruka platná (${months > 0 ? months + ' mes.' : diffDays + ' dní'})`;
+                  }
+
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => onSelectProperty(item.propertyId)}
+                      className="py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 px-2 -mx-2 rounded-lg transition"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-900">{item.name}</span>
+                          <Chip size="sm" variant="flat" color={chipColor} className="text-[10px] h-5 px-1 font-medium">
+                            {statusText}
+                          </Chip>
+                        </div>
+                        <p className="text-[11px] text-slate-500">
+                          {item.propertyName} • {item.brandModel || 'Bez modelu'}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0 ml-3">
+                        <span className="text-xs text-slate-900 font-semibold">€{item.cost}</span>
+                        <p className="text-[11px] text-slate-400">Záruka do: {item.warrantyExpiresAt}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {inventory.filter(i => i.warrantyExpiresAt).length === 0 && (
+                <p className="text-xs text-slate-400 py-3 text-center">Žiadne evidované záruky.</p>
+              )}
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+  );
+};
