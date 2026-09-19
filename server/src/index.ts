@@ -83,6 +83,8 @@ async function initDb() {
       ALTER TABLE leases ADD COLUMN IF NOT EXISTS operator_company VARCHAR(255);
       ALTER TABLE inventory_items ALTER COLUMN purchase_date DROP NOT NULL;
       ALTER TABLE inventory_items ALTER COLUMN cost DROP NOT NULL;
+      ALTER TABLE properties ALTER COLUMN neighborhood DROP NOT NULL;
+      UPDATE properties SET neighborhood = '' WHERE neighborhood = 'Central';
     `);
 
     await pool.query(`

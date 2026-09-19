@@ -289,7 +289,7 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                 <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
                   <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   <span className="truncate">
-                    {activeProperty.address}, {activeProperty.neighborhood || activeProperty.city}
+                    {activeProperty.address}, {activeProperty.city}{activeProperty.neighborhood && activeProperty.neighborhood.toLowerCase() !== 'central' ? ` (${activeProperty.neighborhood})` : ''}
                   </span>
                 </div>
 
