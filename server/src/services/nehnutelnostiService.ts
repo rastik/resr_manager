@@ -457,13 +457,14 @@ function parsePrices(headlinePrice: number, fullText: string): {
     }
   }
 
-  // 2. Check if text specifies a total price inclusive of utilities
-  const incWithTotal = fullText.match(/(?:cena|n[aá]jomn[eé]?)\s*[:=-]?\s*([\d\s]+)\s*(?:EUR|€)[^.\n]*?(?:vr[aá]tane\s*energi[ií]|s\s*energiami)/i);
+  // 2. Check if text specifies a total price inclusive of utilities with headline base rent
+  const incWithTotal = fullText.match(/(?:cena|n[aá]jomn[eé]?)\s*(?:je|s[uú]|čin[ií]|predstavuje)?\s*[:=-]?\s*([\d\s]+)\s*(?:EUR|€)[^.\n]*?(?:vr[aá]tane\s*energi[ií]|s\s*energiami)/i);
   if (incWithTotal) {
     const totalWithEnergy = parseInt(incWithTotal[1].replace(/\s/g, ""), 10);
     if (headlinePrice && totalWithEnergy > headlinePrice) {
       utilitiesAmount = totalWithEnergy - headlinePrice;
-    } else {
+      isUtilitiesInclusive = false;
+    } else if (totalWithEnergy && totalWithEnergy > 0) {
       isUtilitiesInclusive = true;
     }
   }
