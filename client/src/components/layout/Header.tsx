@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
     properties: 'Nehnuteľnosti a byty',
     inventory: 'Inventár a spotrebiče',
     documents: 'Dokumenty a zmluvy',
-    market: 'Trhové porovnanie nájomného',
+    market: 'Trhové porovnanie nájomného s Nehnutelnosti.sk',
   };
 
   return (

@@ -17,9 +17,10 @@ import { DocumentVault } from './components/documents/DocumentVault';
 import { MarketComparator } from './components/market/MarketComparator';
 import { AnalyticsView } from './components/dashboard/AnalyticsView';
 import { AuthModal } from './components/auth/AuthModal';
+import { LoginPage } from './components/auth/LoginPage';
 
 const AppContent: React.FC = () => {
-  const { user, toggleDemoMode, login } = useAuth();
+  const { user, isLoading } = useAuth();
   const { selectedProperty, setSelectedPropertyId } = useProperty();
 
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -91,33 +92,16 @@ const AppContent: React.FC = () => {
     }
   };
 
-  if (!user) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-2xl space-y-6 text-center">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-black text-slate-950 tracking-tight">
-              RESR, s.r.o.
-            </h1>
-            <p className="text-xs text-slate-500">
-              Správa nehnuteľností, bytov a zmlúv
-            </p>
-          </div>
-
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
-            Boli ste úspešne odhlásený zo systému. Pre pokračovanie v práci sa prosím prihláste.
-          </div>
-
-          <button
-            type="button"
-            onClick={() => toggleDemoMode()}
-            className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition cursor-pointer"
-          >
-            Prihlásiť sa do systému
-          </button>
-        </div>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  if (!user) {
+    return <LoginPage />;
   }
 
   return (

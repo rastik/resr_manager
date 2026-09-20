@@ -1,6 +1,7 @@
 import { Pool, types } from 'pg';
 import path from 'path';
 import dotenv from 'dotenv';
+import { supabase } from './supabaseClient';
 
 // Load .env from cwd, server directory, and project root
 dotenv.config();
@@ -21,7 +22,7 @@ export const pool = new Pool(
           : { rejectUnauthorized: false },
         max: 10,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 10000,
+        connectionTimeoutMillis: 3000,
       }
     : {
         host: process.env.DB_HOST || 'localhost',
@@ -31,12 +32,12 @@ export const pool = new Pool(
         database: process.env.DB_NAME || 'resr',
         max: 10,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 5000,
+        connectionTimeoutMillis: 2000,
       }
 );
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle PostgreSQL client', err);
+  console.warn('PostgreSQL pool connection notice (fallback to Supabase Cloud active):', err.message);
 });
 
 // Helper to convert snake_case object keys to camelCase
@@ -45,7 +46,8 @@ export function toCamelCase<T = any>(obj: any): T {
     return obj.map(v => toCamelCase(v)) as any;
   } else if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
     return Object.keys(obj).reduce((result, key) => {
-      const camelKey = key.replace(/_([a-z0-9])/g, (_, letter) => letter.toUpperCase());
+      let camelKey = key.replace(/_([a-z0-9])/g, (_, letter) => letter.toUpperCase());
+      if (key === 'has_ac') camelKey = 'hasAC';
       result[camelKey] = toCamelCase(obj[key]);
       return result;
     }, {} as any);
@@ -59,10 +61,17 @@ export function toSnakeCase(obj: any): any {
     return obj.map(v => toSnakeCase(v));
   } else if (obj !== null && typeof obj === 'object' && obj.constructor === Object) {
     return Object.keys(obj).reduce((result, key) => {
-      const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      let snakeKey = key;
+      if (key === 'hasAC') {
+        snakeKey = 'has_ac';
+      } else {
+        snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      }
       result[snakeKey] = toSnakeCase(obj[key]);
       return result;
     }, {} as any);
   }
   return obj;
 }
+
+export { supabase };

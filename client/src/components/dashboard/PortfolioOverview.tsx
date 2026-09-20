@@ -98,66 +98,66 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
 
   return (
     <div className="space-y-4 w-full">
-      {/* Key Metrics Bar (Compact & Sleek single divided strip) */}
-      <div className="bg-white border border-slate-200/90 rounded-xl shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 overflow-hidden">
+      {/* Key Metrics Bar (Prominent, clean single divided strip) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 overflow-hidden">
         {/* 1. Mesačný nájom */}
-        <div className="p-2.5 sm:p-3 flex flex-col justify-between min-h-[62px]">
-          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block leading-tight">
+        <div className="p-3.5 sm:p-5 flex flex-col justify-between min-h-[82px] hover:bg-slate-50/50 transition">
+          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-wider text-slate-400 block leading-tight">
             Mesačný nájom
           </span>
-          <div>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+          <div className="mt-1">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
                 €{analytics?.monthlyGrossRent.toLocaleString() || 0}
               </span>
-              <span className="text-[10px] text-slate-500 font-normal">/ mes</span>
+              <span className="text-xs sm:text-sm text-slate-500 font-medium">/ mes</span>
             </div>
-            <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+            <span className="text-xs text-slate-500 block truncate leading-tight mt-1">
               Ročne: €{((analytics?.monthlyGrossRent || 0) * 12).toLocaleString()}
             </span>
           </div>
         </div>
 
         {/* 2. Obsadenosť portfólia */}
-        <div className="p-2.5 sm:p-3 flex flex-col justify-between min-h-[62px]">
-          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block leading-tight">
+        <div className="p-3.5 sm:p-5 flex flex-col justify-between min-h-[82px] hover:bg-slate-50/50 transition">
+          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-wider text-slate-400 block leading-tight">
             Obsadenosť portfólia
           </span>
-          <div>
-            <div className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+          <div className="mt-1">
+            <div className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
               {analytics?.occupancyRate || 0}%
             </div>
-            <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+            <span className="text-xs text-slate-500 block truncate leading-tight mt-1">
               {analytics?.occupiedUnits || 0} z {analytics?.totalUnits || 0} jednotiek obsadených
             </span>
           </div>
         </div>
 
         {/* 3. Končiace zmluvy */}
-        <div className="p-2.5 sm:p-3 flex flex-col justify-between min-h-[62px]">
-          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block leading-tight">
+        <div className="p-3.5 sm:p-5 flex flex-col justify-between min-h-[82px] hover:bg-slate-50/50 transition">
+          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-wider text-slate-400 block leading-tight">
             Končiace zmluvy
           </span>
-          <div>
-            <div className={`text-sm sm:text-base font-bold leading-tight ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+          <div className="mt-1">
+            <div className={`text-xl sm:text-2xl font-black leading-tight ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
               {analytics?.expiringIn60DaysCount || 0}
             </div>
-            <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+            <span className="text-xs text-slate-500 block truncate leading-tight mt-1">
               V nasledujúcich 60 dňoch
             </span>
           </div>
         </div>
 
         {/* 4. Výdavky na údržbu */}
-        <div className="p-2.5 sm:p-3 flex flex-col justify-between min-h-[62px]">
-          <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 block leading-tight">
+        <div className="p-3.5 sm:p-5 flex flex-col justify-between min-h-[82px] hover:bg-slate-50/50 transition">
+          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-wider text-slate-400 block leading-tight">
             Výdavky na údržbu
           </span>
-          <div>
-            <div className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+          <div className="mt-1">
+            <div className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
               €{analytics?.totalExpenses.toLocaleString() || 0}
             </div>
-            <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+            <span className="text-xs text-slate-500 block truncate leading-tight mt-1">
               Celkové evidované náklady
             </span>
           </div>
@@ -286,6 +286,11 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
                     statusText = `Zostáva ${months > 0 ? months + ' mes.' : diffDays + ' dní'}`;
                   }
 
+                  const prop = properties.find(p => p.id === lease.propertyId);
+                  const propName = lease.propertyName || prop?.name || 'Nehnuteľnosť';
+                  const propUnit = lease.propertyUnit || prop?.unitNumber;
+                  const propertyLabel = propUnit ? `${propName} (${propUnit})` : propName;
+
                   return (
                     <div
                       key={lease.id}
@@ -295,7 +300,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-slate-900">
-                            {lease.propertyName} ({lease.propertyUnit})
+                            {propertyLabel}
                           </span>
                           <Chip size="sm" variant="flat" color={chipColor} className="text-[10px] h-5 px-1 font-medium">
                             {statusText}

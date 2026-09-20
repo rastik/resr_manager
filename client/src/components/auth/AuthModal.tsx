@@ -12,6 +12,7 @@ interface AuthModalProps {
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const {
     isBackendConnected,
+    dbBackendInfo,
     toggleDemoMode,
     refreshBackendStatus,
   } = useAuth();
@@ -21,11 +22,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       isOpen={isOpen}
       onClose={onClose}
       title="Stav systému a databázy"
-      subtitle="Stav PostgreSQL databázy a pripojenia systému RESR"
+      subtitle="Stav databázy a pripojenia systému RESR"
       maxWidth="md"
     >
       <div className="space-y-4">
-        {/* TAB 1: SYSTEM & DOCKER DATABASE STATUS */}
+        {/* TAB 1: SYSTEM & DATABASE STATUS */}
         <div className="space-y-3 pt-1">
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
             <div className="flex items-center justify-between">
@@ -39,14 +40,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 color={isBackendConnected ? 'success' : 'warning'}
                 className="text-[11px] font-medium"
               >
-                {isBackendConnected ? 'PostgreSQL 16 (Docker)' : 'Lokálny režim'}
+                {isBackendConnected ? (dbBackendInfo || 'Pripojené') : 'Lokálny režim offline'}
               </Chip>
             </div>
 
             <div className="text-[11px] text-slate-600 space-y-1 pt-2 border-t border-slate-200">
-              <p>Hostiteľ: localhost:5432</p>
-              <p>Databáza: resr</p>
-              <p>Kontajner: resr_postgres (Docker Compose)</p>
+              <p>Poskytovateľ: Supabase Cloud (PostgreSQL 15)</p>
+              <p>Projekt: jjplixpjdyefibboerlq</p>
+              <p>Stav: {isBackendConnected ? 'Aktívne online (Dáta sa ukladajú v cloude)' : 'Lokálna vyrovnávacia pamäť'}</p>
               <p>Režim: Samostatný správca (Single-Tenant)</p>
             </div>
           </div>

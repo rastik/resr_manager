@@ -133,41 +133,6 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
 
   return (
     <div className="space-y-6">
-      {/* 1. Page Title & Live Status Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center justify-center p-2 rounded-xl bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-              <Sparkles className="w-5 h-5" />
-            </span>
-            <h1 className="text-2xl font-black text-slate-950 tracking-tight">
-              Trhové porovnanie s Nehnutelnosti.sk
-            </h1>
-            <Chip size="sm" color="success" variant="flat" className="text-[11px] font-semibold">
-              Živé dáta
-            </Chip>
-            {stats?.hasJevAI ? (
-              <Chip size="sm" color="secondary" variant="flat" className="text-[11px] font-semibold">
-                TypeSafe Jev AI
-              </Chip>
-            ) : null}
-          </div>
-          <p className="text-xs text-slate-500 mt-1.5 ml-0.5">
-            Vyhľadanie a výpočet miery zhody (Confidence Metric) najpodobnejších bytov na prenájom z portálu Nehnutelnosti.sk.
-          </p>
-        </div>
-
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />}
-          onPress={fetchComparables}
-          className="text-xs font-semibold self-start sm:self-auto shrink-0 shadow-2xs"
-        >
-          Obnoviť ponuky z trhu
-        </Button>
-      </div>
 
       {/* 2. Visual Apartment Selector Strip (Karty výberu bytov s mini fotkami) */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
@@ -385,17 +350,26 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="border border-slate-200 shadow-xs bg-white">
             <CardBody className="p-4">
-              <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
-                Odhadovaný trhový nájom
+              <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                <span>Odhadovaný trhový nájom</span>
+                {stats.avgConfidenceScore ? (
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60" title="Vážený priemer podľa miery zhody inzerátov (izby, m², lokalita, vybavenie)">
+                    Váha zhody {stats.avgConfidenceScore}%
+                  </span>
+                ) : null}
               </span>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-slate-900">
                   €{stats.targetEstimatedMarketRent.toLocaleString()}
                 </span>
-                <span className="text-xs text-slate-500">/ mes.</span>
+                <span className="text-xs text-slate-500">/ mes. s energiami</span>
+              </div>
+              <div className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md w-fit">
+                <span>Čistý nájom cca €{stats.estimatedBaseRent || (stats.targetEstimatedMarketRent - 150)}</span>
+                <span className="text-emerald-500 font-normal">+ cca €{stats.estimatedUtilities || 150} energie</span>
               </div>
               <span className="text-[11px] text-slate-500 mt-1 block">
-                Založené na trhovom priemere €{stats.avgRentPerSqm}/m²
+                Vážený priemer €{stats.avgRentPerSqm}/m² (podľa relevance zhody)
               </span>
             </CardBody>
           </Card>

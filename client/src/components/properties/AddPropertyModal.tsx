@@ -340,14 +340,13 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
               <div className="pl-6 pt-1">
                 <div className="space-y-1 max-w-xs">
                   <label className="block text-[11px] font-semibold text-slate-600">
-                    Číslo parkovacieho státia <span className="text-rose-500">*</span>
+                    Číslo parkovacieho státia <span className="text-slate-400 font-normal">(nepovinné)</span>
                   </label>
                   <Input
                     size="sm"
                     variant="bordered"
                     aria-label="Číslo parkovacieho státia"
                     placeholder="napr. P-05 alebo G-14"
-                    isRequired
                     value={parkingSpotNumber}
                     onChange={e => setParkingSpotNumber(e.target.value)}
                     classNames={{

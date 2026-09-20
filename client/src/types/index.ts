@@ -226,8 +226,11 @@ export interface MarketSummaryStats {
   maxRent: number;
   targetCurrentRent: number;
   targetEstimatedMarketRent: number;
+  estimatedBaseRent?: number;
+  estimatedUtilities?: number;
   deltaMarketRent: number;
   deltaMarketPercent: number;
+  avgConfidenceScore?: number;
   recommendation: string;
 }
 

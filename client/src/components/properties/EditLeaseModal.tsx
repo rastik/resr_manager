@@ -3,8 +3,8 @@ import { Input, Button } from '@heroui/react';
 import { Modal } from '../common/Modal';
 import { ImageLightboxModal } from '../common/ImageLightboxModal';
 import { useProperty } from '../../context/PropertyContext';
-import { Lease } from '../../types';
-import { Trash2, UploadCloud, FileText, Download, Check, X, Camera } from 'lucide-react';
+import { Lease, LeaseType } from '../../types';
+import { Trash2, UploadCloud, FileText, Download, Check, X, Camera, Home, Hotel, Building2 } from 'lucide-react';
 import { compressImage } from '../../utils/imageCompressor';
 
 interface EditLeaseModalProps {
@@ -18,11 +18,13 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
   onClose,
   lease,
 }) => {
-  const { updateLease, deleteLease } = useProperty();
+  const { properties, updateLease, deleteLease } = useProperty();
 
+  const [leaseType, setLeaseType] = useState<LeaseType>('standard');
   const [tenantName, setTenantName] = useState('');
   const [tenantEmail, setTenantEmail] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
+  const [operatorCompany, setOperatorCompany] = useState('');
   const [baseRent, setBaseRent] = useState<number | ''>('');
   const [utilitiesAmount, setUtilitiesAmount] = useState<number | ''>('');
   const [depositAmount, setDepositAmount] = useState<number | ''>('');
@@ -35,11 +37,15 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const isHotel = leaseType === 'hotel_operator';
+
   useEffect(() => {
     if (lease && isOpen) {
+      setLeaseType(lease.leaseType || 'standard');
       setTenantName(lease.tenantName || '');
       setTenantEmail(lease.tenantEmail || '');
       setTenantPhone(lease.tenantPhone || '');
+      setOperatorCompany(lease.operatorCompany || '');
       setBaseRent(lease.baseRent !== undefined ? lease.baseRent : lease.rentAmount || '');
       setUtilitiesAmount(lease.utilitiesAmount !== undefined ? lease.utilitiesAmount : 0);
       setDepositAmount(lease.depositAmount !== undefined ? lease.depositAmount : '');
@@ -93,24 +99,29 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
     setMoveInPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
+  const associatedProperty = lease ? properties.find(p => p.id === lease.propertyId) : null;
+  const isApartment = associatedProperty?.propertyType === 'apartment';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const bRent = Number(baseRent) || 0;
-      const uAmount = Number(utilitiesAmount) || 0;
+      const uAmount = isHotel ? 0 : (Number(utilitiesAmount) || 0);
       const totRent = bRent + uAmount;
 
       await updateLease(lease.id, {
+        leaseType,
         tenantName,
         tenantEmail,
         tenantPhone,
-        baseRent: bRent,
-        utilitiesAmount: uAmount,
-        rentAmount: totRent,
-        depositAmount: Number(depositAmount) || 0,
+        operatorCompany: isHotel ? operatorCompany : undefined,
+        baseRent: isHotel ? 0 : bRent,
+        utilitiesAmount: isHotel ? 0 : uAmount,
+        rentAmount: isHotel ? 0 : totRent,
+        depositAmount: isHotel ? 0 : (Number(depositAmount) || 0),
         startDate,
-        endDate,
+        endDate: endDate || undefined,
         contractFileName: contractFileName || '',
         contractFileUrl: contractFileUrl || '',
         moveInPhotos,
@@ -134,51 +145,89 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
     }
   };
 
+  const inputClass = {
+    inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
+    input: 'text-xs text-slate-900 placeholder:text-slate-400',
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Upraviť nájomnú zmluvu"
-      subtitle="Upravte podmienky zmluvy, nájomné alebo kontaktné údaje nájomcu"
+      title={isHotel ? 'Upraviť zmluvu operátora' : 'Upraviť nájomnú zmluvu'}
+      subtitle={isHotel ? 'Upravte podmienky spolupráce s hotelovým operátorom' : 'Upravte podmienky zmluvy, nájomné alebo kontaktné údaje nájomcu'}
       maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Typ zmluvy — iba pre apartmány */}
+        {isApartment && (
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">Typ nájmu</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setLeaseType('standard')}
+                className={`p-2.5 rounded-lg border text-left transition flex items-center gap-2 ${
+                  leaseType === 'standard'
+                    ? 'border-slate-900 bg-white ring-1 ring-slate-900 shadow-xs'
+                    : 'border-slate-200 bg-white/70 hover:bg-white text-slate-600'
+                }`}
+              >
+                <Home className="w-4 h-4 shrink-0 text-slate-600" />
+                <div>
+                  <span className="text-xs font-bold block text-slate-900">Štandardný nájom</span>
+                  <span className="text-[11px] text-slate-400">Klasická nájomná zmluva</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeaseType('hotel_operator')}
+                className={`p-2.5 rounded-lg border text-left transition flex items-center gap-2 ${
+                  leaseType === 'hotel_operator'
+                    ? 'border-amber-600 bg-white ring-1 ring-amber-600 shadow-xs'
+                    : 'border-slate-200 bg-white/70 hover:bg-white text-slate-600'
+                }`}
+              >
+                <Hotel className="w-4 h-4 shrink-0 text-amber-600" />
+                <div>
+                  <span className="text-xs font-bold block text-slate-900">Hotelový operátor</span>
+                  <span className="text-[11px] text-slate-400">Prevádzkar hotela, revenue share</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700">
-              Meno a priezvisko nájomcu <span className="text-rose-500">*</span>
+              {isHotel ? 'Meno prevádzkovateľa' : 'Meno a priezvisko nájomcu'} <span className="text-rose-500">*</span>
             </label>
             <Input
               size="sm"
               variant="bordered"
-              aria-label="Meno a priezvisko nájomcu"
-              placeholder="napr. Martin Horváth"
+              aria-label="Meno"
+              placeholder={isHotel ? 'napr. Ing. Peter Kováč' : 'napr. Martin Horváth'}
               isRequired
               value={tenantName}
               onChange={e => setTenantName(e.target.value)}
-              classNames={{
-                inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
-                input: 'text-xs text-slate-900 placeholder:text-slate-400',
-              }}
+              classNames={inputClass}
             />
           </div>
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700">
-              Email nájomcu <span className="text-rose-500">*</span>
+              {isHotel ? 'Email prevádzkovateľa' : 'Email nájomcu'} <span className="text-rose-500">*</span>
             </label>
             <Input
               type="email"
               size="sm"
               variant="bordered"
-              aria-label="Email nájomcu"
-              placeholder="najomca@email.sk"
+              aria-label="Email"
+              placeholder={isHotel ? 'prevadzkar@hotel.sk' : 'najomca@email.sk'}
               isRequired
               value={tenantEmail}
               onChange={e => setTenantEmail(e.target.value)}
-              classNames={{
-                inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
-                input: 'text-xs text-slate-900 placeholder:text-slate-400',
-              }}
+              classNames={inputClass}
             />
           </div>
         </div>
@@ -197,142 +246,160 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
               isRequired
               value={tenantPhone}
               onChange={e => setTenantPhone(e.target.value)}
-              classNames={{
-                inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
-                input: 'text-xs text-slate-900 placeholder:text-slate-400',
-              }}
+              classNames={inputClass}
             />
           </div>
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-700">
-              Výška kaucie / zábezpeky (€) <span className="text-rose-500">*</span>
-            </label>
-            <Input
-              type="number"
-              size="sm"
-              variant="bordered"
-              aria-label="Výška kaucie"
-              placeholder="napr. 1500"
-              isRequired
-              value={depositAmount === '' ? '' : String(depositAmount)}
-              onChange={e => setDepositAmount(e.target.value === '' ? '' : Number(e.target.value))}
-              classNames={{
-                inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
-                input: 'text-xs text-slate-900',
-              }}
-            />
-          </div>
+          {isHotel ? (
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">
+                Spoločnosť prevádzkovateľa
+              </label>
+              <Input
+                size="sm"
+                variant="bordered"
+                aria-label="Spoločnosť"
+                placeholder="napr. Hotel Grand s.r.o."
+                value={operatorCompany}
+                onChange={e => setOperatorCompany(e.target.value)}
+                classNames={inputClass}
+              />
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">
+                Výška kaucie / zábezpeky (€) <span className="text-rose-500">*</span>
+              </label>
+              <Input
+                type="number"
+                size="sm"
+                variant="bordered"
+                aria-label="Výška kaucie"
+                placeholder="napr. 1500"
+                isRequired
+                value={depositAmount === '' ? '' : String(depositAmount)}
+                onChange={e => setDepositAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                classNames={inputClass}
+              />
+            </div>
+          )}
         </div>
 
-        {/* NÁJOM A ENERGIE SEKCOVÝ PANEL */}
-        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-          <div className="flex items-center justify-between">
+        {/* Hotel info banner alebo Nájom a energie */}
+        {isHotel ? (
+          <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5">
+            <Building2 className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
             <div>
-              <span className="text-xs font-bold text-slate-900 block">
-                Mesačný nájom a energie <span className="text-rose-500">*</span>
-              </span>
-              <span className="text-[11px] text-slate-500">
-                Rozdelenie celkovej mesačnej platby
-              </span>
+              <p className="text-xs font-semibold text-amber-900">Hotelový model — mesačné výnosy</p>
+              <p className="text-[11px] text-amber-700 mt-0.5">
+                Príjem je evidovaný ako podiel z tržieb hotela. Mesačné výnosy sa zaznamenávajú v detaile apartmánu.
+              </p>
             </div>
-            <div className="text-right">
-              <span className="text-xs font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs inline-block">
-                Celkom: €{totalRent.toLocaleString()} / mes
+          </div>
+        ) : (
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-slate-900 block">
+                  Mesačný nájom a energie <span className="text-rose-500">*</span>
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  Rozdelenie celkovej mesačnej platby
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs inline-block">
+                  Celkom: €{totalRent.toLocaleString()} / mes
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-slate-700">
+                  Čistý nájom (€/mes) <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  type="number"
+                  size="sm"
+                  variant="bordered"
+                  aria-label="Čistý nájom"
+                  placeholder="napr. 600"
+                  isRequired
+                  value={baseRent === '' ? '' : String(baseRent)}
+                  onChange={e => {
+                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                    setBaseRent(val);
+                  }}
+                  classNames={{
+                    inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
+                    input: 'text-xs text-slate-900 font-semibold',
+                  }}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-slate-700">
+                  Energie a služby (€/mes) <span className="text-rose-500">*</span>
+                </label>
+                <Input
+                  type="number"
+                  size="sm"
+                  variant="bordered"
+                  aria-label="Energie a služby"
+                  placeholder="napr. 150"
+                  isRequired
+                  value={utilitiesAmount === '' ? '' : String(utilitiesAmount)}
+                  onChange={e => {
+                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                    setUtilitiesAmount(val);
+                  }}
+                  classNames={{
+                    inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
+                    input: 'text-xs text-slate-900 font-semibold',
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-200/70">
+              <span>Súhrn platby:</span>
+              <span className="font-semibold text-slate-800">
+                Nájom €{(Number(baseRent) || 0).toLocaleString()} + Energie €{(Number(utilitiesAmount) || 0).toLocaleString()} = €{totalRent.toLocaleString()}
               </span>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-700">
-                Čistý nájom (€/mes) <span className="text-rose-500">*</span>
-              </label>
-              <Input
-                type="number"
-                size="sm"
-                variant="bordered"
-                aria-label="Čistý nájom"
-                placeholder="napr. 600"
-                isRequired
-                value={baseRent === '' ? '' : String(baseRent)}
-                onChange={e => {
-                  const val = e.target.value === '' ? '' : Number(e.target.value);
-                  setBaseRent(val);
-                }}
-                classNames={{
-                  inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
-                  input: 'text-xs text-slate-900 font-semibold',
-                }}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-700">
-                Energie a služby (€/mes) <span className="text-rose-500">*</span>
-              </label>
-              <Input
-                type="number"
-                size="sm"
-                variant="bordered"
-                aria-label="Energie a služby"
-                placeholder="napr. 150"
-                isRequired
-                value={utilitiesAmount === '' ? '' : String(utilitiesAmount)}
-                onChange={e => {
-                  const val = e.target.value === '' ? '' : Number(e.target.value);
-                  setUtilitiesAmount(val);
-                }}
-                classNames={{
-                  inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
-                  input: 'text-xs text-slate-900 font-semibold',
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-200/70">
-            <span>Súhrn platby:</span>
-            <span className="font-semibold text-slate-800">
-              Nájom €{(Number(baseRent) || 0).toLocaleString()} + Energie €{(Number(utilitiesAmount) || 0).toLocaleString()} = €{totalRent.toLocaleString()}
-            </span>
-          </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3.5">
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700">
-              Začiatok nájmu <span className="text-rose-500">*</span>
+              {isHotel ? 'Začiatok spolupráce' : 'Začiatok nájmu'} <span className="text-rose-500">*</span>
             </label>
             <Input
               type="date"
               size="sm"
               variant="bordered"
-              aria-label="Začiatok nájmu"
+              aria-label="Začiatok"
               isRequired
               value={startDate}
               onChange={e => setStartDate(e.target.value)}
-              classNames={{
-                inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
-                input: 'text-xs text-slate-900',
-              }}
+              classNames={inputClass}
             />
           </div>
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700">
-              Koniec nájmu <span className="text-rose-500">*</span>
+              {isHotel ? 'Koniec spolupráce' : 'Koniec nájmu'} {isHotel && <span className="text-slate-400 font-normal">(nepovinné)</span>}
+              {!isHotel && <span className="text-rose-500">*</span>}
             </label>
             <Input
               type="date"
               size="sm"
               variant="bordered"
-              aria-label="Koniec nájmu"
-              isRequired
+              aria-label="Koniec"
+              isRequired={!isHotel}
               value={endDate}
               onChange={e => setEndDate(e.target.value)}
-              classNames={{
-                inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
-                input: 'text-xs text-slate-900',
-              }}
+              classNames={inputClass}
             />
           </div>
         </div>

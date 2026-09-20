@@ -54,8 +54,11 @@ export interface MarketSummaryStats {
   maxRent: number;
   targetCurrentRent: number;
   targetEstimatedMarketRent: number;
+  estimatedBaseRent?: number;
+  estimatedUtilities?: number;
   deltaMarketRent: number;
   deltaMarketPercent: number;
+  avgConfidenceScore?: number;
   recommendation: string;
 }
 
@@ -294,7 +297,21 @@ export class ComparatorEngine {
     scoredListings.sort((a, b) => b.confidenceScore - a.confidenceScore);
 
     // Compute market stats using top 10 most relevant matches
-    const topComps = scoredListings.slice(0, 10).filter(c => c.rentPrice && c.rentPrice > 0);
+    let topComps = scoredListings.slice(0, 10).filter(c => c.rentPrice && c.rentPrice > 0);
+
+    // Outlier filtering: exclude extreme prices > 40% away from the median if sample size >= 5
+    if (topComps.length >= 5) {
+      const rawPrices = topComps.map(c => c.rentPrice as number).sort((a, b) => a - b);
+      const rawMedian = rawPrices[Math.floor(rawPrices.length / 2)];
+      const filtered = topComps.filter(c => {
+        const diff = Math.abs((c.rentPrice as number) - rawMedian) / rawMedian;
+        return diff <= 0.38; // filter out luxury penthouse or extreme anomalies
+      });
+      if (filtered.length >= 3) {
+        topComps = filtered;
+      }
+    }
+
     const prices = topComps.map(c => c.rentPrice as number).sort((a, b) => a - b);
 
     const comparablesCount = scoredListings.length;
@@ -307,25 +324,47 @@ export class ComparatorEngine {
     if (prices.length > 0) {
       minRent = prices[0];
       maxRent = prices[prices.length - 1];
-      const sum = prices.reduce((acc, p) => acc + p, 0);
-      avgRent = Math.round(sum / prices.length);
+
+      // Confidence-weighted average rent
+      const totalWeight = topComps.reduce((acc, c) => acc + (c.confidenceScore || 50), 0);
+      const weightedRentSum = topComps.reduce((acc, c) => acc + ((c.rentPrice as number) * (c.confidenceScore || 50)), 0);
+      avgRent = totalWeight > 0 ? Math.round(weightedRentSum / totalWeight) : Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
 
       const mid = Math.floor(prices.length / 2);
       medianRent = prices.length % 2 !== 0 ? prices[mid] : Math.round((prices[mid - 1] + prices[mid]) / 2);
 
-      const sqmList = topComps.filter(c => c.pricePerSqm).map(c => c.pricePerSqm as number);
-      if (sqmList.length > 0) {
-        avgRentPerSqm = Number((sqmList.reduce((acc, s) => acc + s, 0) / sqmList.length).toFixed(2));
+      // Confidence-weighted average €/m²
+      const compsWithSqm = topComps.filter(c => c.pricePerSqm && c.pricePerSqm > 0);
+      if (compsWithSqm.length > 0) {
+        const sqmWeightSum = compsWithSqm.reduce((acc, c) => acc + (c.confidenceScore || 50), 0);
+        const weightedSqmSum = compsWithSqm.reduce((acc, c) => acc + ((c.pricePerSqm as number) * (c.confidenceScore || 50)), 0);
+        avgRentPerSqm = sqmWeightSum > 0 ? Number((weightedSqmSum / sqmWeightSum).toFixed(2)) : Number((compsWithSqm.reduce((a, c) => a + (c.pricePerSqm as number), 0) / compsWithSqm.length).toFixed(2));
       } else {
         avgRentPerSqm = target.sizeSqm > 0 ? Number((avgRent / target.sizeSqm).toFixed(2)) : 0;
       }
     }
 
-    // Estimated fair market rent for our property based on avg €/m²
+    // Confidence-weighted estimated market rent
+    // Prioritizes highly matching listings (rooms, area, zone, amenities)
     const targetEstimatedMarketRent =
       avgRentPerSqm > 0 && target.sizeSqm > 0
         ? Math.round(avgRentPerSqm * target.sizeSqm)
-        : medianRent || 0;
+        : avgRent || medianRent || 0;
+
+    const avgConfidenceScore = topComps.length > 0
+      ? Math.round(topComps.reduce((acc, c) => acc + (c.confidenceScore || 0), 0) / topComps.length)
+      : 0;
+
+    // Calculate base rent vs utilities breakdown from comparables
+    const compsWithBase = topComps.filter(c => c.baseRent && c.baseRent > 0 && c.baseRent < (c.totalRentPrice || c.rentPrice));
+    let estimatedUtilities = 150; // standard 2-room apartment utilities
+    if (compsWithBase.length > 0) {
+      const avgUtils = compsWithBase.reduce((acc, c) => acc + ((c.totalRentPrice || c.rentPrice) - c.baseRent), 0) / compsWithBase.length;
+      estimatedUtilities = Math.round(avgUtils);
+    } else if (target.utilitiesAmount && target.utilitiesAmount > 0) {
+      estimatedUtilities = Number(target.utilitiesAmount);
+    }
+    const estimatedBaseRent = Math.max(300, targetEstimatedMarketRent - estimatedUtilities);
 
     const hasCurrentRent = target.rentAmount && target.rentAmount > 0;
     const deltaMarketRent = hasCurrentRent ? target.rentAmount - targetEstimatedMarketRent : 0;
@@ -337,7 +376,7 @@ export class ComparatorEngine {
     // Strategy recommendation
     let recommendation = "";
     if (!hasCurrentRent) {
-      recommendation = `Byt momentálne nemá aktívnu zmluvu. Na základe trhovej analýzy v lokalite ${target.city} odporúčame nastaviť uvádzací nájom na cca ${targetEstimatedMarketRent} €/mes. (priemer ${avgRentPerSqm} €/m²).`;
+      recommendation = `Byt momentálne nemá aktívnu zmluvu. Na základe trhovej analýzy v lokalite ${target.city} odporúčame nastaviť uvádzací čistý nájom na cca ${estimatedBaseRent} € + ${estimatedUtilities} € energie (celkovo cca ${targetEstimatedMarketRent} €/mes.).`;
     } else if (deltaMarketPercent < -7) {
       recommendation = `Váš nájom (${target.rentAmount} €) je pod trhovým priemerom. Pri obnove zmluvy máte priestor na zvýšenie o +${Math.abs(deltaMarketRent)} €/mes.`;
     } else if (deltaMarketPercent > 7) {
@@ -360,8 +399,11 @@ export class ComparatorEngine {
         maxRent,
         targetCurrentRent: target.rentAmount,
         targetEstimatedMarketRent,
+        estimatedBaseRent,
+        estimatedUtilities,
         deltaMarketRent,
         deltaMarketPercent,
+        avgConfidenceScore,
         recommendation
       },
       comparables: scoredListings

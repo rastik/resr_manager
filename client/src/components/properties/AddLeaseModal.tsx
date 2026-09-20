@@ -57,7 +57,7 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
     if (prop) {
       // Auto-set lease type based on property type
       if (prop.propertyType === 'apartment') {
-        // keep current leaseType selection
+        setLeaseType('hotel_operator');
       } else {
         setLeaseType('standard');
       }

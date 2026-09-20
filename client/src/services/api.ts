@@ -1,7 +1,7 @@
 import { Property, Lease, HotelRevenueMonth, InventoryItem, Expense, MarketComp, VaultDocument, PortfolioAnalytics, UserProfile, MarketComparisonResponse } from '../types';
 import { initialProperties, initialLeases, initialInventory, initialExpenses, initialMarketComps, initialDocuments, initialUser } from './mockData';
 
-const BASE_URL = '/api';
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 class ApiService {
   private userId: string = 'user_demo_landlord';
@@ -32,13 +32,14 @@ class ApiService {
       if (res.ok) {
         const data = await res.json();
         this.isOnlineWithBackend = true;
-        return { isConnected: true, database: data.database || 'PostgreSQL', message: 'Connected to live PostgreSQL Docker instance' };
+        const dbName = data.database || 'Supabase Cloud';
+        return { isConnected: true, database: dbName, message: `Pripojené k ${dbName}` };
       }
     } catch {
       // Handled in fallback
     }
     this.isOnlineWithBackend = false;
-    return { isConnected: false, database: 'Local Resilient Cache', message: 'Running in Local Offline Mode' };
+    return { isConnected: false, database: 'Lokálna vyrovnávacia pamäť', message: 'Lokálny režim offline' };
   }
 
   // Properties
