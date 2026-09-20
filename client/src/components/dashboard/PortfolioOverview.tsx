@@ -227,22 +227,28 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
       {/* Priority Action Items: Leases & Warranties (HeroUI Cards) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2 sm:pt-3">
         {/* Leases requiring renewal - SORTED CLOSEST FIRST */}
-        <Card shadow="sm" className="border border-slate-200 bg-white">
-          <CardBody className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-xs font-semibold text-slate-900 flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5 text-rose-500" />
-                  <span>Končiace nájomné zmluvy (zoradené od najbližšej)</span>
-                </h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">Sledovanie expirácie a potreby obnovy zmlúv</p>
+        <Card shadow="sm" className="border border-slate-200/90 bg-white rounded-xl shadow-xs overflow-hidden">
+          <CardBody className="p-4 sm:p-5">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-100/80 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
+                    Končiace nájomné zmluvy
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Sledovanie expirácie a potreby obnovy (od najbližšej)
+                  </p>
+                </div>
               </div>
               <Button
                 size="sm"
                 variant="light"
                 onPress={() => onNavigateToTab('properties')}
-                className="text-xs text-slate-500 hover:text-slate-900 font-medium h-7 px-2"
-                endContent={<ArrowRight className="w-3 h-3" />}
+                className="text-xs text-slate-500 hover:text-slate-900 font-medium h-7 px-2.5"
+                endContent={<ArrowRight className="w-3.5 h-3.5" />}
               >
                 Všetky zmluvy
               </Button>
@@ -315,22 +321,28 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         </Card>
 
         {/* Appliance Warranties - SORTED CLOSEST EXPIRATION FIRST */}
-        <Card shadow="sm" className="border border-slate-200 bg-white">
-          <CardBody className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-xs font-semibold text-slate-900 flex items-center gap-2">
-                  <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Záruky spotrebičov (zoradené od najskoršej)</span>
-                </h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">Sledovanie garancií a potreby servisu</p>
+        <Card shadow="sm" className="border border-slate-200/90 bg-white rounded-xl shadow-xs overflow-hidden">
+          <CardBody className="p-4 sm:p-5">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100/80 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
+                    Záruky spotrebičov
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Sledovanie garancií a servisu (od najskoršej)
+                  </p>
+                </div>
               </div>
               <Button
                 size="sm"
                 variant="light"
                 onPress={() => onNavigateToTab('inventory')}
-                className="text-xs text-slate-500 hover:text-slate-900 font-medium h-7 px-2"
-                endContent={<ArrowRight className="w-3 h-3" />}
+                className="text-xs text-slate-500 hover:text-slate-900 font-medium h-7 px-2.5"
+                endContent={<ArrowRight className="w-3.5 h-3.5" />}
               >
                 Celý inventár
               </Button>
