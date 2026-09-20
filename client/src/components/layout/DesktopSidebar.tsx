@@ -131,7 +131,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold text-slate-900 truncate">
-                        {typeLabel} {property.unitNumber}
+                        {property.name} {property.unitNumber}
                       </span>
                       <span
                         className={`w-1.5 h-1.5 rounded-full shrink-0 ${
@@ -143,7 +143,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                       />
                     </div>
                     <p className="text-[10px] text-slate-500 truncate leading-none mt-0.5">
-                      {property.name}
+                      {[property.address, property.city].filter(Boolean).join(', ') || property.address || property.city || ''}
                     </p>
                   </div>
                 </div>

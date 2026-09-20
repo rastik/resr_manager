@@ -265,20 +265,32 @@ export const dbService = {
 
     let q = supabase
       .from('leases')
-      .select('*, properties(name, unit_number)')
+      .select('*')
       .eq('user_id', userId)
       .order('start_date', { ascending: false });
     if (propertyId) {
       q = q.eq('property_id', propertyId);
     }
-    const { data, error } = await q;
+    const { data: rawLeases, error } = await q;
     if (error) throw error;
-    const formatted = (data || []).map((lease: any) => ({
-      ...lease,
-      property_name: lease.properties?.name || '',
-      property_unit: lease.properties?.unit_number || '',
-      properties: undefined,
-    }));
+
+    const propIds = Array.from(new Set((rawLeases || []).map((l: any) => l.property_id).filter(Boolean)));
+    let propsMap: Record<string, any> = {};
+    if (propIds.length > 0) {
+      const { data: pData } = await supabase.from('properties').select('id, name, unit_number').in('id', propIds);
+      if (pData) {
+        pData.forEach((p: any) => { propsMap[p.id] = p; });
+      }
+    }
+
+    const formatted = (rawLeases || []).map((lease: any) => {
+      const p = propsMap[lease.property_id];
+      return {
+        ...lease,
+        property_name: p?.name || '',
+        property_unit: p?.unit_number || '',
+      };
+    });
     return toCamelCase(formatted);
   },
 
