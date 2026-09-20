@@ -10,16 +10,30 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 // Prevent node-postgres from shifting DATE values to UTC midnight ISO strings
 types.setTypeParser(1082, (val: string) => val);
 
-export const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'resr',
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+const connectionString = process.env.DATABASE_URL;
+
+export const pool = new Pool(
+  connectionString
+    ? {
+        connectionString,
+        ssl: connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
+          ? false
+          : { rejectUnauthorized: false },
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      }
+    : {
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432', 10),
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres',
+        database: process.env.DB_NAME || 'resr',
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+      }
+);
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle PostgreSQL client', err);
