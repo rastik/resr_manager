@@ -49,6 +49,8 @@ import {
   TrendingUp,
   Wind,
   Armchair,
+  UserMinus,
+  UserX,
 } from 'lucide-react';
 import { Property, Lease } from '../../types';
 import { useProperty } from '../../context/PropertyContext';
@@ -306,6 +308,29 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
     setIsEditLeaseModalOpen(true);
   };
 
+  const handleEndActiveLease = async (leaseToEnd: Lease) => {
+    if (
+      confirm(
+        `Naozaj chcete ukončiť aktívny nájom pre nájomcu ${leaseToEnd.tenantName}?\n\nNájomca a táto zmluva zostanú zachované v histórii zmlúv ako neaktívne a byt bude označený ako voľný.`
+      )
+    ) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const newEndDate = leaseToEnd.endDate && leaseToEnd.endDate < todayStr ? leaseToEnd.endDate : todayStr;
+      await updateLease(leaseToEnd.id, {
+        status: 'expired',
+        endDate: newEndDate,
+      });
+      await updateProperty(property.id, {
+        activeLeaseId: undefined,
+        status: 'vacant',
+        rentAmount: 0,
+        baseRent: undefined,
+        utilitiesAmount: undefined,
+      });
+      showToast(`Nájomca ${leaseToEnd.tenantName} bol presunutý do histórie zmlúv a byt je voľný.`);
+    }
+  };
+
   const handleDeleteLease = async (leaseId: string, tenantName: string) => {
     if (confirm(`Naozaj chcete natrvalo vymazať zmluvu pre nájomcu ${tenantName}?`)) {
       await deleteLease(leaseId);
@@ -525,6 +550,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     </div>
                     <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
                       {property.bedrooms} {property.bedrooms === 1 ? 'izba' : property.bedrooms < 5 ? 'izby' : 'izieb'}
+                      {property.floor !== undefined ? ` • ${property.floor}. posch.` : ''}
                     </span>
                   </div>
                 </div>
@@ -614,11 +640,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                           size="sm"
                           variant="flat"
                           color="danger"
-                          onPress={() => handleDeleteLease(activeLease.id, activeLease.tenantName)}
-                          startContent={<Trash2 className="w-3 h-3" />}
+                          onPress={() => handleEndActiveLease(activeLease)}
+                          startContent={<UserMinus className="w-3 h-3" />}
                           className="bg-rose-50 hover:bg-rose-100 text-rose-600 font-medium text-[11px] rounded-lg h-7 px-2"
+                          title="Ukončí aktívny nájom a presunie nájomcu do histórie zmlúv"
                         >
-                          Vymazať
+                          Odstrániť nájomcu
                         </Button>
                       </>
                     )}
@@ -965,6 +992,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   <div className="flex justify-between py-1 border-b border-slate-100">
                     <span className="text-slate-500">Počet izieb:</span>
                     <span className="font-medium text-slate-900">{property.bedrooms}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-slate-100">
+                    <span className="text-slate-500">Poschodie:</span>
+                    <span className="font-medium text-slate-900">
+                      {property.floor !== undefined ? `${property.floor}. poschodie` : '—'}
+                    </span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100">
                     <span className="text-slate-500 flex items-center gap-1">

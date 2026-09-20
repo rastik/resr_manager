@@ -32,6 +32,7 @@ import {
 import { useProperty } from '../../context/PropertyContext';
 import { api } from '../../services/api';
 import { Property, MarketComparisonResponse, MarketComparableItem } from '../../types';
+import { PropertySelectorDropdown } from '../common/PropertySelectorDropdown';
 
 interface MarketComparatorProps {
   onSelectProperty?: (id: string) => void;
@@ -134,89 +135,29 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
   return (
     <div className="space-y-6">
 
-      {/* 2. Visual Apartment Selector Strip (Karty výberu bytov s mini fotkami) */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
+      {/* Apartment Selector Dropdown */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Building className="w-4 h-4 text-slate-400" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Vyberte byt z portfólia na porovnanie ({properties.length})
             </span>
           </div>
-          <span className="text-[11px] text-slate-400 hidden sm:inline">
-            Kliknutím na kartu prepnete porovnávaný apartmán
+          <span className="text-[11px] text-slate-400">
+            Trhové porovnanie sa automaticky prispôsobí zvolenému bytu
           </span>
         </div>
 
-        {/* Horizontal scrollable gallery of apartment cards */}
-        <div className="flex items-stretch gap-3 overflow-x-auto pb-2 pt-1 scrollbar-thin">
-          {properties.map(property => {
-            const isSelected = selectedPropertyId === property.id;
-            const imgUrl = property.imageUrl || (property.photos && property.photos[0]) || fallbackImg;
-            const typeLabel = property.propertyType === 'apartment' ? 'Apartmán' : 'Byt';
-
-            return (
-              <button
-                key={property.id}
-                type="button"
-                onClick={() => setSelectedPropertyId(property.id)}
-                className={`flex items-center gap-3 p-2.5 rounded-xl text-left transition-all duration-200 shrink-0 min-w-[240px] sm:min-w-[270px] max-w-[290px] border cursor-pointer ${
-                  isSelected
-                    ? 'bg-emerald-50/50 border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
-                    : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs'
-                }`}
-              >
-                {/* Mini Photo with status indicator overlay */}
-                <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-100 shadow-2xs">
-                  <img
-                    src={imgUrl}
-                    alt={property.name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    onError={e => {
-                      (e.target as HTMLImageElement).src = fallbackImg;
-                    }}
-                  />
-                  {/* Status dot */}
-                  <span
-                    className={`absolute bottom-1 right-1 w-2.5 h-2.5 rounded-full border-2 border-white shadow-xs ${
-                      property.status === 'occupied' ? 'bg-emerald-500' : 'bg-rose-500'
-                    }`}
-                    title={property.status === 'occupied' ? 'Prenajatý' : 'Voľný'}
-                  />
-                </div>
-
-                {/* Details */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-xs font-bold text-slate-900 truncate">
-                      {typeLabel} {property.unitNumber}
-                    </span>
-                    {isSelected && (
-                      <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-600 text-white shrink-0">
-                        <Check className="w-2.5 h-2.5 stroke-[3]" />
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
-                    {property.name}
-                  </p>
-
-                  <div className="mt-1.5 flex items-center justify-between text-[11px]">
-                    <span className="text-slate-600 font-medium">
-                      {property.bedrooms} izby • {property.sizeSqm} m²
-                    </span>
-                    <span className="font-bold text-slate-900">
-                      {property.rentAmount && property.rentAmount > 0
-                        ? `€${property.rentAmount.toLocaleString()}`
-                        : <span className="text-slate-400 font-normal">Bez nájmu</span>}
-                    </span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+        {/* Dropdown Selector */}
+        <div className="max-w-md">
+          <PropertySelectorDropdown
+            properties={properties}
+            selectedPropertyId={selectedPropertyId}
+            onSelectPropertyId={setSelectedPropertyId}
+            allowAll={false}
+            label="Zvolený byt / apartmán"
+          />
         </div>
 
         {/* 3. Featured Active Apartment Spotlight Banner */}

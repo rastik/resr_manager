@@ -106,7 +106,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           {activeTab === 'overview' && (
             <div className="space-y-5">
               {/* Specs Grid */}
-              <div className="grid grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <div className="grid grid-cols-4 gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                 <div>
                   <span className="text-slate-500 text-[10px] block uppercase font-medium">Výmera</span>
                   <span className="text-sm font-bold text-slate-900">{property.sizeSqm} m²</span>
@@ -114,6 +114,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <div>
                   <span className="text-slate-500 text-[10px] block uppercase font-medium">Izby</span>
                   <span className="text-sm font-bold text-slate-900">{property.bedrooms} {property.bedrooms === 1 ? 'izba' : property.bedrooms < 5 ? 'izby' : 'izieb'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-[10px] block uppercase font-medium">Poschodie</span>
+                  <span className="text-sm font-bold text-slate-900">{property.floor !== undefined ? `${property.floor}.` : '—'}</span>
                 </div>
                 <div>
                   <span className="text-slate-500 text-[10px] block uppercase font-medium">Sadzba</span>

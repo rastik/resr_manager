@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   TableHeader,
@@ -17,19 +17,39 @@ import {
   Download,
   Eye,
   Trash2,
+  FileCheck2,
 } from 'lucide-react';
 import { useProperty } from '../../context/PropertyContext';
 import { VaultDocument, DocumentCategory } from '../../types';
+import { formatDate } from '../../utils/date';
+import { openLeasePdfWindow } from '../../utils/contractPdf';
 import { DocumentUploadModal } from './DocumentUploadModal';
 import { DocumentPreviewModal } from './DocumentPreviewModal';
 
 export const DocumentVault: React.FC = () => {
-  const { documents, deleteDocument } = useProperty();
+  const { documents, leases, properties, deleteDocument } = useProperty();
 
   const [categoryFilter, setCategoryFilter] = useState<DocumentCategory | 'all'>('all');
   const [search, setSearch] = useState<string>('');
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
   const [previewDoc, setPreviewDoc] = useState<VaultDocument | null>(null);
+
+  const handleOpenDocument = (doc: VaultDocument) => {
+    // If it's a lease agreement, open full authentic printable PDF view
+    if (doc.leaseId) {
+      const lease = leases.find(l => l.id === doc.leaseId);
+      const prop = properties.find(p => p.id === (doc.propertyId || lease?.propertyId));
+      if (lease) {
+        openLeasePdfWindow(lease, prop);
+        return;
+      }
+    }
+
+    // Default open in new tab
+    if (doc.fileUrl) {
+      window.open(doc.fileUrl, '_blank');
+    }
+  };
 
   const categoryLabels: Record<string, string> = {
     all: 'Všetko',
@@ -39,11 +59,39 @@ export const DocumentVault: React.FC = () => {
     other: 'Ostatné',
   };
 
-  const filteredDocs = documents.filter(doc => {
+  // Merge uploaded documents with active & historical leases
+  const allVaultDocuments = useMemo(() => {
+    // Convert leases into virtual vault documents
+    const leaseDocuments: VaultDocument[] = leases.map(lease => ({
+      id: `lease_doc_${lease.id}`,
+      userId: lease.userId,
+      propertyId: lease.propertyId,
+      leaseId: lease.id,
+      name: lease.contractFileName || `Nájomná zmluva – ${lease.tenantName}`,
+      category: 'tenancy',
+      fileSize: '1.4 MB',
+      uploadDate: formatDate(lease.startDate || lease.createdAt || new Date().toISOString()),
+      expiryDate: lease.endDate ? formatDate(lease.endDate) : undefined,
+      fileUrl: lease.contractFileUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+      notes: `Zmluva s nájomcom ${lease.tenantName} (${lease.tenantEmail || ''})`,
+      propertyName: lease.propertyName || 'Nehnuteľnosť',
+      propertyUnit: lease.propertyUnit || '',
+      tenantName: lease.tenantName,
+    }));
+
+    // Avoid duplicates if a document already references this leaseId
+    const existingLeaseIds = new Set(documents.filter(d => d.leaseId).map(d => d.leaseId));
+    const nonDuplicateLeaseDocs = leaseDocuments.filter(ld => !existingLeaseIds.has(ld.leaseId));
+
+    return [...documents, ...nonDuplicateLeaseDocs];
+  }, [documents, leases]);
+
+  const filteredDocs = allVaultDocuments.filter(doc => {
     const matchesCategory = categoryFilter === 'all' || doc.category === categoryFilter;
     const matchesSearch =
       doc.name.toLowerCase().includes(search.toLowerCase()) ||
-      (doc.propertyName && doc.propertyName.toLowerCase().includes(search.toLowerCase()));
+      (doc.propertyName && doc.propertyName.toLowerCase().includes(search.toLowerCase())) ||
+      (doc.tenantName && doc.tenantName.toLowerCase().includes(search.toLowerCase()));
 
     return matchesCategory && matchesSearch;
   });
@@ -125,15 +173,29 @@ export const DocumentVault: React.FC = () => {
             <TableRow key={doc.id}>
               <TableCell>
                 <button
-                  onClick={() => setPreviewDoc(doc)}
-                  className="flex items-center gap-2 font-medium text-slate-900 hover:underline text-left"
+                  type="button"
+                  onClick={() => handleOpenDocument(doc)}
+                  className="flex items-center gap-2 font-medium text-slate-900 hover:text-emerald-700 hover:underline text-left group cursor-pointer"
+                  title="Kliknutím otvoriť v novom okne (PDF)"
                 >
-                  <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span>{doc.name}</span>
+                  {doc.leaseId ? (
+                    <FileCheck2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
+                  ) : (
+                    <FileText className="w-3.5 h-3.5 text-slate-400 shrink-0 group-hover:text-emerald-600 transition-colors" />
+                  )}
+                  <span className="group-hover:text-emerald-700 transition-colors">{doc.name}</span>
                 </button>
               </TableCell>
               <TableCell>
-                <Chip size="sm" variant="flat" color="default" className="text-[11px]">
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  className={`text-[11px] ${
+                    doc.category === 'tenancy'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                      : 'bg-slate-100 text-slate-700'
+                  }`}
+                >
                   {categoryLabels[doc.category] || doc.category}
                 </Chip>
               </TableCell>
@@ -163,20 +225,22 @@ export const DocumentVault: React.FC = () => {
                   >
                     <Download className="w-3.5 h-3.5" />
                   </a>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={() => {
-                      if (confirm(`Naozaj chcete vymazať dokument ${doc.name}?`)) {
-                        deleteDocument(doc.id);
-                      }
-                    }}
-                    className="min-w-7 w-7 h-7 text-slate-400 hover:text-rose-600"
-                    title="Zmazať"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
+                  {!doc.id.startsWith('lease_doc_') && (
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => {
+                        if (confirm(`Naozaj chcete vymazať dokument ${doc.name}?`)) {
+                          deleteDocument(doc.id);
+                        }
+                      }}
+                      className="min-w-7 w-7 h-7 text-slate-400 hover:text-rose-600"
+                      title="Zmazať"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>

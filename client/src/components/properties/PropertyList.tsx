@@ -254,7 +254,9 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                 <TableCell className="text-slate-500">
                   {property.city}
                 </TableCell>
-                <TableCell className="text-slate-600">{property.sizeSqm} m²</TableCell>
+                <TableCell className="text-slate-600">
+                  {property.sizeSqm} m²{property.floor !== undefined ? ` • ${property.floor}. posch.` : ''}
+                </TableCell>
                 <TableCell>
                   {(() => {
                     const al = leases.find(l => l.propertyId === property.id && l.status === 'active');
@@ -324,7 +326,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                   <div className="space-y-1 w-full">
                     <div>
                       <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight group-hover:text-emerald-300 transition-colors truncate">
-                        {property.name}
+                        {property.name} ({property.unitNumber})
                       </h4>
                       <p className="text-[10px] sm:text-[11px] text-slate-300 flex items-center gap-1 mt-0.5 truncate">
                         <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
@@ -338,6 +340,12 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                       <span>{property.sizeSqm} m²</span>
                       <span>•</span>
                       <span>{property.bedrooms} {property.bedrooms === 1 ? 'izba' : property.bedrooms < 5 ? 'izby' : 'izieb'}</span>
+                      {property.floor !== undefined && (
+                        <>
+                          <span>•</span>
+                          <span>{property.floor}. posch.</span>
+                        </>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-0.5 border-t border-white/10 w-full">

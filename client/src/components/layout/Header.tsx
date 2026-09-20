@@ -46,12 +46,12 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-30 bg-white border-b border-slate-200 transition-all duration-150 px-6 sm:px-8 py-3 flex items-center justify-between gap-4 ${
-        isScrolled ? 'shadow-sm' : ''
+      className={`sticky top-0 z-30 bg-[#fcfdfd]/95 backdrop-blur-md border-b border-slate-200/80 transition-all duration-150 px-6 sm:px-8 py-3 flex items-center justify-between gap-4 ${
+        isScrolled ? 'shadow-xs' : ''
       }`}
     >
       {/* Page Title */}
-      <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+      <h2 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">
         {titles[activeTab] || 'Portfólio'}
       </h2>
 

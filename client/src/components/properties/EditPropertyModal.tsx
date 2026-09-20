@@ -27,6 +27,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const [city, setCity] = useState(property.city);
   const [sizeSqm, setSizeSqm] = useState<number | ''>(property.sizeSqm);
   const [bedrooms, setBedrooms] = useState<number | ''>(property.bedrooms);
+  const [floor, setFloor] = useState<number | ''>(property.floor ?? '');
   const [hasCellar, setHasCellar] = useState(Boolean(property.hasCellar));
   const [cellarAreaSqm, setCellarAreaSqm] = useState<number | ''>(
     property.cellarAreaSqm || ''
@@ -51,6 +52,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
       setCity(property.city);
       setSizeSqm(property.sizeSqm);
       setBedrooms(property.bedrooms);
+      setFloor(property.floor ?? '');
       setHasCellar(Boolean(property.hasCellar));
       setCellarAreaSqm(property.cellarAreaSqm || '');
       setCellarNumber(property.cellarNumber || '');
@@ -77,6 +79,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
         neighborhood: property.neighborhood || '',
         sizeSqm: Number(sizeSqm),
         bedrooms: Number(bedrooms),
+        floor: floor === '' ? undefined : Number(floor),
         bathrooms: property.bathrooms || 1,
         rentAmount: property.rentAmount,
         status: property.status,
@@ -237,8 +240,8 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
           </div>
         </div>
 
-        {/* Parametre: Výmera a Izby */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        {/* Parametre: Výmera, Izby a Poschodie */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700">
               Výmera (m²) <span className="text-rose-500">*</span>
@@ -271,6 +274,25 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
               isRequired
               value={bedrooms === 0 ? '' : String(bedrooms)}
               onChange={e => setBedrooms(e.target.value === '' ? '' : Number(e.target.value))}
+              classNames={{
+                inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
+                input: 'text-xs text-slate-900',
+              }}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Poschodie <span className="text-rose-500">*</span>
+            </label>
+            <Input
+              type="number"
+              size="sm"
+              variant="bordered"
+              aria-label="Poschodie"
+              placeholder="napr. 3"
+              isRequired
+              value={floor === '' ? '' : String(floor)}
+              onChange={e => setFloor(e.target.value === '' ? '' : Number(e.target.value))}
               classNames={{
                 inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                 input: 'text-xs text-slate-900',

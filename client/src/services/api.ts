@@ -27,7 +27,7 @@ class ApiService {
     try {
       const res = await fetch(`${BASE_URL}/health`, {
         headers: this.getHeaders(),
-        signal: AbortSignal.timeout(3000),
+        signal: AbortSignal.timeout(6000),
       });
       if (res.ok) {
         const data = await res.json();
@@ -92,6 +92,7 @@ class ApiService {
       neighborhood: data.neighborhood || 'Mitte',
       sizeSqm: Number(data.sizeSqm) || 50,
       bedrooms: Number(data.bedrooms) || 1,
+      floor: data.floor !== undefined ? Number(data.floor) : undefined,
       bathrooms: Number(data.bathrooms) || 1,
       rentAmount: data.rentAmount !== undefined && !isNaN(Number(data.rentAmount)) ? Number(data.rentAmount) : 0,
       status: data.status || 'vacant',
@@ -112,7 +113,23 @@ class ApiService {
     } catch (e) {
       console.warn('API fallback for update property', e);
     }
-    return { id, ...data } as Property;
+    const key = localStorage.getItem(`resr_props_${this.userId}`)
+      ? `resr_props_${this.userId}`
+      : `hearthstone_props_${this.userId}`;
+    const cached = localStorage.getItem(key);
+    let updated = { id, ...data } as Property;
+    if (cached) {
+      const props: Property[] = JSON.parse(cached);
+      const nextProps = props.map(p => {
+        if (p.id === id) {
+          updated = { ...p, ...data };
+          return updated;
+        }
+        return p;
+      });
+      localStorage.setItem(key, JSON.stringify(nextProps));
+    }
+    return updated;
   }
 
   async deleteProperty(id: string): Promise<boolean> {
@@ -124,6 +141,15 @@ class ApiService {
       if (res.ok) return true;
     } catch (e) {
       console.warn('API fallback for delete property', e);
+    }
+    const key = localStorage.getItem(`resr_props_${this.userId}`)
+      ? `resr_props_${this.userId}`
+      : `hearthstone_props_${this.userId}`;
+    const cached = localStorage.getItem(key);
+    if (cached) {
+      const props: Property[] = JSON.parse(cached);
+      const nextProps = props.filter(p => p.id !== id);
+      localStorage.setItem(key, JSON.stringify(nextProps));
     }
     return true;
   }
@@ -182,7 +208,20 @@ class ApiService {
     } catch (e) {
       console.warn('API fallback for update lease', e);
     }
-    return { id, ...data } as Lease;
+    const cached = localStorage.getItem(`hearthstone_leases_${this.userId}`);
+    let updatedLease = { id, ...data } as Lease;
+    if (cached) {
+      const leases: Lease[] = JSON.parse(cached);
+      const nextLeases = leases.map(l => {
+        if (l.id === id) {
+          updatedLease = { ...l, ...data };
+          return updatedLease;
+        }
+        return l;
+      });
+      localStorage.setItem(`hearthstone_leases_${this.userId}`, JSON.stringify(nextLeases));
+    }
+    return updatedLease;
   }
 
   async deleteLease(id: string): Promise<boolean> {
@@ -194,6 +233,12 @@ class ApiService {
       if (res.ok) return true;
     } catch (e) {
       console.warn('API fallback for delete lease', e);
+    }
+    const cached = localStorage.getItem(`hearthstone_leases_${this.userId}`);
+    if (cached) {
+      const leases: Lease[] = JSON.parse(cached);
+      const nextLeases = leases.filter(l => l.id !== id);
+      localStorage.setItem(`hearthstone_leases_${this.userId}`, JSON.stringify(nextLeases));
     }
     return true;
   }

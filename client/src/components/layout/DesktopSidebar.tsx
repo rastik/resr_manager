@@ -48,7 +48,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-72 bg-white border-r border-slate-200/90 shadow-[4px_0_16px_-4px_rgba(0,0,0,0.06),1px_0_4px_-1px_rgba(0,0,0,0.03)] z-20 shrink-0 h-screen sticky top-0 select-none">
+    <aside className="hidden md:flex flex-col w-72 bg-[#fcfdfd] border-r border-slate-200/80 shadow-[2px_0_12px_-4px_rgba(0,0,0,0.04)] z-20 shrink-0 h-screen sticky top-0 select-none">
       {/* Workspace Brand Header (Click navigates to Prehľad / Dashboard) */}
       <button
         type="button"
@@ -56,9 +56,9 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           setSelectedPropertyId(null);
           setActiveTab('dashboard');
         }}
-        className="px-6 py-6 border-b border-slate-200 bg-white hover:bg-slate-50 transition-all duration-150 w-full cursor-pointer flex items-center justify-center group"
+        className="px-6 py-6 border-b border-slate-200/80 bg-[#fcfdfd] hover:bg-slate-100/60 transition-all duration-150 w-full cursor-pointer flex items-center justify-center group"
       >
-        <h1 className="text-2xl font-black text-slate-950 tracking-tight group-hover:text-emerald-700 transition-colors text-center">
+        <h1 className="text-2xl font-black text-slate-900 tracking-tight group-hover:text-emerald-700 transition-colors text-center">
           RESR, s.r.o.
         </h1>
       </button>
@@ -122,26 +122,26 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                     : 'hover:bg-slate-50 border border-transparent'
                 }`}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <img
-                    src={imgUrl}
-                    alt={property.name}
-                    className="w-7 h-7 rounded-md object-cover border border-slate-200 shrink-0 shadow-2xs"
-                  />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="relative shrink-0">
+                    <img
+                      src={imgUrl}
+                      alt={property.name}
+                      className="w-7 h-7 rounded-md object-cover border border-slate-200 shadow-2xs"
+                    />
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ${
+                        property.status === 'occupied'
+                          ? 'bg-emerald-500'
+                          : 'bg-rose-500'
+                      }`}
+                      title={property.status === 'occupied' ? 'Prenajatý' : 'Voľný'}
+                    />
+                  </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-900 truncate">
-                        {property.name} {property.unitNumber}
-                      </span>
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                          property.status === 'occupied'
-                            ? 'bg-emerald-500'
-                            : 'bg-rose-500'
-                        }`}
-                        title={property.status === 'occupied' ? 'Prenajatý' : 'Voľný'}
-                      />
-                    </div>
+                    <span className="text-xs font-bold text-slate-900 truncate block">
+                      {property.name} ({property.unitNumber})
+                    </span>
                     <p className="text-[10px] text-slate-500 truncate leading-none mt-0.5">
                       {[property.address, property.city].filter(Boolean).join(', ') || property.address || property.city || ''}
                     </p>
@@ -205,7 +205,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       </div>
 
       {/* Database Status Footer (Single User System) */}
-      <div className="p-3 border-t border-slate-200 bg-slate-50/70">
+      <div className="p-3 border-t border-slate-200/80 bg-slate-100/50">
         <button
           type="button"
           onClick={onOpenAuth}

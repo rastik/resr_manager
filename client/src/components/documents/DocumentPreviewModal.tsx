@@ -3,6 +3,8 @@ import { Button, Chip } from '@heroui/react';
 import { Modal } from '../common/Modal';
 import { VaultDocument } from '../../types';
 import { FileText, Download, ShieldCheck, AlertTriangle, ExternalLink } from 'lucide-react';
+import { useProperty } from '../../context/PropertyContext';
+import { openLeasePdfWindow } from '../../utils/contractPdf';
 
 interface DocumentPreviewModalProps {
   document: VaultDocument | null;
@@ -13,6 +15,7 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
   document,
   onClose,
 }) => {
+  const { leases, properties } = useProperty();
   if (!document) return null;
 
   const now = new Date();
@@ -88,16 +91,25 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
           </div>
           <div className="flex items-center gap-2 pt-2">
             <Button
-              as="a"
-              href={document.fileUrl}
-              target="_blank"
-              rel="noreferrer"
               size="sm"
               variant="flat"
-              className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium"
+              onPress={() => {
+                if (document.leaseId) {
+                  const lease = leases.find(l => l.id === document.leaseId);
+                  const prop = properties.find(p => p.id === (document.propertyId || lease?.propertyId));
+                  if (lease) {
+                    openLeasePdfWindow(lease, prop);
+                    return;
+                  }
+                }
+                if (document.fileUrl) {
+                  window.open(document.fileUrl, '_blank');
+                }
+              }}
+              className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
               startContent={<ExternalLink className="w-3.5 h-3.5" />}
             >
-              Otvoriť súbor
+              Otvoriť PDF v novom okne
             </Button>
             <Button
               as="a"

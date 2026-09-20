@@ -4,8 +4,9 @@ import { Modal } from '../common/Modal';
 import { ImageLightboxModal } from '../common/ImageLightboxModal';
 import { useProperty } from '../../context/PropertyContext';
 import { Lease, LeaseType } from '../../types';
-import { Trash2, UploadCloud, FileText, Download, Check, X, Camera, Home, Hotel, Building2 } from 'lucide-react';
+import { Trash2, UploadCloud, FileText, Download, Check, X, Camera, Home, Hotel, Building2, UserMinus } from 'lucide-react';
 import { compressImage } from '../../utils/imageCompressor';
+import { getEffectiveLeaseStatus } from '../../utils/date';
 
 interface EditLeaseModalProps {
   isOpen: boolean;
@@ -18,7 +19,7 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
   onClose,
   lease,
 }) => {
-  const { properties, updateLease, deleteLease } = useProperty();
+  const { properties, updateLease, deleteLease, updateProperty, showToast } = useProperty();
 
   const [leaseType, setLeaseType] = useState<LeaseType>('standard');
   const [tenantName, setTenantName] = useState('');
@@ -130,6 +131,39 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
       onClose();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const isCurrentlyActive = lease && (associatedProperty?.activeLeaseId === lease.id || lease.status === 'active') && getEffectiveLeaseStatus(lease) === 'active';
+
+  const handleEndActiveLease = async () => {
+    if (
+      confirm(
+        `Naozaj chcete ukončiť aktívny nájom pre nájomcu ${lease.tenantName}?\n\nNájomca a táto zmluva zostanú zachované v histórii zmlúv ako neaktívne a byt bude označený ako voľný.`
+      )
+    ) {
+      setDeleteLoading(true);
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const newEndDate = lease.endDate && lease.endDate < todayStr ? lease.endDate : todayStr;
+        await updateLease(lease.id, {
+          status: 'expired',
+          endDate: newEndDate,
+        });
+        if (associatedProperty) {
+          await updateProperty(associatedProperty.id, {
+            activeLeaseId: undefined,
+            status: 'vacant',
+            rentAmount: 0,
+            baseRent: undefined,
+            utilitiesAmount: undefined,
+          });
+        }
+        showToast(`Nájomca ${lease.tenantName} bol presunutý do histórie zmlúv a byt je voľný.`);
+        onClose();
+      } finally {
+        setDeleteLoading(false);
+      }
     }
   };
 
@@ -542,17 +576,34 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
         </div>
 
         <div className="pt-4 flex items-center justify-between gap-2 border-t border-slate-200">
-          <Button
-            size="sm"
-            color="danger"
-            variant="flat"
-            onClick={handleDelete}
-            isLoading={deleteLoading}
-            startContent={<Trash2 className="w-3.5 h-3.5" />}
-            className="text-rose-600 font-medium text-xs rounded-lg"
-          >
-            Vymazať zmluvu
-          </Button>
+          <div className="flex items-center gap-1.5">
+            {isCurrentlyActive ? (
+              <Button
+                size="sm"
+                color="danger"
+                variant="flat"
+                onClick={handleEndActiveLease}
+                isLoading={deleteLoading}
+                startContent={<UserMinus className="w-3.5 h-3.5" />}
+                className="text-rose-600 font-medium text-xs rounded-lg"
+                title="Presunie zmluvu do histórie ako neaktívnu a byt uvoľní"
+              >
+                Ukončiť nájom (do histórie)
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                color="danger"
+                variant="flat"
+                onClick={handleDelete}
+                isLoading={deleteLoading}
+                startContent={<Trash2 className="w-3.5 h-3.5" />}
+                className="text-rose-600 font-medium text-xs rounded-lg"
+              >
+                Vymazať zmluvu
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             <Button

@@ -18,6 +18,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
   const [city, setCity] = useState('');
   const [sizeSqm, setSizeSqm] = useState<number | ''>('');
   const [bedrooms, setBedrooms] = useState<number | ''>('');
+  const [floor, setFloor] = useState<number | ''>('');
   const [hasCellar, setHasCellar] = useState(false);
   const [cellarAreaSqm, setCellarAreaSqm] = useState<number | ''>('');
   const [cellarNumber, setCellarNumber] = useState('');
@@ -38,6 +39,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
       setCity('');
       setSizeSqm('');
       setBedrooms('');
+      setFloor('');
       setNotes('');
       setCellarNumber('');
       setCellarAreaSqm('');
@@ -67,6 +69,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
         neighborhood: '',
         sizeSqm: Number(sizeSqm),
         bedrooms: Number(bedrooms),
+        floor: Number(floor),
         bathrooms: 1,
         rentAmount: 0,
         status: 'vacant',
@@ -220,8 +223,8 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
           </div>
         </div>
 
-        {/* Specs row: Výmera & Počet izieb */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        {/* Specs row: Výmera, Počet izieb & Poschodie */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700">
               Výmera (m²) <span className="text-rose-500">*</span>
@@ -254,6 +257,25 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
               isRequired
               value={bedrooms === '' ? '' : String(bedrooms)}
               onChange={e => setBedrooms(e.target.value === '' ? '' : Number(e.target.value))}
+              classNames={{
+                inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
+                input: 'text-xs text-slate-900 placeholder:text-slate-400',
+              }}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Poschodie <span className="text-rose-500">*</span>
+            </label>
+            <Input
+              type="number"
+              size="sm"
+              variant="bordered"
+              aria-label="Poschodie"
+              placeholder="napr. 3"
+              isRequired
+              value={floor === '' ? '' : String(floor)}
+              onChange={e => setFloor(e.target.value === '' ? '' : Number(e.target.value))}
               classNames={{
                 inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                 input: 'text-xs text-slate-900 placeholder:text-slate-400',

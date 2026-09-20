@@ -10,6 +10,7 @@ export interface Property {
   city: string;
   neighborhood?: string;
   sizeSqm: number;
+  floor?: number;
   bedrooms: number;
   bathrooms?: number;
   rentAmount: number;
