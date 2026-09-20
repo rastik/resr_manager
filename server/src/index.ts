@@ -735,6 +735,11 @@ app.delete('/api/hotel-revenue/:id', async (req: Request, res: Response) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`RESR, s.r.o. Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`RESR, s.r.o. Server running on port ${PORT}`);
+  });
+}
+
+export default app;
+export { app };
