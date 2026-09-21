@@ -75,6 +75,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('all');
   const [chartType, setChartType] = useState<'bar' | 'area'>('bar');
+  const [cashFlowHorizon, setCashFlowHorizon] = useState<'3m' | '6m' | '9m' | '1y' | '3y' | '5y'>('6m');
+  const [ganttYears, setGanttYears] = useState<1 | 3 | 5>(1);
 
   // Filter properties and expenses
   const filteredProperties = useMemo(() => {
@@ -87,48 +89,121 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     return expenses.filter(e => e.propertyId === selectedPropertyId);
   }, [expenses, selectedPropertyId]);
 
-  // Dynamic 6-month cashflow calculation based on selected filter or portfolio analytics
-  const cashFlowData = useMemo(() => {
-    const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
-
-    if (selectedPropertyId === 'all' && analytics?.cashFlowData && analytics.cashFlowData.length > 0) {
-      return analytics.cashFlowData.map(d => ({
-        ...d,
-        monthLabel: MONTH_NAMES_SK[d.month] || d.month,
-      }));
+  // Number of months based on cashFlowHorizon
+  const horizonMonthsCount = useMemo(() => {
+    switch (cashFlowHorizon) {
+      case '3m': return 3;
+      case '6m': return 6;
+      case '9m': return 9;
+      case '1y': return 12;
+      case '3y': return 36;
+      case '5y': return 60;
+      default: return 6;
     }
+  }, [cashFlowHorizon]);
 
-    // Calculate specifically for single property or fallback
+  // Dynamic cashflow calculation based on selected filter, leases, expenses, and horizon
+  const cashFlowData = useMemo(() => {
+    const now = new Date();
+    const count = horizonMonthsCount;
+    const result: {
+      month: string;
+      monthLabel: string;
+      income: number;
+      expenses: number;
+      netCashflow: number;
+    }[] = [];
+
+    // Base monthly rent from active/occupied units in current selection
     const propMonthlyRent = filteredProperties
-      .filter(p => p.status === 'occupied')
       .reduce((sum, p) => sum + (Number(p.rentAmount) || 0), 0);
 
     const propTotalExpenses = filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const avgExpensePerMonth = propTotalExpenses > 0 ? propTotalExpenses / Math.max(1, Math.min(count, 12)) : Math.round(propMonthlyRent * 0.12);
 
-    return months.map((m, idx) => {
-      const gross = Math.round(propMonthlyRent * (0.94 + idx * 0.012));
-      const exp = Math.round(propTotalExpenses * (0.12 + (idx % 3) * 0.05));
-      return {
-        month: m,
-        monthLabel: MONTH_NAMES_SK[m] || m,
-        income: gross,
-        expenses: exp,
-        netCashflow: gross - exp,
-      };
-    });
-  }, [selectedPropertyId, analytics?.cashFlowData, filteredProperties, filteredExpenses]);
+    // Generate consecutive months up to current month (or including recent)
+    for (let i = count - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const monthIdx = d.getMonth();
+      const yearShort = String(year).slice(2);
+      const shortName = d.toLocaleString('sk-SK', { month: 'short' });
+      const capitalized = shortName.charAt(0).toUpperCase() + shortName.slice(1);
 
-  // Aggregate metrics
-  const totalIncome6M = useMemo(() => {
+      // Label formatting depending on horizon length
+      let monthLabel = `${capitalized} '${yearShort}`;
+      if (count <= 6) {
+        monthLabel = capitalized;
+      } else if (count > 24) {
+        // For 3y and 5y, format compact Q or month
+        monthLabel = `${monthIdx + 1}/${yearShort}`;
+      }
+
+      const yKey = `${year}-${String(monthIdx + 1).padStart(2, '0')}`;
+
+      // Calculate actual expenses for this specific month if available
+      const actualExpensesInMonth = filteredExpenses.filter(e => {
+        if (!e.date) return false;
+        return e.date.startsWith(yKey);
+      }).reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
+
+      // Calculate active leases income for this month if available
+      const mStart = new Date(year, monthIdx, 1);
+      const mEnd = new Date(year, monthIdx + 1, 0, 23, 59, 59, 999);
+      const mStartMs = mStart.getTime();
+      const mEndMs = mEnd.getTime();
+
+      let calculatedIncome = 0;
+      filteredProperties.forEach(p => {
+        const propLeases = leases.filter(l => l.propertyId === p.id);
+        // Find lease covering this month
+        const activeLease = propLeases.find(l => {
+          const lStart = new Date(l.startDate ? l.startDate.split('T')[0] : '2020-01-01').getTime();
+          const lEnd = new Date(l.endDate ? l.endDate.split('T')[0] : '2099-12-31').getTime();
+          return lEnd >= mStartMs && lStart <= mEndMs;
+        });
+
+        if (activeLease) {
+          calculatedIncome += Number(activeLease.rentAmount) || Number(p.rentAmount) || 0;
+        } else if (p.status === 'occupied') {
+          calculatedIncome += Number(p.rentAmount) || 0;
+        }
+      });
+
+      // If calculated income is 0 (e.g. historical data before leases were logged), use realistic simulation based on portfolio rent
+      const grossIncome = calculatedIncome > 0
+        ? calculatedIncome
+        : Math.round(propMonthlyRent * (0.94 + ((count - i) % 7) * 0.01));
+
+      const monthlyExpenses = actualExpensesInMonth > 0
+        ? actualExpensesInMonth
+        : Math.round(avgExpensePerMonth * (0.85 + ((i % 5) * 0.08)));
+
+      result.push({
+        month: yKey,
+        monthLabel,
+        income: grossIncome,
+        expenses: monthlyExpenses,
+        netCashflow: grossIncome - monthlyExpenses,
+      });
+    }
+
+    return result;
+  }, [horizonMonthsCount, filteredProperties, filteredExpenses, leases]);
+
+  // Aggregate metrics over the selected horizon
+  const totalIncome = useMemo(() => {
     return cashFlowData.reduce((acc, curr) => acc + curr.income, 0);
   }, [cashFlowData]);
 
-  const totalExpenses6M = useMemo(() => {
+  const totalExpenses = useMemo(() => {
     return cashFlowData.reduce((acc, curr) => acc + curr.expenses, 0);
   }, [cashFlowData]);
 
-  const netCashFlow6M = totalIncome6M - totalExpenses6M;
-  const netMarginPercent = totalIncome6M > 0 ? Math.round((netCashFlow6M / totalIncome6M) * 100) : 0;
+  const netCashFlow = totalIncome - totalExpenses;
+  const netMarginPercent = totalIncome > 0 ? Math.round((netCashFlow / totalIncome) * 100) : 0;
+  const avgMonthlyIncome = Math.round(totalIncome / horizonMonthsCount);
+  const avgMonthlyExpenses = Math.round(totalExpenses / horizonMonthsCount);
 
   // Expense breakdown by category (Výmena spotrebičov, Servis a údržba, Upratovanie)
   const expenseBreakdown = useMemo(() => {
@@ -209,25 +284,42 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
     }
   };
 
-  // Gantt Timeline (Unified horizontal continuous timeline: 12 months, e.g. -6 months to +5 months)
+  // Gantt Timeline supporting 1 rok, 3 roky, 5 rokov views
   const ganttTimeline = useMemo(() => {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
 
-    // Start: 6 months ago, 1st day
-    const startDate = new Date(currentYear, currentMonth - 6, 1);
-    // End: 6 months in future (5 months offset + last day of that month)
-    const endDate = new Date(currentYear, currentMonth + 6, 0); // last day of +5 month
-    endDate.setHours(23, 59, 59, 999);
+    // Determine window:
+    // 1 year: 12 months (-6 months to +5 months)
+    // 3 years: 36 months (-18 months to +17 months)
+    // 5 years: 60 months (-30 months to +29 months)
+    const totalMonths = ganttYears * 12;
+    const pastMonths = Math.floor(totalMonths / 2);
+    const futureMonths = totalMonths - pastMonths - 1;
+
+    // Start: 1st day of pastMonths ago
+    const startDate = new Date(currentYear, currentMonth - pastMonths, 1);
+    // End: last day of futureMonths ahead
+    const endDate = new Date(currentYear, currentMonth + futureMonths + 1, 0, 23, 59, 59, 999);
 
     const startMs = startDate.getTime();
     const endMs = endDate.getTime();
     const totalMs = endMs - startMs;
 
-    const months: { key: string; label: string; year: number; monthIdx: number; isCurrent: boolean; leftPct: number; widthPct: number }[] = [];
+    const months: {
+      key: string;
+      label: string;
+      year: number;
+      monthIdx: number;
+      isCurrent: boolean;
+      isQuarterStart?: boolean;
+      isYearStart?: boolean;
+      leftPct: number;
+      widthPct: number;
+    }[] = [];
 
-    for (let offset = -6; offset <= 5; offset++) {
+    for (let offset = -pastMonths; offset <= futureMonths; offset++) {
       const mStart = new Date(currentYear, currentMonth + offset, 1);
       const mEnd = new Date(currentYear, currentMonth + offset + 1, 0, 23, 59, 59, 999);
       const y = mStart.getFullYear();
@@ -241,12 +333,24 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       const leftPct = ((mStartMs - startMs) / totalMs) * 100;
       const widthPct = ((mEndMs - mStartMs) / totalMs) * 100;
 
+      // Label based on scale
+      let label = `${capitalized} ${String(y).slice(2)}`;
+      if (ganttYears === 3) {
+        // In 3-year view: show Month or Q
+        label = `${capitalized} '${String(y).slice(2)}`;
+      } else if (ganttYears === 5) {
+        // In 5-year view: show Q / Year or compact month
+        label = `${mIdx + 1}/${String(y).slice(2)}`;
+      }
+
       months.push({
         key,
-        label: `${capitalized} ${String(y).slice(2)}`,
+        label,
         year: y,
         monthIdx: mIdx,
         isCurrent: offset === 0,
+        isQuarterStart: mIdx % 3 === 0,
+        isYearStart: mIdx === 0,
         leftPct,
         widthPct,
       });
@@ -266,7 +370,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       formattedStart: `${startDate.getDate()}.${startDate.getMonth() + 1}.${startDate.getFullYear()}`,
       formattedEnd: `${endDate.getDate()}.${endDate.getMonth() + 1}.${endDate.getFullYear()}`,
     };
-  }, []);
+  }, [ganttYears]);
 
   // Calculate continuous timeline bars for each property
   const ganttPropertyData = useMemo(() => {
@@ -377,19 +481,19 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. Príjmy za 6 mesiacov */}
+        {/* 1. Príjmy za zvolené obdobie */}
         <Card shadow="sm" className="border border-slate-200 bg-white">
           <CardBody className="p-4 sm:p-5 flex flex-row items-start justify-between gap-3">
             <div className="space-y-1 min-w-0">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block truncate">
-                Príjmy z nájmu (6 mes.)
+                Príjmy z nájmu ({cashFlowHorizon === '3m' ? '3 mes.' : cashFlowHorizon === '6m' ? '6 mes.' : cashFlowHorizon === '9m' ? '9 mes.' : cashFlowHorizon === '1y' ? '1 rok' : cashFlowHorizon === '3y' ? '3 roky' : '5 rokov'})
               </span>
               <div className="text-xl sm:text-2xl font-black text-emerald-600 leading-tight">
-                €{totalIncome6M.toLocaleString()}
+                €{totalIncome.toLocaleString()}
               </div>
               <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-1 truncate">
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span>Priemerne €{Math.round(totalIncome6M / 6).toLocaleString()} / mes</span>
+                <span>Priemerne €{avgMonthlyIncome.toLocaleString()} / mes</span>
               </span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
@@ -398,19 +502,19 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
           </CardBody>
         </Card>
 
-        {/* 2. Výdavky za 6 mesiacov */}
+        {/* 2. Výdavky za zvolené obdobie */}
         <Card shadow="sm" className="border border-slate-200 bg-white">
           <CardBody className="p-4 sm:p-5 flex flex-row items-start justify-between gap-3">
             <div className="space-y-1 min-w-0">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block truncate">
-                Prevádzkové výdavky (6 mes.)
+                Prevádzkové výdavky ({cashFlowHorizon === '3m' ? '3 mes.' : cashFlowHorizon === '6m' ? '6 mes.' : cashFlowHorizon === '9m' ? '9 mes.' : cashFlowHorizon === '1y' ? '1 rok' : cashFlowHorizon === '3y' ? '3 roky' : '5 rokov'})
               </span>
               <div className="text-xl sm:text-2xl font-black text-rose-600 leading-tight">
-                €{totalExpenses6M.toLocaleString()}
+                €{totalExpenses.toLocaleString()}
               </div>
               <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-1 truncate">
                 <TrendingDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>Priemerne €{Math.round(totalExpenses6M / 6).toLocaleString()} / mes</span>
+                <span>Priemerne €{avgMonthlyExpenses.toLocaleString()} / mes</span>
               </span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
@@ -426,8 +530,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
               <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block truncate">
                 Čistý peňažný tok (Net Cash)
               </span>
-              <div className={`text-xl sm:text-2xl font-black leading-tight ${netCashFlow6M >= 0 ? 'text-slate-900' : 'text-rose-600'}`}>
-                €{netCashFlow6M.toLocaleString()}
+              <div className={`text-xl sm:text-2xl font-black leading-tight ${netCashFlow >= 0 ? 'text-slate-900' : 'text-rose-600'}`}>
+                €{netCashFlow.toLocaleString()}
               </div>
               <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-1 truncate">
                 <Wallet className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -467,25 +571,85 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         <CardBody className="p-5 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <span>📊</span> Peňažné toky (posledných 6 mesiacov)
+              <h3 className="text-sm font-bold text-slate-900">
+                Peňažné toky ({cashFlowHorizon === '3m' ? '3 mesiace' : cashFlowHorizon === '6m' ? '6 mesiacov' : cashFlowHorizon === '9m' ? '9 mesiacov' : cashFlowHorizon === '1y' ? '1 rok' : cashFlowHorizon === '3y' ? '3 roky' : '5 rokov'})
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 Príjmy z nájmu vs prevádzkové výdavky {selectedPropertyId !== 'all' ? 'pre vybranú nehnuteľnosť' : 'pre celé portfólio'}
               </p>
             </div>
 
-            {/* Toggle bar / area chart */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-3 text-xs pr-3 border-r border-slate-200">
+            {/* Controls: Time Horizon (3m, 6m, 9m, 1r, 3r, 5r) + Legend + Chart Type */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Horizon switcher buttons: 3mesiace, 6mesiacov, 9, 1r, 3r, 5r */}
+              <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setCashFlowHorizon('3m')}
+                  className={`px-2 py-1 text-xs font-semibold rounded-md transition ${
+                    cashFlowHorizon === '3m' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  3m
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCashFlowHorizon('6m')}
+                  className={`px-2 py-1 text-xs font-semibold rounded-md transition ${
+                    cashFlowHorizon === '6m' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  6m
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCashFlowHorizon('9m')}
+                  className={`px-2 py-1 text-xs font-semibold rounded-md transition ${
+                    cashFlowHorizon === '9m' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  9m
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCashFlowHorizon('1y')}
+                  className={`px-2 py-1 text-xs font-semibold rounded-md transition ${
+                    cashFlowHorizon === '1y' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  1r
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCashFlowHorizon('3y')}
+                  className={`px-2 py-1 text-xs font-semibold rounded-md transition ${
+                    cashFlowHorizon === '3y' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  3r
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCashFlowHorizon('5y')}
+                  className={`px-2 py-1 text-xs font-semibold rounded-md transition ${
+                    cashFlowHorizon === '5y' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  5r
+                </button>
+              </div>
+
+              {/* Legend Badges */}
+              <div className="hidden sm:flex items-center gap-3 text-xs px-2">
                 <span className="flex items-center gap-1.5 text-slate-600 font-medium">
-                  <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500" /> Príjmy z nájmu
+                  <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500" /> Príjmy
                 </span>
                 <span className="flex items-center gap-1.5 text-slate-600 font-medium">
-                  <span className="w-2.5 h-2.5 rounded-xs bg-slate-400" /> Prevádzkové výdavky
+                  <span className="w-2.5 h-2.5 rounded-xs bg-slate-400" /> Výdavky
                 </span>
               </div>
 
+              {/* Toggle bar / area chart */}
               <div className="flex items-center bg-slate-100 p-1 rounded-lg">
                 <button
                   type="button"
@@ -503,7 +667,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                     chartType === 'area' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
-                  Vývoj (Plocha)
+                  Plocha
                 </button>
               </div>
             </div>
@@ -517,7 +681,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="monthLabel" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                  <XAxis
+                    dataKey="monthLabel"
+                    stroke="#94a3b8"
+                    fontSize={cashFlowData.length > 20 ? 10 : 11}
+                    tickLine={false}
+                    interval={cashFlowData.length > 30 ? 2 : cashFlowData.length > 15 ? 1 : 0}
+                  />
                   <YAxis
                     stroke="#94a3b8"
                     fontSize={12}
@@ -557,7 +727,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="monthLabel" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                  <XAxis
+                    dataKey="monthLabel"
+                    stroke="#94a3b8"
+                    fontSize={cashFlowData.length > 20 ? 10 : 11}
+                    tickLine={false}
+                    interval={cashFlowData.length > 30 ? 2 : cashFlowData.length > 15 ? 1 : 0}
+                  />
                   <YAxis
                     stroke="#94a3b8"
                     fontSize={12}
@@ -608,34 +784,62 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
         <CardBody className="p-5 sm:p-6 space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-slate-100">
             <div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-emerald-600" />
-                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                  Ganttov diagram vyťaženosti bytov
-                </h3>
-              </div>
+              <h3 className="text-sm font-bold text-slate-900">
+                Ganttov diagram vyťaženosti bytov
+              </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Kontinuálny časový prehľad (12 mesiacov): zelený pás znázorňuje aktívny nájom, prázdne miesto je voľný byt (nevyťaženosť).
+                Kontinuálny časový prehľad ({ganttYears === 1 ? '1 rok / 12 mesiacov' : ganttYears === 3 ? '3 roky / 36 mesiacov' : '5 rokov / 60 mesiacov'}): zelený pás znázorňuje aktívny nájom, voľné miesto je nevyťaženosť.
               </p>
             </div>
 
-            {/* Legend & Summary Metrics */}
+            {/* Controls: Time Horizon Switcher & Legend */}
             <div className="flex flex-wrap items-center gap-3 text-xs">
+              {/* 1 rok / 3 roky / 5 rokov Switcher */}
+              <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setGanttYears(1)}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition ${
+                    ganttYears === 1 ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  1 rok
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGanttYears(3)}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition ${
+                    ganttYears === 3 ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  3 roky
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGanttYears(5)}
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition ${
+                    ganttYears === 5 ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  5 rokov
+                </button>
+              </div>
+
               {/* Legend Badges */}
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 font-medium text-slate-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-lg">
                   <span className="w-3 h-2 rounded-xs bg-emerald-500 shrink-0" />
-                  <span>Vyťažený byt (Aktívny nájom)</span>
+                  <span>Vyťažený</span>
                 </div>
                 <div className="flex items-center gap-1.5 font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg">
                   <span className="w-3 h-2 rounded-xs bg-slate-200 border border-dashed border-slate-400 shrink-0" />
-                  <span>Voľný byt (Nevyťažený)</span>
+                  <span>Voľný</span>
                 </div>
               </div>
 
               {/* Total Lost Revenue Badge */}
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 text-white font-medium">
-                <span className="text-[11px] text-slate-300">Ušlý zisk z voľných dní:</span>
+                <span className="text-[11px] text-slate-300">Ušlý zisk:</span>
                 <span className="font-bold text-rose-400">€{ganttSummary.totalLostRevenue.toLocaleString()}</span>
               </div>
             </div>
@@ -643,7 +847,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
 
           {/* Unified Horizontal Gantt Timeline */}
           <div className="overflow-x-auto pb-2">
-            <div className="min-w-[840px] space-y-3">
+            <div className={`space-y-3 ${ganttYears === 1 ? 'min-w-[840px]' : ganttYears === 3 ? 'min-w-[1200px]' : 'min-w-[1600px]'}`}>
               {/* Timeline Header with Month Divisions */}
               <div className="flex items-center">
                 <div className="w-52 shrink-0 pr-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -689,7 +893,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                       <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                         <span className="text-xs font-bold text-slate-900 truncate group-hover:text-emerald-700 transition-colors">
-                          {property.name} ({property.unitNumber})
+                          {property.name} (č. {property.unitNumber})
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5">
@@ -742,7 +946,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                           {/* Tooltip on Hover */}
                           <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover/bar:flex flex-col items-center z-40 pointer-events-none whitespace-nowrap">
                             <div className="bg-slate-900 text-white text-[10px] py-1.5 px-2.5 rounded-lg shadow-xl border border-white/10">
-                              <p className="font-bold text-emerald-400">{property.name} ({property.unitNumber})</p>
+                              <p className="font-bold text-emerald-400">{property.name} (č. {property.unitNumber})</p>
                               <p className="font-semibold text-white mt-0.5">Nájomca: {bar.tenantName}</p>
                               <p className="text-slate-300">
                                 Platnosť: <span className="text-white font-medium">{bar.formattedStart}</span> → <span className="text-white font-medium">{bar.formattedEnd}</span> ({bar.durationDays} dní)
@@ -900,7 +1104,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                           </div>
                           <div className="min-w-0">
                             <div className="font-bold text-slate-900 truncate max-w-[220px]">
-                              {property.name} ({property.unitNumber})
+                              {property.name} (č. {property.unitNumber})
                             </div>
                             <div className="text-[10px] text-slate-400 truncate">
                               {property.city} • {property.sizeSqm} m²

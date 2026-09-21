@@ -233,7 +233,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen
             >
               {[
                 { id: 'none', label: '— Žiadnemu bytu (všeobecný dokument) —' },
-                ...properties.map(p => ({ id: p.id, label: `${p.name} (${p.unitNumber})` }))
+                ...properties.map(p => ({ id: p.id, label: `${p.name} (č. ${p.unitNumber})` }))
               ].map(opt => (
                 <SelectItem key={opt.id} textValue={opt.label}>
                   {opt.label}

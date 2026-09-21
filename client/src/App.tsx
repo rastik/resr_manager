@@ -11,7 +11,6 @@ import { PropertyDetailPage } from './components/properties/PropertyDetailPage';
 import { AddPropertyModal } from './components/properties/AddPropertyModal';
 import { AddLeaseModal } from './components/properties/AddLeaseModal';
 import { AddExpenseModal } from './components/properties/AddExpenseModal';
-import { InventoryManager } from './components/inventory/InventoryManager';
 import { AddInventoryModal } from './components/inventory/AddInventoryModal';
 import { DocumentVault } from './components/documents/DocumentVault';
 import { MarketComparator } from './components/market/MarketComparator';
@@ -83,8 +82,6 @@ const AppContent: React.FC = () => {
         return 'Analytika';
       case 'properties':
         return 'Nehnuteľnosti';
-      case 'inventory':
-        return 'Inventár';
       case 'market':
         return 'Trhové porovnanie';
       default:
@@ -127,7 +124,7 @@ const AppContent: React.FC = () => {
         />
 
         {/* Dynamic Module Page Body */}
-        <main className={`flex-1 w-full max-w-none ${selectedProperty ? 'p-0' : 'p-4 sm:p-6 px-4 sm:px-8'}`}>
+        <main className={`flex-1 w-full max-w-none ${selectedProperty ? 'p-0' : 'p-3 sm:p-5 lg:p-6'}`}>
           {selectedProperty ? (
             <PropertyDetailPage
               property={selectedProperty}
@@ -159,13 +156,6 @@ const AppContent: React.FC = () => {
                 <PropertyList
                   onSelectProperty={id => handleSelectProperty(id, 'properties')}
                   onOpenAddProperty={() => setIsAddPropertyOpen(true)}
-                />
-              )}
-
-              {activeTab === 'inventory' && (
-                <InventoryManager
-                  onOpenAddInventory={handleOpenAddInventory}
-                  onSelectProperty={id => handleSelectProperty(id, 'inventory')}
                 />
               )}
 

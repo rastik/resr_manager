@@ -15,9 +15,9 @@ export const MobileNavDock: React.FC<MobileNavDockProps> = ({
   const items = [
     { id: 'dashboard', label: 'Prehľad', icon: LayoutDashboard },
     { id: 'properties', label: 'Byty', icon: Home },
-    { id: 'inventory', label: 'Inventár', icon: Package },
     { id: 'documents', label: 'Zmluvy', icon: FileText },
     { id: 'analytics', label: 'Analytika', icon: BarChart3 },
+    { id: 'market', label: 'Trh', icon: TrendingUp },
   ];
 
   return (

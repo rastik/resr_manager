@@ -94,7 +94,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
           >
             {properties.map(p => (
               <SelectItem key={p.id}>
-                {`${p.name} (${p.unitNumber})`}
+                {`${p.name} (č. ${p.unitNumber})`}
               </SelectItem>
             ))}
           </Select>

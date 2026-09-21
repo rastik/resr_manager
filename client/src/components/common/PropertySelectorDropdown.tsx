@@ -86,7 +86,7 @@ export const PropertySelectorDropdown: React.FC<PropertySelectorDropdownProps> =
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold text-slate-900 truncate">
-                {p.name} ({p.unitNumber})
+                {p.name} (č. {p.unitNumber})
               </span>
               <span
                 className={`text-[9px] font-semibold px-1.5 py-0.2 rounded ${
@@ -167,7 +167,7 @@ export const PropertySelectorDropdown: React.FC<PropertySelectorDropdownProps> =
               <>
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-slate-900 truncate">
-                    {activeProperty.name} ({activeProperty.unitNumber})
+                    {activeProperty.name} (č. {activeProperty.unitNumber})
                   </span>
                   <span
                     className={`text-[9px] font-semibold px-1.5 py-0.2 rounded ${

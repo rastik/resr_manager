@@ -96,7 +96,7 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
           >
             {properties.map(p => (
               <SelectItem key={p.id}>
-                {`${p.name} (${p.unitNumber})`}
+                {`${p.name} (č. ${p.unitNumber})`}
               </SelectItem>
             ))}
           </Select>

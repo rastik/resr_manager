@@ -106,7 +106,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Upraviť nehnuteľnosť"
-      subtitle={`Úprava parametrov a údajov pre ${property.name} (${property.unitNumber})`}
+      subtitle={`Úprava parametrov a údajov pre ${property.name} (č. ${property.unitNumber})`}
       maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">

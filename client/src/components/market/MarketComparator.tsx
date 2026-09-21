@@ -185,7 +185,7 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">
-                    {activeProperty.name} ({activeProperty.unitNumber})
+                    {activeProperty.name} (č. {activeProperty.unitNumber})
                   </h3>
                   <span className="text-[11px] px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-semibold shrink-0">
                     Aktívny výber

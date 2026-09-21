@@ -41,14 +41,13 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Prehľad', icon: LayoutDashboard },
     { id: 'properties', label: 'Nehnuteľnosti', icon: Home, count: properties.length },
-    { id: 'inventory', label: 'Inventár a spotrebiče', icon: Package },
     { id: 'documents', label: 'Dokumenty a zmluvy', icon: FileText },
     { id: 'analytics', label: 'Analytika a cash flow', icon: BarChart3 },
     { id: 'market', label: 'Trhové porovnanie', icon: TrendingUp },
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-72 bg-[#fcfdfd] border-r border-slate-200/80 shadow-[2px_0_12px_-4px_rgba(0,0,0,0.04)] z-20 shrink-0 h-screen sticky top-0 select-none">
+    <aside className="hidden md:flex flex-col w-64 lg:w-72 bg-[#fcfdfd] border-r border-slate-200/80 shadow-[2px_0_12px_-4px_rgba(0,0,0,0.04)] z-20 shrink-0 h-screen sticky top-0 select-none">
       {/* Workspace Brand Header (Click navigates to Prehľad / Dashboard) */}
       <button
         type="button"
@@ -56,15 +55,15 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
           setSelectedPropertyId(null);
           setActiveTab('dashboard');
         }}
-        className="px-6 py-6 border-b border-slate-200/80 bg-[#fcfdfd] hover:bg-slate-100/60 transition-all duration-150 w-full cursor-pointer flex items-center justify-center group"
+        className="px-5 lg:px-6 py-4 lg:py-5 border-b border-slate-200/80 bg-[#fcfdfd] hover:bg-slate-100/60 transition-all duration-150 w-full cursor-pointer flex items-center justify-center group"
       >
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight group-hover:text-emerald-700 transition-colors text-center">
+        <h1 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight group-hover:text-emerald-700 transition-colors text-center">
           RESR, s.r.o.
         </h1>
       </button>
 
       {/* Navigation & Properties List (Scrollable Area) */}
-      <div className="flex-1 overflow-y-auto px-3.5 py-3 space-y-4">
+      <div className="flex-1 overflow-y-auto px-3 lg:px-3.5 py-2.5 lg:py-3 space-y-3 lg:space-y-4">
         {/* Main Navigation Modules */}
         <nav className="space-y-1">
           {navItems.map(item => {
@@ -140,7 +139,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
                   </div>
                   <div className="min-w-0">
                     <span className="text-xs font-bold text-slate-900 truncate block">
-                      {property.name} ({property.unitNumber})
+                      {property.name} (č. {property.unitNumber})
                     </span>
                     <p className="text-[10px] text-slate-500 truncate leading-none mt-0.5">
                       {[property.address, property.city].filter(Boolean).join(', ') || property.address || property.city || ''}

@@ -186,7 +186,7 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
           >
             {properties.map(p => (
               <SelectItem key={p.id}>
-                {`${p.name} (${p.unitNumber}) - ${p.city}`}
+                {`${p.name} (č. ${p.unitNumber}) - ${p.city}`}
               </SelectItem>
             ))}
           </Select>

@@ -39,19 +39,18 @@ export const Header: React.FC<HeaderProps> = ({
     dashboard: 'Prehľad portfólia',
     analytics: 'Analytika a peňažné toky',
     properties: 'Nehnuteľnosti a byty',
-    inventory: 'Inventár a spotrebiče',
     documents: 'Dokumenty a zmluvy',
     market: 'Trhové porovnanie nájomného s Nehnutelnosti.sk',
   };
 
   return (
     <header
-      className={`sticky top-0 z-30 bg-[#fcfdfd]/95 backdrop-blur-md border-b border-slate-200/80 transition-all duration-150 px-6 sm:px-8 py-3 flex items-center justify-between gap-4 ${
+      className={`sticky top-0 z-30 bg-[#fcfdfd]/95 backdrop-blur-md border-b border-slate-200/80 transition-all duration-150 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-4 ${
         isScrolled ? 'shadow-xs' : ''
       }`}
     >
       {/* Page Title */}
-      <h2 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">
+      <h2 className="text-sm sm:text-base lg:text-lg font-bold text-slate-800 tracking-tight shrink-0">
         {titles[activeTab] || 'Portfólio'}
       </h2>
 

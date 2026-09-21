@@ -9,6 +9,18 @@
   html {
     overflow-y: scroll;
     scrollbar-gutter: stable;
+    /* Ergonomic laptop and desktop scaling: compact, clean view without oversized elements */
+    font-size: 14.5px;
+  }
+  @media (min-width: 1536px) {
+    html {
+      font-size: 15.5px;
+    }
+  }
+  @media (max-width: 1024px) {
+    html {
+      font-size: 14px;
+    }
   }
   html, body {
     background-color: #f1f3f5;

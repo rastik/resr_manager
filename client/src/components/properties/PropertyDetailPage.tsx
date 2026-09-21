@@ -297,7 +297,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
     : (activeLease ? property.utilitiesAmount : undefined);
 
   const handleDeleteProperty = async () => {
-    if (confirm(`Naozaj chcete natrvalo vymazať nehnuteľnosť ${property.name} (${property.unitNumber})?`)) {
+    if (confirm(`Naozaj chcete natrvalo vymazať nehnuteľnosť ${property.name} (č. ${property.unitNumber})?`)) {
       await deleteProperty(property.id);
       onBack();
     }
@@ -355,7 +355,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/55 to-slate-950/40" />
 
         {/* Content Over Banner */}
-        <div className="relative z-10 px-6 sm:px-8 py-4 sm:py-5 flex flex-col justify-between min-h-[155px] sm:min-h-[175px] w-full">
+        <div className="relative z-10 px-4 sm:px-6 lg:px-7 py-3.5 sm:py-4 flex flex-col justify-between min-h-[145px] sm:min-h-[165px] w-full">
           {/* Top Bar: Breadcrumbs + Badges on Left, Actions on Right */}
           <div className="w-full flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -371,7 +371,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 </button>
                 <span className="text-slate-400">/</span>
                 <span className="font-semibold text-white">
-                  {property.name} ({property.unitNumber})
+                  {property.name} (č. {property.unitNumber})
                 </span>
               </div>
 
@@ -428,7 +428,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
       </div>
 
       {/* Main Page Content Body */}
-      <div className="px-6 sm:px-8 py-5 space-y-5">
+      <div className="px-4 sm:px-6 lg:px-7 py-4 sm:py-5 space-y-4 sm:space-y-5">
         {/* 2. TABS SELECTOR (Directly under photo) */}
         {(() => {
           const effectiveTab = activeTab === 'leases' || activeTab === 'maintenance' ? 'history' : activeTab;
@@ -1865,7 +1865,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           onClose={() => setIsHotelRevenueModalOpen(false)}
           leaseId={activeLease.id}
           propertyId={property.id}
-          propertyName={`${property.name} (${property.unitNumber})`}
+          propertyName={`${property.name} (č. ${property.unitNumber})`}
         />
       )}
     </div>

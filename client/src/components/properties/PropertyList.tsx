@@ -149,10 +149,10 @@ export const PropertyList: React.FC<PropertyListProps> = ({
               }}
               className="text-xs font-semibold text-slate-800 bg-transparent border-0 outline-none cursor-pointer pr-1"
             >
-              <option value="unitNumber-asc">Názov (číslo) ↑</option>
-              <option value="unitNumber-desc">Názov (číslo) ↓</option>
-              <option value="name-asc">Nehnuteľnosť (A-Z)</option>
-              <option value="name-desc">Nehnuteľnosť (Z-A)</option>
+              <option value="unitNumber-asc">Číslo bytu ↑</option>
+              <option value="unitNumber-desc">Číslo bytu ↓</option>
+              <option value="name-asc">Názov objektu (A-Z)</option>
+              <option value="name-desc">Názov objektu (Z-A)</option>
               <option value="rentAmount-desc">Nájomné (od najvyššieho)</option>
               <option value="rentAmount-asc">Nájomné (od najnižšieho)</option>
               <option value="sizeSqm-desc">Výmera (od najväčšej)</option>
@@ -237,8 +237,8 @@ export const PropertyList: React.FC<PropertyListProps> = ({
           }}
         >
           <TableHeader>
-            <TableColumn key="unit" allowsSorting>NÁZOV</TableColumn>
-            <TableColumn key="property" allowsSorting>NEHNUTEĽNOSŤ</TableColumn>
+            <TableColumn key="unit" allowsSorting>ČÍSLO BYTU</TableColumn>
+            <TableColumn key="property" allowsSorting>NÁZOV OBJEKTU</TableColumn>
             <TableColumn key="location" allowsSorting>LOKALITA</TableColumn>
             <TableColumn key="size" allowsSorting>VÝMERA</TableColumn>
             <TableColumn key="status" allowsSorting>STAV</TableColumn>
@@ -249,7 +249,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
           <TableBody emptyContent="Žiadne nehnuteľnosti nezodpovedajú zvolenému filtru.">
             {filteredProperties.map(property => (
               <TableRow key={property.id} onClick={() => onSelectProperty(property.id)}>
-                <TableCell className="text-slate-700 font-semibold">{property.unitNumber}</TableCell>
+                <TableCell className="text-slate-700 font-semibold">č. {property.unitNumber}</TableCell>
                 <TableCell className="font-medium text-slate-900">{property.name}</TableCell>
                 <TableCell className="text-slate-500">
                   {property.city}
@@ -317,7 +317,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                   {/* Top: Unit Badge & Status Badge */}
                   <div className="flex items-center justify-between w-full">
                     <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold border border-white/20">
-                      {property.propertyType === 'apartment' ? 'Apartmán' : 'Byt'} {property.unitNumber}
+                      {property.propertyType === 'apartment' ? 'Apartmán' : 'Byt'} č. {property.unitNumber}
                     </span>
                     <Badge variant={property.status} />
                   </div>
@@ -326,7 +326,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                   <div className="space-y-1 w-full">
                     <div>
                       <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight group-hover:text-emerald-300 transition-colors truncate">
-                        {property.name} ({property.unitNumber})
+                        {property.name} (č. {property.unitNumber})
                       </h4>
                       <p className="text-[10px] sm:text-[11px] text-slate-300 flex items-center gap-1 mt-0.5 truncate">
                         <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />

@@ -37,7 +37,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         key={property.id}
         isPressable
         onPress={() => onSelectProperty(property.id)}
-        className="group relative h-40 rounded-xl overflow-hidden border border-slate-200/80 hover:border-slate-300 p-0 shadow-2xs hover:shadow-lg transition-all duration-250 text-left w-full"
+        className="group relative h-36 sm:h-40 rounded-xl overflow-hidden border border-slate-200/80 hover:border-slate-300 p-0 shadow-2xs hover:shadow-lg transition-all duration-250 text-left w-full"
       >
         {/* Background Image */}
         <img
@@ -60,7 +60,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
           <div className="space-y-1 w-full">
             <div>
               <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight group-hover:text-emerald-300 transition-colors truncate">
-                {property.name} ({property.unitNumber})
+                {property.name} (č. {property.unitNumber})
               </h4>
             </div>
 
@@ -104,63 +104,63 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
       {/* Key Metrics Bar (Easy on the eyes, warm tinted container with soft borders) */}
       <div className="bg-[#fcfdfd] border border-slate-200/80 rounded-2xl shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/60 overflow-hidden">
         {/* 1. Mesačný nájom */}
-        <div className="p-3.5 sm:p-5 flex flex-col justify-between min-h-[82px] hover:bg-slate-100/40 transition">
-          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
             Mesačný nájom
           </span>
           <div className="mt-1">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">
+              <span className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
                 €{analytics?.monthlyGrossRent.toLocaleString() || 0}
               </span>
-              <span className="text-xs sm:text-sm text-slate-500 font-medium">/ mes</span>
+              <span className="text-[11px] sm:text-xs text-slate-500 font-medium">/ mes</span>
             </div>
-            <span className="text-xs text-slate-500 block truncate leading-tight mt-1">
+            <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
               Ročne: €{((analytics?.monthlyGrossRent || 0) * 12).toLocaleString()}
             </span>
           </div>
         </div>
 
         {/* 2. Obsadenosť portfólia */}
-        <div className="p-3.5 sm:p-5 flex flex-col justify-between min-h-[82px] hover:bg-slate-100/40 transition">
-          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
             Obsadenosť portfólia
           </span>
           <div className="mt-1">
-            <div className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">
+            <div className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
               {analytics?.occupancyRate || 0}%
             </div>
-            <span className="text-xs text-slate-500 block truncate leading-tight mt-1">
+            <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
               {analytics?.occupiedUnits || 0} z {analytics?.totalUnits || 0} jednotiek obsadených
             </span>
           </div>
         </div>
 
         {/* 3. Končiace zmluvy */}
-        <div className="p-3.5 sm:p-5 flex flex-col justify-between min-h-[82px] hover:bg-slate-100/40 transition">
-          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
             Končiace zmluvy
           </span>
           <div className="mt-1">
-            <div className={`text-xl sm:text-2xl font-black leading-tight ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'text-amber-600' : 'text-slate-800'}`}>
+            <div className={`text-lg sm:text-xl lg:text-2xl font-black leading-tight ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'text-amber-600' : 'text-slate-800'}`}>
               {analytics?.expiringIn60DaysCount || 0}
             </div>
-            <span className="text-xs text-slate-500 block truncate leading-tight mt-1">
+            <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
               V nasledujúcich 60 dňoch
             </span>
           </div>
         </div>
 
         {/* 4. Výdavky na údržbu */}
-        <div className="p-3.5 sm:p-5 flex flex-col justify-between min-h-[82px] hover:bg-slate-100/40 transition">
-          <span className="text-[11px] sm:text-xs uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
             Výdavky na údržbu
           </span>
           <div className="mt-1">
-            <div className="text-xl sm:text-2xl font-black text-slate-800 leading-tight">
+            <div className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
               €{analytics?.totalExpenses.toLocaleString() || 0}
             </div>
-            <span className="text-xs text-slate-500 block truncate leading-tight mt-1">
+            <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
               Celkové evidované náklady
             </span>
           </div>
@@ -286,7 +286,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
                   const prop = properties.find(p => p.id === lease.propertyId);
                   const propName = lease.propertyName || prop?.name || 'Nehnuteľnosť';
                   const propUnit = lease.propertyUnit || prop?.unitNumber;
-                  const propertyLabel = propUnit ? `${propName} (${propUnit})` : propName;
+                  const propertyLabel = propUnit ? `${propName} (č. ${propUnit})` : propName;
 
                   return (
                     <div
@@ -334,15 +334,6 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
                   Sledovanie garancií a servisu (od najskoršej)
                 </p>
               </div>
-              <Button
-                size="sm"
-                variant="light"
-                onPress={() => onNavigateToTab('inventory')}
-                className="text-xs text-slate-500 hover:text-slate-800 font-medium h-7 px-2.5"
-                endContent={<ArrowRight className="w-3.5 h-3.5" />}
-              >
-                Celý inventár
-              </Button>
             </div>
 
             <div className="divide-y divide-slate-100">
