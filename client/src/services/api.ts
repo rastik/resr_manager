@@ -1,4 +1,4 @@
-import { Property, Lease, HotelRevenueMonth, InventoryItem, Expense, MarketComp, VaultDocument, PortfolioAnalytics, UserProfile, MarketComparisonResponse } from '../types';
+import { Property, Lease, HotelRevenueMonth, InventoryItem, Expense, MarketComp, VaultDocument, PortfolioAnalytics, UserProfile, MarketComparisonResponse, BookingPrivateRentalComparison } from '../types';
 import { initialProperties, initialLeases, initialInventory, initialExpenses, initialMarketComps, initialDocuments, initialUser } from './mockData';
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -486,6 +486,36 @@ class ApiService {
       console.warn('API fallback for delete hotel revenue', e);
     }
     return true;
+  }
+
+  // Booking.com Monitor
+  async getBookingComparison(propertyId?: string, operatorPayoutAvg?: number): Promise<BookingPrivateRentalComparison | null> {
+    try {
+      const params = new URLSearchParams();
+      if (propertyId) params.set('propertyId', propertyId);
+      if (operatorPayoutAvg) params.set('operatorPayoutAvg', String(operatorPayoutAvg));
+      const res = await fetch(`${BASE_URL}/booking-monitor?${params.toString()}`, {
+        headers: this.getHeaders(),
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn('API fallback for getBookingComparison', e);
+    }
+    return null;
+  }
+
+  async syncBookingPrice(propertyId?: string, operatorPayoutAvg?: number): Promise<BookingPrivateRentalComparison | null> {
+    try {
+      const res = await fetch(`${BASE_URL}/booking-monitor/sync`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ propertyId, operatorPayoutAvg }),
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn('API fallback for syncBookingPrice', e);
+    }
+    return null;
   }
 
   // Analytics

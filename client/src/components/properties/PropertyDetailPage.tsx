@@ -58,6 +58,7 @@ import { Badge } from '../common/Badge';
 import { EditPropertyModal } from './EditPropertyModal';
 import { EditLeaseModal } from './EditLeaseModal';
 import { AddHotelRevenueModal } from './AddHotelRevenueModal';
+import { BookingMonitorCard } from './BookingMonitorCard';
 import { ImageLightboxModal } from '../common/ImageLightboxModal';
 import { formatDate, getEffectiveLeaseStatus, isLeaseExpired } from '../../utils/date';
 import { compressImage } from '../../utils/imageCompressor';
@@ -338,10 +339,16 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
     }
   };
 
+  const isOvrucDeluxeMonitored =
+    property.id === 'prop_1789904376801' ||
+    property.name.toLowerCase().includes('arboria') ||
+    property.name.toLowerCase().includes('ovruč') ||
+    property.name.toLowerCase().includes('ovruc');
+
   return (
     <div className="animate-in fade-in duration-150 w-full">
-      {/* 1. FULL-WIDTH HERO COVER BANNER WITH BREADCRUMBS & ACTIONS */}
-      <div className="relative overflow-hidden border-b border-slate-200 shadow-sm min-h-[155px] sm:min-h-[175px] w-full group">
+      {/* 1. HERO COVER BANNER WITH BREADCRUMBS, ACTIONS & BOOKING MONITOR (RIGHT OF PHOTO) */}
+      <div className="relative overflow-hidden border-b border-slate-200 shadow-sm min-h-[175px] sm:min-h-[200px] w-full group">
         {/* Background Photo */}
         <img
           src={
@@ -353,10 +360,10 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-101 transition-transform duration-700"
         />
         {/* Dark Gradient Overlay for optimal legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/55 to-slate-950/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/65 to-slate-950/45" />
 
         {/* Content Over Banner */}
-        <div className="relative z-10 px-4 sm:px-6 lg:px-7 py-3.5 sm:py-4 flex flex-col justify-between min-h-[145px] sm:min-h-[165px] w-full">
+        <div className="relative z-10 px-4 sm:px-6 lg:px-7 py-3.5 sm:py-4 flex flex-col justify-between min-h-[165px] sm:min-h-[190px] w-full gap-4">
           {/* Top Bar: Breadcrumbs + Badges on Left, Actions on Right */}
           <div className="w-full flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -413,17 +420,38 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
             </div>
           </div>
 
-          {/* Bottom Bar: Title & Address */}
-          <div className="mt-3 sm:mt-4">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-xs">
-              {property.name}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-200 flex items-center gap-1.5 mt-1 drop-shadow-xs">
-              <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              <span>
-                {property.address}, {property.city}
-              </span>
-            </p>
+          {/* Bottom Row: Title & Address on Left, Booking.com Monitor Section on Right */}
+          <div className="mt-2 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-xs">
+                {property.name}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-200 flex items-center gap-1.5 mt-1 drop-shadow-xs">
+                <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>
+                  {property.address}, {property.city}
+                </span>
+              </p>
+            </div>
+
+            {/* Single added section right of photo: Booking.com Price Monitor (Exclusive to this apartment) */}
+            {isOvrucDeluxeMonitored && (
+              <div className="w-full lg:w-auto">
+                <BookingMonitorCard
+                  propertyId={property.id}
+                  operatorPayoutAvg={
+                    unitHotelRevenue.length > 0
+                      ? Math.round(
+                          unitHotelRevenue.reduce((s, r) => s + r.revenueAmount, 0) /
+                            unitHotelRevenue.length
+                        )
+                      : effectiveRentAmount > 0
+                      ? effectiveRentAmount
+                      : 1450
+                  }
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

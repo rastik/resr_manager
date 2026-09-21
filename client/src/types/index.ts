@@ -255,3 +255,37 @@ export interface MarketComparisonResponse {
   comparables: MarketComparableItem[];
 }
 
+export interface BookingPriceRecord {
+  id: string;
+  propertyId: string;
+  roomName: string;
+  sourceUrl: string;
+  date: string;
+  pricePerNight: number;
+  currency: string;
+  minNights: number;
+  occupancyGuests: number;
+  cancellationPolicy: string;
+  breakfastIncluded: boolean;
+  notes?: string;
+  scrapedAt: string;
+}
+
+export interface BookingPrivateRentalComparison {
+  roomName: string;
+  currentNightlyRate: number;
+  currency: string;
+  averageNightlyRate: number;
+  minNightlyRate: number;
+  maxNightlyRate: number;
+  estimatedMonthlyGross: number;
+  estimatedOccupancyPercent: number;
+  privateNetEstimatedRevenue: number;
+  currentOperatorRevenueAvg: number;
+  revenuePotentialDelta: number;
+  potentialPercentDifference: number;
+  priceHistory: BookingPriceRecord[];
+  lastSyncTime: string;
+  sourceUrl: string;
+}
+

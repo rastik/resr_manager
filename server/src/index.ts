@@ -5,6 +5,7 @@ import { dbService } from './dbService';
 import { initialProperties, initialLeases, initialInventory, initialExpenses, initialMarketComps, initialDocuments } from './initialData';
 import { NehnutelnostiService } from './services/nehnutelnostiService';
 import { ComparatorEngine, TargetPropertyCriteria } from './services/comparatorEngine';
+import { BookingScraperService } from './services/bookingScraperService';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -590,6 +591,36 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
     res.json(comparisonResult);
   } catch (error: any) {
     console.error('Error fetching market comparables:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ----------------------------------------------------
+// Booking.com Monitor (Apartmán Deluxe)
+// ----------------------------------------------------
+app.get('/api/booking-monitor', async (req: Request, res: Response) => {
+  const { propertyId, operatorPayoutAvg } = req.query;
+  try {
+    const propId = (propertyId as string) || 'prop_1789904376801';
+    const payoutAvg = operatorPayoutAvg ? Number(operatorPayoutAvg) : 1450;
+    const comparison = BookingScraperService.getComparison(propId, payoutAvg);
+    res.json(comparison);
+  } catch (error: any) {
+    console.error('Error fetching booking monitor data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/booking-monitor/sync', async (req: Request, res: Response) => {
+  const { propertyId, operatorPayoutAvg } = req.body;
+  try {
+    const propId = propertyId || 'prop_1789904376801';
+    const payoutAvg = operatorPayoutAvg ? Number(operatorPayoutAvg) : 1450;
+    await BookingScraperService.syncBookingPrice(propId);
+    const comparison = BookingScraperService.getComparison(propId, payoutAvg);
+    res.json(comparison);
+  } catch (error: any) {
+    console.error('Error syncing booking price:', error);
     res.status(500).json({ error: error.message });
   }
 });
