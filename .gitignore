@@ -39,3 +39,8 @@ yarn-error.log*
 Thumbs.db
 .vercel
 .env*
+
+# Python local scripts & requirements
+scripts/
+*.py
+requirements*.txt

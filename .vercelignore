@@ -1,0 +1,7 @@
+# Vercel Ignore
+scripts/
+*.py
+requirements*.txt
+docker/
+docker-compose.yml
+*.sql

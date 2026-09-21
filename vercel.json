@@ -1,6 +1,12 @@
 {
+  "framework": "vite",
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
+  "functions": {
+    "api/index.ts": {
+      "runtime": "@vercel/node"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
