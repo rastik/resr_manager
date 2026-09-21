@@ -59,11 +59,14 @@ import { Badge } from '../common/Badge';
 import { EditPropertyModal } from './EditPropertyModal';
 import { EditLeaseModal } from './EditLeaseModal';
 import { AddHotelRevenueModal } from './AddHotelRevenueModal';
+import { UploadHotelInvoiceModal } from './UploadHotelInvoiceModal';
+import { DocumentPreviewModal } from '../documents/DocumentPreviewModal';
 import { BookingMonitorCard } from './BookingMonitorCard';
 import { ImageLightboxModal } from '../common/ImageLightboxModal';
 import { formatDate, getEffectiveLeaseStatus, isLeaseExpired } from '../../utils/date';
 import { compressImage } from '../../utils/imageCompressor';
 import { openLeasePdfWindow } from '../../utils/contractPdf';
+import { VaultDocument } from '../../types';
 
 interface PropertyDetailPageProps {
   property: Property;
@@ -113,6 +116,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
     inventory,
     expenses,
     hotelRevenue,
+    documents,
+    deleteDocument,
     updateProperty,
     deleteProperty,
     deleteInventoryItem,
@@ -130,6 +135,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const [selectedLeaseToEdit, setSelectedLeaseToEdit] = useState<Lease | null>(null);
   const [isEditLeaseModalOpen, setIsEditLeaseModalOpen] = useState<boolean>(false);
   const [isHotelRevenueModalOpen, setIsHotelRevenueModalOpen] = useState<boolean>(false);
+  const [isUploadHotelInvoiceOpen, setIsUploadHotelInvoiceOpen] = useState<boolean>(false);
+  const [selectedInvoiceForPreview, setSelectedInvoiceForPreview] = useState<VaultDocument | null>(null);
   const [copiedContact, setCopiedContact] = useState<'email' | 'phone' | null>(null);
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
@@ -241,6 +248,13 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const unitHotelRevenue = hotelRevenue.filter(r => r.propertyId === property.id).sort((a, b) => b.month.localeCompare(a.month));
   const unitInventory = inventory.filter(i => i.propertyId === property.id);
   const unitExpenses = expenses.filter(e => e.propertyId === property.id);
+  const unitHotelInvoices = documents
+    .filter(
+      doc =>
+        (doc.propertyId === property.id || (activeLease && doc.leaseId === activeLease.id)) &&
+        (doc.category === 'invoice' || (doc.notes && doc.notes.toLowerCase().includes('hotel')) || doc.name.toLowerCase().includes('faktúr'))
+    )
+    .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
 
   const handleLeaseMoveInPhotosUpload = async (lease: Lease, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -646,15 +660,26 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     {activeLease && (
                       <>
                         {isHotelOperator && (
-                          <Button
-                            size="sm"
-                            variant="flat"
-                            onPress={() => setIsHotelRevenueModalOpen(true)}
-                            startContent={<Plus className="w-3 h-3" />}
-                            className="bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium text-[11px] rounded-lg h-7 px-2"
-                          >
-                            Zaznamenať výnos
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              onPress={() => setIsUploadHotelInvoiceOpen(true)}
+                              startContent={<UploadCloud className="w-3 h-3" />}
+                              className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-[11px] rounded-lg h-7 px-2"
+                            >
+                              Nahrať faktúru
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="flat"
+                              onPress={() => setIsHotelRevenueModalOpen(true)}
+                              startContent={<Plus className="w-3 h-3" />}
+                              className="bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium text-[11px] rounded-lg h-7 px-2"
+                            >
+                              Zaznamenať výnos
+                            </Button>
+                          </>
                         )}
                         <Button
                           size="sm"
@@ -965,6 +990,121 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                               className="mt-1.5 text-[11px] font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
                             >
                               + Zaznamenať prvý výnos
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Hotel Invoices & Statements Section */}
+                    {isHotelOperator && (
+                      <div className="pt-3 border-t border-slate-200/80 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="w-3.5 h-3.5 text-blue-600" />
+                            <span className="text-xs font-semibold text-slate-800">Faktúry a vyúčtovania od hotela</span>
+                            <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full font-medium">
+                              {unitHotelInvoices.length} {unitHotelInvoices.length === 1 ? 'faktúra' : unitHotelInvoices.length < 5 ? 'faktúry' : 'faktúr'}
+                            </span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="light"
+                            onPress={() => setIsUploadHotelInvoiceOpen(true)}
+                            startContent={<UploadCloud className="w-3 h-3 text-blue-600" />}
+                            className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 h-6 px-2"
+                          >
+                            + Nahrať faktúru
+                          </Button>
+                        </div>
+
+                        {unitHotelInvoices.length > 0 ? (
+                          <div className="rounded-lg border border-slate-200 overflow-hidden bg-white">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="bg-slate-50 border-b border-slate-200">
+                                  <th className="text-left px-3 py-2 text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Doklad</th>
+                                  <th className="text-left px-3 py-2 text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Dátum</th>
+                                  <th className="text-left px-3 py-2 text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Veľkosť</th>
+                                  <th className="text-left px-3 py-2 text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Poznámka</th>
+                                  <th className="text-right px-3 py-2 text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Akcie</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {unitHotelInvoices.map((inv, idx) => (
+                                  <tr
+                                    key={inv.id}
+                                    className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/60 transition ${
+                                      idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'
+                                    }`}
+                                  >
+                                    <td className="px-3 py-2.5 font-medium text-slate-900">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                                          <FileText className="w-3.5 h-3.5" />
+                                        </div>
+                                        <span
+                                          onClick={() => setSelectedInvoiceForPreview(inv)}
+                                          className="truncate max-w-[200px] cursor-pointer hover:text-blue-600 hover:underline"
+                                          title={inv.name}
+                                        >
+                                          {inv.name}
+                                        </span>
+                                      </div>
+                                    </td>
+                                    <td className="px-3 py-2.5 text-slate-600 whitespace-nowrap">{formatDate(inv.uploadDate)}</td>
+                                    <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap">{inv.fileSize}</td>
+                                    <td className="px-3 py-2.5 text-slate-500 truncate max-w-[220px]" title={inv.notes || '—'}>
+                                      {inv.notes || '—'}
+                                    </td>
+                                    <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                                      <div className="flex items-center justify-end gap-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedInvoiceForPreview(inv)}
+                                          className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
+                                          title="Náhľad faktúry"
+                                        >
+                                          <ExternalLink className="w-3.5 h-3.5" />
+                                        </button>
+                                        <a
+                                          href={inv.fileUrl}
+                                          download={inv.name}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition"
+                                          title="Stiahnuť súbor"
+                                        >
+                                          <Download className="w-3.5 h-3.5" />
+                                        </a>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (confirm(`Naozaj chcete vymazať faktúru "${inv.name}"?`)) {
+                                              deleteDocument(inv.id);
+                                            }
+                                          }}
+                                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition"
+                                          title="Vymazať"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="p-3.5 rounded-lg border border-dashed border-blue-200 bg-blue-50/25 text-center space-y-1.5">
+                            <p className="text-[11px] text-blue-700/80">Zatiaľ nie sú nahrané žiadne faktúry od hotela.</p>
+                            <button
+                              type="button"
+                              onClick={() => setIsUploadHotelInvoiceOpen(true)}
+                              className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-2"
+                            >
+                              + Nahrať prvú faktúru
                             </button>
                           </div>
                         )}
@@ -1913,6 +2053,24 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           propertyName={`${property.name} (č. ${property.unitNumber})`}
         />
       )}
+
+      {/* Upload Hotel Invoice Modal */}
+      {activeLease && isHotelOperator && (
+        <UploadHotelInvoiceModal
+          isOpen={isUploadHotelInvoiceOpen}
+          onClose={() => setIsUploadHotelInvoiceOpen(false)}
+          propertyId={property.id}
+          leaseId={activeLease.id}
+          propertyName={`${property.name} (č. ${property.unitNumber})`}
+          operatorName={activeLease.operatorCompany || activeLease.tenantName}
+        />
+      )}
+
+      {/* Document Preview Modal */}
+      <DocumentPreviewModal
+        document={selectedInvoiceForPreview}
+        onClose={() => setSelectedInvoiceForPreview(null)}
+      />
     </div>
   );
 };

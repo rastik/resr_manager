@@ -331,6 +331,18 @@ export const initialMarketComps = [
 
 export const initialDocuments = [
   {
+    id: 'doc_ovruc_inv_1',
+    userId: 'user_demo_landlord',
+    propertyId: 'prop_ovruc_deluxe',
+    leaseId: 'lease_ovruc_operator',
+    name: 'Vyúčtovanie a faktúra – August 2026',
+    category: 'invoice',
+    fileSize: '412 KB',
+    uploadDate: '2026-09-05',
+    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    notes: 'Mesačné vyúčtovanie prevádzky a provízie od APLEND Hotel Services s.r.o. (výnos €1,520)',
+  },
+  {
     id: 'doc_1',
     userId: 'user_demo_landlord',
     propertyId: 'prop_1',
