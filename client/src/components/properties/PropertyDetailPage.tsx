@@ -61,6 +61,7 @@ import { AddHotelRevenueModal } from './AddHotelRevenueModal';
 import { ImageLightboxModal } from '../common/ImageLightboxModal';
 import { formatDate, getEffectiveLeaseStatus, isLeaseExpired } from '../../utils/date';
 import { compressImage } from '../../utils/imageCompressor';
+import { openLeasePdfWindow } from '../../utils/contractPdf';
 
 interface PropertyDetailPageProps {
   property: Property;
@@ -1377,16 +1378,13 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       {lease.contractFileUrl && (
                         <div className="pt-1">
                           <Button
-                            as="a"
-                            href={lease.contractFileUrl}
-                            target="_blank"
-                            rel="noreferrer"
                             size="sm"
                             variant="light"
-                            className="text-emerald-700 hover:underline p-0 h-auto font-medium text-xs"
+                            onPress={() => openLeasePdfWindow(lease, property)}
+                            className="text-emerald-700 hover:underline p-0 h-auto font-medium text-xs cursor-pointer"
                             startContent={<Download className="w-3.5 h-3.5" />}
                           >
-                            {lease.contractFileName || 'Stiahnuť zmluvu v PDF'}
+                            {lease.contractFileName || 'Zobraziť zmluvu v prehliadači (PDF)'}
                           </Button>
                         </div>
                       )}

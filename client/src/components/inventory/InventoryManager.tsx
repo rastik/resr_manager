@@ -45,9 +45,10 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
 
   const categoryLabels: Record<string, string> = {
     all: 'Všetko',
-    appliance: 'Spotrebiče',
-    furniture: 'Nábytok',
     fixture: 'Vybavenie',
+    furniture: 'Nábytok',
+    appliance: 'Spotrebič',
+    other: 'Ostatné',
   };
 
   return (

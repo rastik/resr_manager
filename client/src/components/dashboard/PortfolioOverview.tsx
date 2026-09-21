@@ -322,25 +322,24 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
           </CardBody>
         </Card>
 
-        {/* Appliance Warranties - SORTED CLOSEST EXPIRATION FIRST */}
+        {/* Expiring Warranties - ALL ITEMS WITH WARRANTY FROM ALL INVENTORIES, SORTED CLOSEST EXPIRATION FIRST */}
         <Card shadow="none" className="border border-slate-200/80 bg-[#fcfdfd] rounded-2xl shadow-xs overflow-hidden">
           <CardBody className="p-4 sm:p-5">
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/60">
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">
-                  Záruky spotrebičov
+                  Končiace záruky
                 </h3>
                 <p className="text-[11px] text-slate-500">
-                  Sledovanie garancií a servisu (od najskoršej)
+                  Sledovanie garancií a servisu zo všetkých inventárov (od najskoršej)
                 </p>
               </div>
             </div>
 
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 max-h-[380px] overflow-y-auto pr-1">
               {inventory
-                .filter(i => i.warrantyExpiresAt)
+                .filter(i => Boolean(i.warrantyExpiresAt && i.warrantyExpiresAt.trim()))
                 .sort((a, b) => new Date(a.warrantyExpiresAt!).getTime() - new Date(b.warrantyExpiresAt!).getTime())
-                .slice(0, 5)
                 .map(item => {
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
@@ -365,33 +364,40 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
                     statusText = `Záruka platná (${months > 0 ? months + ' mes.' : diffDays + ' dní'})`;
                   }
 
+                  const prop = properties.find(p => p.id === item.propertyId);
+                  const propertyLabel = prop
+                    ? `${prop.name} (č. ${prop.unitNumber})`
+                    : item.propertyName || 'Neznámy byt';
+
                   return (
                     <div
                       key={item.id}
                       onClick={() => onSelectProperty(item.propertyId)}
                       className="py-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 px-2 -mx-2 rounded-lg transition"
                     >
-                      <div className="space-y-0.5">
+                      <div className="space-y-0.5 min-w-0 pr-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-slate-900">{item.name}</span>
-                          <Chip size="sm" variant="flat" color={chipColor} className="text-[10px] h-5 px-1 font-medium">
+                          <span className="text-xs font-semibold text-slate-900 truncate">{item.name}</span>
+                          <Chip size="sm" variant="flat" color={chipColor} className="text-[10px] h-5 px-1 font-medium shrink-0">
                             {statusText}
                           </Chip>
                         </div>
-                        <p className="text-[11px] text-slate-500">
-                          {item.propertyName} • {item.brandModel || 'Bez modelu'}
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {propertyLabel} • {item.brandModel || 'Bez modelu'}
                         </p>
                       </div>
-                      <div className="text-right shrink-0 ml-3">
-                        <span className="text-xs text-slate-900 font-semibold">€{item.cost}</span>
-                        <p className="text-[11px] text-slate-400">Záruka do: {item.warrantyExpiresAt}</p>
+                      <div className="text-right shrink-0 ml-2">
+                        {item.cost ? (
+                          <span className="text-xs text-slate-900 font-semibold block">€{item.cost}</span>
+                        ) : null}
+                        <p className="text-[11px] text-slate-400">Záruka do: {formatDate(item.warrantyExpiresAt)}</p>
                       </div>
                     </div>
                   );
                 })}
 
-              {inventory.filter(i => i.warrantyExpiresAt).length === 0 && (
-                <p className="text-xs text-slate-400 py-3 text-center">Žiadne evidované záruky.</p>
+              {inventory.filter(i => Boolean(i.warrantyExpiresAt && i.warrantyExpiresAt.trim())).length === 0 && (
+                <p className="text-xs text-slate-400 py-6 text-center">Žiadne evidované záruky v inventári.</p>
               )}
             </div>
           </CardBody>

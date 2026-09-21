@@ -83,8 +83,8 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
             size="sm"
             variant="bordered"
             aria-label="Vybraný byt / jednotka"
-            selectedKeys={propertyId ? [propertyId] : []}
-            onChange={e => setPropertyId(e.target.value)}
+            disallowEmptySelection
+            selectedKeys={propertyId ? new Set([propertyId]) : new Set([])}
             onSelectionChange={keys => {
               const val = Array.from(keys)[0];
               if (val) setPropertyId(String(val));
@@ -92,10 +92,11 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
             classNames={{
               trigger: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 min-h-9 shadow-2xs',
               value: 'text-xs font-medium text-slate-900',
+              popoverContent: 'bg-white border border-slate-200 shadow-lg text-slate-900',
             }}
           >
             {properties.map(p => (
-              <SelectItem key={p.id}>
+              <SelectItem key={p.id} className="text-slate-900 hover:bg-slate-100 data-[selected=true]:bg-slate-100 data-[selected=true]:text-slate-950 font-medium">
                 {`${p.name} (č. ${p.unitNumber})`}
               </SelectItem>
             ))}
@@ -130,20 +131,30 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
               size="sm"
               variant="bordered"
               aria-label="Kategória"
-              selectedKeys={[category]}
-              onChange={e => setCategory(e.target.value as any)}
+              disallowEmptySelection
+              selectedKeys={new Set([category])}
               onSelectionChange={keys => {
                 const val = Array.from(keys)[0];
-                if (val) setCategory(val as any);
+                if (val) setCategory(String(val) as InventoryCategory);
               }}
               classNames={{
                 trigger: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 min-h-9 shadow-2xs',
                 value: 'text-xs font-medium text-slate-900',
+                popoverContent: 'bg-white border border-slate-200 shadow-lg text-slate-900',
               }}
             >
-              <SelectItem key="appliance">Spotrebič (Kuchyňa, pranie)</SelectItem>
-              <SelectItem key="furniture">Nábytok (Sedačka, posteľ, stôl)</SelectItem>
-              <SelectItem key="fixture">Vybavenie (Klimatizácia, kotol)</SelectItem>
+              <SelectItem key="fixture" className="text-slate-900 hover:bg-slate-100 data-[selected=true]:bg-slate-100 data-[selected=true]:text-slate-950 font-medium">
+                Vybavenie
+              </SelectItem>
+              <SelectItem key="furniture" className="text-slate-900 hover:bg-slate-100 data-[selected=true]:bg-slate-100 data-[selected=true]:text-slate-950 font-medium">
+                Nábytok
+              </SelectItem>
+              <SelectItem key="appliance" className="text-slate-900 hover:bg-slate-100 data-[selected=true]:bg-slate-100 data-[selected=true]:text-slate-950 font-medium">
+                Spotrebič
+              </SelectItem>
+              <SelectItem key="other" className="text-slate-900 hover:bg-slate-100 data-[selected=true]:bg-slate-100 data-[selected=true]:text-slate-950 font-medium">
+                Ostatné
+              </SelectItem>
             </Select>
           </div>
         </div>

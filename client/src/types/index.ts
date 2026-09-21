@@ -77,7 +77,7 @@ export interface HotelRevenueMonth {
   createdAt?: string;
 }
 
-export type InventoryCategory = 'appliance' | 'furniture' | 'fixture';
+export type InventoryCategory = 'fixture' | 'furniture' | 'appliance' | 'other';
 
 export interface InventoryItem {
   id: string;

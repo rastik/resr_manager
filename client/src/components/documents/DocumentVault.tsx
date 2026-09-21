@@ -211,9 +211,9 @@ export const DocumentVault: React.FC = () => {
                     isIconOnly
                     size="sm"
                     variant="light"
-                    onPress={() => setPreviewDoc(doc)}
+                    onPress={() => handleOpenDocument(doc)}
                     className="min-w-7 w-7 h-7 text-slate-400 hover:text-slate-800"
-                    title="Náhľad"
+                    title="Otvoriť v prehliadači (PDF)"
                   >
                     <Eye className="w-3.5 h-3.5" />
                   </Button>
