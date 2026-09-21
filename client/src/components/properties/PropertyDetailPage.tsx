@@ -343,6 +343,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   // Booking.com cenový monitoring je určený výhradne pre apartmány (nie pre byty)
   const isApartment = property.propertyType === 'apartment';
 
+  useEffect(() => {
+    if (activeTab === 'booking' && !isApartment) {
+      setActiveTab('overview');
+    }
+  }, [property.id, isApartment, activeTab]);
+
   return (
     <div className="animate-in fade-in duration-150 w-full">
       {/* 1. FULL-WIDTH HERO COVER BANNER WITH BREADCRUMBS & ACTIONS */}
