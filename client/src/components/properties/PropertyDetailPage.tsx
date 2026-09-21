@@ -51,6 +51,7 @@ import {
   Armchair,
   UserMinus,
   UserX,
+  Globe,
 } from 'lucide-react';
 import { Property, Lease } from '../../types';
 import { useProperty } from '../../context/PropertyContext';
@@ -123,7 +124,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
     showToast,
   } = useProperty();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'expenses' | 'history' | 'photos' | 'maintenance' | 'leases'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'expenses' | 'history' | 'photos' | 'booking' | 'maintenance' | 'leases'>('overview');
   const [selectedPhoto, setSelectedPhoto] = useState<string>(property.imageUrl || '');
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [selectedLeaseToEdit, setSelectedLeaseToEdit] = useState<Lease | null>(null);
@@ -347,8 +348,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
   return (
     <div className="animate-in fade-in duration-150 w-full">
-      {/* 1. HERO COVER BANNER WITH BREADCRUMBS, ACTIONS & BOOKING MONITOR (RIGHT OF PHOTO) */}
-      <div className="relative overflow-hidden border-b border-slate-200 shadow-sm min-h-[175px] sm:min-h-[200px] w-full group">
+      {/* 1. FULL-WIDTH HERO COVER BANNER WITH BREADCRUMBS & ACTIONS */}
+      <div className="relative overflow-hidden border-b border-slate-200 shadow-sm min-h-[155px] sm:min-h-[175px] w-full group">
         {/* Background Photo */}
         <img
           src={
@@ -360,10 +361,10 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-101 transition-transform duration-700"
         />
         {/* Dark Gradient Overlay for optimal legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/65 to-slate-950/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/55 to-slate-950/40" />
 
         {/* Content Over Banner */}
-        <div className="relative z-10 px-4 sm:px-6 lg:px-7 py-3.5 sm:py-4 flex flex-col justify-between min-h-[165px] sm:min-h-[190px] w-full gap-4">
+        <div className="relative z-10 px-4 sm:px-6 lg:px-7 py-3.5 sm:py-4 flex flex-col justify-between min-h-[145px] sm:min-h-[165px] w-full">
           {/* Top Bar: Breadcrumbs + Badges on Left, Actions on Right */}
           <div className="w-full flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -420,38 +421,17 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
             </div>
           </div>
 
-          {/* Bottom Row: Title & Address on Left, Booking.com Monitor Section on Right */}
-          <div className="mt-2 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-xs">
-                {property.name}
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-200 flex items-center gap-1.5 mt-1 drop-shadow-xs">
-                <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>
-                  {property.address}, {property.city}
-                </span>
-              </p>
-            </div>
-
-            {/* Single added section right of photo: Booking.com Price Monitor (Exclusive to this apartment) */}
-            {isOvrucDeluxeMonitored && (
-              <div className="w-full lg:w-auto">
-                <BookingMonitorCard
-                  propertyId={property.id}
-                  operatorPayoutAvg={
-                    unitHotelRevenue.length > 0
-                      ? Math.round(
-                          unitHotelRevenue.reduce((s, r) => s + r.revenueAmount, 0) /
-                            unitHotelRevenue.length
-                        )
-                      : effectiveRentAmount > 0
-                      ? effectiveRentAmount
-                      : 1450
-                  }
-                />
-              </div>
-            )}
+          {/* Bottom Bar: Title & Address */}
+          <div className="mt-3 sm:mt-4">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-xs">
+              {property.name}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-200 flex items-center gap-1.5 mt-1 drop-shadow-xs">
+              <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>
+                {property.address}, {property.city}
+              </span>
+            </p>
           </div>
         </div>
       </div>
@@ -460,7 +440,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
       <div className="px-4 sm:px-6 lg:px-7 py-4 sm:py-5 space-y-4 sm:space-y-5">
         {/* 2. TABS SELECTOR (Directly under photo) */}
         {(() => {
-          const effectiveTab = activeTab === 'leases' || activeTab === 'maintenance' ? 'history' : activeTab;
+          const effectiveTab =
+            activeTab === 'leases' || activeTab === 'maintenance'
+              ? 'history'
+              : activeTab === 'booking' && !isOvrucDeluxeMonitored
+              ? 'overview'
+              : activeTab;
           return (
             <Tabs
               selectedKey={effectiveTab}
@@ -523,6 +508,18 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   />
                 }
               />
+              {isOvrucDeluxeMonitored && (
+                <Tab
+                  key="booking"
+                  title={
+                    <TabLabel
+                      icon={Globe}
+                      label="Booking.com"
+                      isSelected={effectiveTab === 'booking'}
+                    />
+                  }
+                />
+              )}
             </Tabs>
           );
         })()}
@@ -1853,6 +1850,25 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 </Card>
               );
             })}
+          </div>
+        )}
+
+        {/* TAB: BOOKING.COM MONITOR */}
+        {activeTab === 'booking' && isOvrucDeluxeMonitored && (
+          <div className="space-y-4">
+            <BookingMonitorCard
+              propertyId={property.id}
+              operatorPayoutAvg={
+                unitHotelRevenue.length > 0
+                  ? Math.round(
+                      unitHotelRevenue.reduce((s, r) => s + r.revenueAmount, 0) /
+                        unitHotelRevenue.length
+                    )
+                  : effectiveRentAmount > 0
+                  ? effectiveRentAmount
+                  : 1450
+              }
+            />
           </div>
         )}
       </div>
