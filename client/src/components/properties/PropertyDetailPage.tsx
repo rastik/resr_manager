@@ -340,11 +340,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
     }
   };
 
-  const isOvrucDeluxeMonitored =
-    property.id === 'prop_1789904376801' ||
-    property.name.toLowerCase().includes('arboria') ||
-    property.name.toLowerCase().includes('ovruč') ||
-    property.name.toLowerCase().includes('ovruc');
+  // Booking.com cenový monitoring je určený výhradne pre apartmány (nie pre byty)
+  const isApartment = property.propertyType === 'apartment';
 
   return (
     <div className="animate-in fade-in duration-150 w-full">
@@ -443,7 +440,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           const effectiveTab =
             activeTab === 'leases' || activeTab === 'maintenance'
               ? 'history'
-              : activeTab === 'booking' && !isOvrucDeluxeMonitored
+              : activeTab === 'booking' && !isApartment
               ? 'overview'
               : activeTab;
           return (
@@ -508,7 +505,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   />
                 }
               />
-              {isOvrucDeluxeMonitored && (
+              {isApartment && (
                 <Tab
                   key="booking"
                   title={
@@ -1854,7 +1851,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
         )}
 
         {/* TAB: BOOKING.COM MONITOR */}
-        {activeTab === 'booking' && isOvrucDeluxeMonitored && (
+        {activeTab === 'booking' && isApartment && (
           <div className="space-y-4">
             <BookingMonitorCard
               propertyId={property.id}
