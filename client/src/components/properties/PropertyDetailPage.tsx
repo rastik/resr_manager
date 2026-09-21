@@ -510,7 +510,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 title={
                   <TabLabel
                     icon={History}
-                    label={`História (${unitLeases.length + unitExpenses.filter(e => e.category === 'repair' || e.category === 'replacement').length})`}
+                    label={`História (${unitLeases.length})`}
                     isSelected={effectiveTab === 'history'}
                   />
                 }
@@ -1464,10 +1464,10 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           </div>
         )}
 
-        {/* TAB: HISTORY (História nájomcov + História úprav a údržby) */}
-        {(activeTab === 'history' || activeTab === 'leases' || activeTab === 'maintenance') && (
+        {/* TAB: HISTORY (História nájomných zmlúv) */}
+        {(activeTab === 'history' || activeTab === 'leases') && (
           <div className="space-y-5">
-            {/* 1. Sekcia: História nájomných zmlúv */}
+            {/* História nájomných zmlúv */}
             <Card shadow="sm" className="border border-slate-200 bg-white rounded-xl overflow-hidden">
               <CardBody className="p-5 space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -1590,135 +1590,6 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       Pre tento byt zatiaľ neboli zaevidované žiadne nájomné zmluvy.
                     </div>
                   )}
-                </div>
-              </CardBody>
-            </Card>
-
-            {/* 2. Sekcia: História zmien spotrebičov a údržby */}
-            <Card shadow="sm" className="border border-slate-200 bg-white rounded-xl overflow-hidden">
-              <CardBody className="p-5 space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900">História zmien spotrebičov a údržby</h3>
-                    <p className="text-xs text-slate-500">Chronologický prehľad výmen techniky, opráv a servisných zásahov</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-slate-900 text-white font-medium shadow-xs"
-                      onPress={() => onOpenAddExpense(property.id)}
-                      startContent={<Plus className="w-3.5 h-3.5" />}
-                    >
-                      Zaevidovať servis / opravu
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="flat"
-                      className="text-slate-800 font-medium"
-                      onPress={() => onOpenAddInventory(property.id)}
-                      startContent={<Plus className="w-3.5 h-3.5" />}
-                    >
-                      Pridať nový spotrebič
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Maintenance & Replacement Timeline / Table */}
-                <div className="space-y-4">
-                  {/* Spotrebice s evidovanou vymenou */}
-                  <div className="space-y-2">
-                    <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
-                      <Wrench className="w-3.5 h-3.5 text-slate-500" />
-                      Spotrebiče a technika v byte (stav a dátumy inštalácie/výmeny)
-                    </span>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {unitInventory.map(item => (
-                        <div key={item.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-slate-900">{item.name}</span>
-                            <Chip size="sm" variant="flat" color="default" className="text-[10px]">
-                              {item.category}
-                            </Chip>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
-                            <div>
-                              <span className="text-slate-400 block">Značka a model:</span>
-                              <span className="font-medium text-slate-800">{item.brandModel || '—'}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block">Výrobné číslo (S/N):</span>
-                              <span className="font-medium text-slate-800">{item.serialNumber || '—'}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block">Dátum inštalácie:</span>
-                              <span className="font-medium text-slate-800">{formatDate(item.purchaseDate)}</span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block">Záruka platná do:</span>
-                              <span className="font-medium text-slate-800">{item.warrantyExpiresAt ? formatDate(item.warrantyExpiresAt) : 'Bez záruky'}</span>
-                            </div>
-                          </div>
-                          {item.replacedDate && (
-                            <div className="p-2 rounded-lg bg-amber-50/80 border border-amber-200/60 text-[11px] text-amber-900">
-                              🔄 <strong>Výmena vykonaná:</strong> {formatDate(item.replacedDate)}
-                            </div>
-                          )}
-                          {item.notes && (
-                            <div className="text-[11px] text-slate-500 italic pt-1 border-t border-slate-200/50">
-                              📝 {item.notes}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-
-                      {unitInventory.length === 0 && (
-                        <div className="col-span-full py-6 text-center text-slate-400 text-xs">
-                          Zatiaľ nie sú evidované žiadne spotrebiče pre tento byt.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Servisne zasahy a opravy */}
-                  <div className="space-y-2 pt-2">
-                    <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
-                      <History className="w-3.5 h-3.5 text-slate-500" />
-                      Záznamy o servisných zásahoch, revíziách a opravách
-                    </span>
-
-                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl bg-white overflow-hidden">
-                      {unitExpenses
-                        .filter(e => e.category === 'repair' || e.category === 'replacement')
-                        .map(exp => (
-                          <div key={exp.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 transition">
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-semibold text-slate-900">{exp.description}</span>
-                                <Chip
-                                  size="sm"
-                                  variant="flat"
-                                  color={exp.category === 'replacement' ? 'warning' : 'primary'}
-                                  className="text-[10px] h-5 px-1 font-medium"
-                                >
-                                  {exp.category === 'replacement' ? 'Výmena spotrebiča / dielca' : 'Oprava / Servis'}
-                                </Chip>
-                              </div>
-                              <span className="text-[11px] text-slate-400">Dátum realizácie: {formatDate(exp.date)}</span>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-xs text-rose-600 font-bold">-€{exp.amount}</span>
-                            </div>
-                          </div>
-                        ))}
-
-                      {unitExpenses.filter(e => e.category === 'repair' || e.category === 'replacement').length === 0 && (
-                        <div className="py-8 text-center text-slate-400 text-xs">
-                          Pre tento byt zatiaľ nie sú evidované žiadne opravy ani výmeny spotrebičov.
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </CardBody>
             </Card>
