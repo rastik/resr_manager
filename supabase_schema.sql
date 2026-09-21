@@ -147,9 +147,27 @@ CREATE TABLE IF NOT EXISTS public.vault_documents (
     file_url TEXT NOT NULL,
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- 9. Booking Price History table (Apartmán Deluxe)
+CREATE TABLE IF NOT EXISTS public.booking_price_history (
+    id VARCHAR(64) PRIMARY KEY,
+    property_id VARCHAR(64) NOT NULL,
+    room_name VARCHAR(255) NOT NULL DEFAULT 'Apartmán Deluxe',
+    date DATE NOT NULL,
+    price_per_night NUMERIC(10, 2) NOT NULL,
+    currency VARCHAR(8) NOT NULL DEFAULT 'EUR',
+    min_nights INT NOT NULL DEFAULT 1,
+    occupancy_guests INT NOT NULL DEFAULT 2,
+    cancellation_policy TEXT DEFAULT 'Bezplatné zrušenie do 7 dní',
+    breakfast_included BOOLEAN NOT NULL DEFAULT FALSE,
+    notes TEXT,
+    source_url TEXT,
+    scraped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(property_id, date)
 );
 
 -- Indexes
+CREATE INDEX IF NOT EXISTS idx_booking_price_history_property_date ON public.booking_price_history(property_id, date ASC);
 CREATE INDEX IF NOT EXISTS idx_properties_user ON public.properties(user_id);
 CREATE INDEX IF NOT EXISTS idx_leases_user ON public.leases(user_id);
 CREATE INDEX IF NOT EXISTS idx_leases_property ON public.leases(property_id);

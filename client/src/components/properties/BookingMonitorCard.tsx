@@ -6,7 +6,6 @@ import {
   ExternalLink,
   Calendar,
   DollarSign,
-  Sparkles,
   ArrowUpRight,
   Info,
   CheckCircle2,
@@ -149,21 +148,6 @@ export const BookingMonitorCard: React.FC<BookingMonitorCardProps> = ({
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
                   Booking.com Monitor – Aplend Ovruč
                 </h3>
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  className="bg-cyan-50 text-cyan-800 text-xs font-semibold border border-cyan-200"
-                >
-                  Sledovaný typ: Apartmán Deluxe
-                </Chip>
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  className="bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-200 inline-flex items-center gap-1"
-                >
-                  <Sparkles className="w-3 h-3 text-purple-600 inline mr-1" />
-                  TypeSafe Jev AI
-                </Chip>
               </div>
               <p className="text-xs text-slate-500 max-w-2xl">
                 Automatický monitoring cien a výpočet výnosnosti pri hypotetickom súkromnom prenájme v porovnaní s výnosom od hotelového operátora. Monitoruje sa výlučne typ <strong>Apartmán Deluxe</strong>.

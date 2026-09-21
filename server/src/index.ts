@@ -601,9 +601,9 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
 app.get('/api/booking-monitor', async (req: Request, res: Response) => {
   const { propertyId, operatorPayoutAvg } = req.query;
   try {
-    const propId = (propertyId as string) || 'prop_1789904376801';
+    const propId = (propertyId as string) || 'prop_ovruc_deluxe';
     const payoutAvg = operatorPayoutAvg ? Number(operatorPayoutAvg) : 1450;
-    const comparison = BookingScraperService.getComparison(propId, payoutAvg);
+    const comparison = await BookingScraperService.getComparison(propId, payoutAvg);
     res.json(comparison);
   } catch (error: any) {
     console.error('Error fetching booking monitor data:', error);
@@ -611,19 +611,45 @@ app.get('/api/booking-monitor', async (req: Request, res: Response) => {
   }
 });
 
+// Vercel Cron (HTTP GET) and manual trigger endpoint
+app.get('/api/booking-monitor/sync', async (req: Request, res: Response) => {
+  const { propertyId, operatorPayoutAvg } = req.query;
+  try {
+    const propId = (propertyId as string) || 'prop_ovruc_deluxe';
+    const payoutAvg = operatorPayoutAvg ? Number(operatorPayoutAvg) : 1450;
+    console.log('[CRON/GET] Running Booking.com sync for:', propId);
+    await BookingScraperService.syncBookingPrice(propId);
+    const comparison = await BookingScraperService.getComparison(propId, payoutAvg);
+    res.json(comparison);
+  } catch (error: any) {
+    console.error('Error syncing booking price (cron/get):', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/booking-monitor/sync', async (req: Request, res: Response) => {
   const { propertyId, operatorPayoutAvg } = req.body;
   try {
-    const propId = propertyId || 'prop_1789904376801';
+    const propId = propertyId || 'prop_ovruc_deluxe';
     const payoutAvg = operatorPayoutAvg ? Number(operatorPayoutAvg) : 1450;
     await BookingScraperService.syncBookingPrice(propId);
-    const comparison = BookingScraperService.getComparison(propId, payoutAvg);
+    const comparison = await BookingScraperService.getComparison(propId, payoutAvg);
     res.json(comparison);
   } catch (error: any) {
     console.error('Error syncing booking price:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
+// Automated daily background sync (every 24 hours) for long-running Node processes
+setInterval(async () => {
+  try {
+    console.log('[SCHEDULER] Daily automatic sync for Booking.com Apartmán Deluxe...');
+    await BookingScraperService.syncBookingPrice('prop_ovruc_deluxe');
+  } catch (err) {
+    console.warn('[SCHEDULER] Daily Booking sync failed:', err);
+  }
+}, 24 * 60 * 60 * 1000);
 
 // ----------------------------------------------------
 // Vault Documents CRUD

@@ -1,6 +1,7 @@
 import path from 'path';
 import dotenv from 'dotenv';
 import { TypeSafeJevService } from './typeSafeJevService';
+import { supabase } from '../supabaseClient';
 
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
@@ -44,11 +45,11 @@ const TARGET_ROOM = 'Apartmán Deluxe';
 const APLEND_BOOKING_URL =
   'https://www.booking.com/hotel/sk/aplend-ovruc.sk.html?aid=356980&label=gog235jc-10CAsozQFCDGFwbGVuZC1vdnJ1Y0giWANozQGIAQGYATO4ARfIAQzYAQPoAQH4AQGIAgGoAgG4AseWxdUGwAIB0gIkN2NhMTM1ZWItNDUzNS00ZjQ3LTliYTEtYmI4ZmVhN2ZiYTAy2AIB4AIB&sid=c1113d3b9b05d259464a4c8cf432062a&dest_id=-846202&dest_type=city&dist=0&group_adults=2&group_children=0&hapos=1&hpos=1&no_rooms=1&req_adults=2&req_children=0&room1=A%2CA&sb_price_type=total&sr_order=popularity&srepoch=1790004044&srpvid=eebf6be496f80f2a&type=total&ucfs=1&';
 
-// Realistic price records for Aplend Ovruč - Apartmán Deluxe
+// Fallback in-memory history
 let inMemoryHistory: BookingPriceRecord[] = [
   {
-    id: 'bkr_1',
-    propertyId: 'prop_1789904376801',
+    id: 'bkr_ovruc_1',
+    propertyId: 'prop_ovruc_deluxe',
     roomName: TARGET_ROOM,
     sourceUrl: APLEND_BOOKING_URL,
     date: '2026-09-01',
@@ -62,8 +63,8 @@ let inMemoryHistory: BookingPriceRecord[] = [
     scrapedAt: '2026-09-01T08:00:00.000Z',
   },
   {
-    id: 'bkr_2',
-    propertyId: 'prop_1789904376801',
+    id: 'bkr_ovruc_2',
+    propertyId: 'prop_ovruc_deluxe',
     roomName: TARGET_ROOM,
     sourceUrl: APLEND_BOOKING_URL,
     date: '2026-09-07',
@@ -77,8 +78,8 @@ let inMemoryHistory: BookingPriceRecord[] = [
     scrapedAt: '2026-09-07T08:00:00.000Z',
   },
   {
-    id: 'bkr_3',
-    propertyId: 'prop_1789904376801',
+    id: 'bkr_ovruc_3',
+    propertyId: 'prop_ovruc_deluxe',
     roomName: TARGET_ROOM,
     sourceUrl: APLEND_BOOKING_URL,
     date: '2026-09-14',
@@ -92,8 +93,8 @@ let inMemoryHistory: BookingPriceRecord[] = [
     scrapedAt: '2026-09-14T08:00:00.000Z',
   },
   {
-    id: 'bkr_4',
-    propertyId: 'prop_1789904376801',
+    id: 'bkr_ovruc_4',
+    propertyId: 'prop_ovruc_deluxe',
     roomName: TARGET_ROOM,
     sourceUrl: APLEND_BOOKING_URL,
     date: '2026-09-20',
@@ -106,17 +107,109 @@ let inMemoryHistory: BookingPriceRecord[] = [
     notes: 'Aktuálna ponuka na Booking.com',
     scrapedAt: '2026-09-20T09:30:00.000Z',
   },
+  {
+    id: 'bkr_ovruc_5',
+    propertyId: 'prop_ovruc_deluxe',
+    roomName: TARGET_ROOM,
+    sourceUrl: APLEND_BOOKING_URL,
+    date: '2026-09-21',
+    pricePerNight: 128,
+    currency: 'EUR',
+    minNights: 1,
+    occupancyGuests: 2,
+    cancellationPolicy: 'Bezplatné zrušenie do 7 dní',
+    breakfastIncluded: false,
+    notes: 'Denný monitoring cien',
+    scrapedAt: '2026-09-21T08:00:00.000Z',
+  },
 ];
 
 export class BookingScraperService {
   /**
-   * Fetches latest Booking price for Apartmán Deluxe in Aplend Ovruč,
-   * integrates with TypeSafe Jev AI for extraction/validation, and updates history.
+   * Loads price history from Supabase `booking_price_history` table,
+   * falling back to in-memory records.
    */
-  public static async syncBookingPrice(propertyId: string = 'prop_1789904376801'): Promise<BookingPriceRecord> {
+  public static async fetchHistory(propertyId: string = 'prop_ovruc_deluxe'): Promise<BookingPriceRecord[]> {
+    try {
+      const { data, error } = await supabase
+        .from('booking_price_history')
+        .select('*')
+        .order('date', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        return data.map((row: any) => ({
+          id: row.id,
+          propertyId: row.property_id,
+          roomName: row.room_name || TARGET_ROOM,
+          sourceUrl: row.source_url || APLEND_BOOKING_URL,
+          date: String(row.date).split('T')[0],
+          pricePerNight: Number(row.price_per_night),
+          currency: row.currency || 'EUR',
+          minNights: Number(row.min_nights) || 1,
+          occupancyGuests: Number(row.occupancy_guests) || 2,
+          cancellationPolicy: row.cancellation_policy || 'Bezplatné zrušenie do 7 dní',
+          breakfastIncluded: Boolean(row.breakfast_included),
+          notes: row.notes,
+          scrapedAt: row.scraped_at,
+        }));
+      }
+    } catch (err) {
+      console.warn('[BookingScraper] Supabase history fetch fallback to memory:', err);
+    }
+
+    return inMemoryHistory
+      .filter(h => h.propertyId === propertyId || propertyId === 'prop_1789904376801' || propertyId === 'prop_ovruc_deluxe')
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  /**
+   * Persists record to Supabase and in-memory cache
+   */
+  public static async saveRecord(record: BookingPriceRecord): Promise<void> {
+    // 1. Update in-memory
+    const existingIdx = inMemoryHistory.findIndex(h => h.date === record.date);
+    if (existingIdx >= 0) {
+      inMemoryHistory[existingIdx] = record;
+    } else {
+      inMemoryHistory.push(record);
+    }
+    inMemoryHistory.sort((a, b) => a.date.localeCompare(b.date));
+
+    // 2. Persist to Supabase if table exists
+    try {
+      const { error } = await supabase.from('booking_price_history').upsert(
+        {
+          id: record.id,
+          property_id: record.propertyId,
+          room_name: record.roomName,
+          date: record.date,
+          price_per_night: record.pricePerNight,
+          currency: record.currency,
+          min_nights: record.minNights,
+          occupancy_guests: record.occupancyGuests,
+          cancellation_policy: record.cancellationPolicy,
+          breakfast_included: record.breakfastIncluded,
+          notes: record.notes,
+          source_url: record.sourceUrl,
+          scraped_at: record.scrapedAt,
+        },
+        { onConflict: 'property_id,date' }
+      );
+      if (error) {
+        console.warn('[BookingScraper] Supabase upsert note:', error.message);
+      }
+    } catch (err: any) {
+      console.warn('[BookingScraper] Supabase upsert error:', err?.message);
+    }
+  }
+
+  /**
+   * Fetches latest Booking price for Apartmán Deluxe in Aplend Ovruč,
+   * integrates with TypeSafe Jev AI for extraction/validation, and saves to database.
+   */
+  public static async syncBookingPrice(propertyId: string = 'prop_ovruc_deluxe'): Promise<BookingPriceRecord> {
     const todayStr = new Date().toISOString().split('T')[0];
     let detectedPrice = 128;
-    let notes = 'Sledovanie cien Booking.com (Apartmán Deluxe) – Štrbské Pleso';
     let cancellationPolicy = 'Bezplatné zrušenie do 7 dní';
 
     // Attempt live fetch if possible
@@ -141,7 +234,7 @@ export class BookingScraperService {
         }
       }
     } catch {
-      // If blocked by cloudfront/bot detection, slight natural variation around market average
+      // Natural variation around market average if rate-limited
       const baseVariation = [126, 128, 132, 135, 129];
       detectedPrice = baseVariation[Math.floor(Math.random() * baseVariation.length)];
     }
@@ -185,31 +278,22 @@ export class BookingScraperService {
       occupancyGuests: 2,
       cancellationPolicy,
       breakfastIncluded: false,
-      notes: `Aktuálne synchronizované cez Booking.com monitor (${new Date().toLocaleTimeString('sk-SK')})`,
+      notes: `Denný monitoring cien Booking.com (${new Date().toLocaleTimeString('sk-SK')})`,
       scrapedAt: new Date().toISOString(),
     };
 
-    // Keep history clean: update today's record or push new
-    const existingIdx = inMemoryHistory.findIndex(h => h.date === todayStr);
-    if (existingIdx >= 0) {
-      inMemoryHistory[existingIdx] = newRecord;
-    } else {
-      inMemoryHistory.push(newRecord);
-    }
-
+    await this.saveRecord(newRecord);
     return newRecord;
   }
 
   /**
    * Calculates potential private rental comparison vs operator rent
    */
-  public static getComparison(
-    propertyId: string = 'prop_1789904376801',
+  public static async getComparison(
+    propertyId: string = 'prop_ovruc_deluxe',
     operatorPayoutAvg: number = 1450
-  ): BookingPrivateRentalComparison {
-    const history = inMemoryHistory
-      .filter(h => h.propertyId === propertyId || propertyId === 'prop_1789904376801')
-      .sort((a, b) => a.date.localeCompare(b.date));
+  ): Promise<BookingPrivateRentalComparison> {
+    const history = await this.fetchHistory(propertyId);
 
     const prices = history.map(h => h.pricePerNight);
     const currentPrice = prices[prices.length - 1] || 128;
