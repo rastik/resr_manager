@@ -324,15 +324,9 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
         </div>
       </div>
 
-      {/* 7. Confidence Metric Legend */}
-      <div className="flex items-center justify-between px-1 text-[11px] text-slate-500">
-        <div className="flex items-center gap-1.5">
-          <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span>
-            <strong>Confidence Metric (% Zhoda)</strong> hodnotí 4 kľúčové rozmery: Výmera m² (30%), Počet izieb (25%), Mestská časť (25%) a Vybavenosť ako parkovanie, balkón, pivnica, klíma (20%).
-          </span>
-        </div>
-        <span className="shrink-0 font-medium text-slate-600 hidden sm:inline">
+      {/* 7. Results count */}
+      <div className="flex items-center justify-end px-1 text-[11px] text-slate-500">
+        <span className="font-medium text-slate-600">
           Nájdených {comparables.length} relevantných inzerátov
         </span>
       </div>
