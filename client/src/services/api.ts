@@ -294,6 +294,21 @@ class ApiService {
     return newItem;
   }
 
+  async updateInventoryItem(id: string, data: Partial<InventoryItem>): Promise<InventoryItem> {
+    try {
+      const res = await fetch(`${BASE_URL}/inventory/${id}`, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn('API fallback for update inventory', e);
+    }
+    const updated = { id, ...data } as InventoryItem;
+    return updated;
+  }
+
   async deleteInventoryItem(id: string): Promise<boolean> {
     try {
       const res = await fetch(`${BASE_URL}/inventory/${id}`, {
@@ -434,6 +449,21 @@ class ApiService {
       notes: data.notes || '',
     };
     return newDoc;
+  }
+
+  async updateDocument(id: string, data: Partial<VaultDocument>): Promise<VaultDocument> {
+    try {
+      const res = await fetch(`${BASE_URL}/documents/${id}`, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      });
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn('API fallback for update document', e);
+    }
+    const updated = { id, ...data } as VaultDocument;
+    return updated;
   }
 
   async deleteDocument(id: string): Promise<boolean> {

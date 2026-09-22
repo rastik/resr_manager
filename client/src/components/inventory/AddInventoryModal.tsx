@@ -2,20 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Input, Select, SelectItem, Textarea, Button } from '@heroui/react';
 import { Modal } from '../common/Modal';
 import { useProperty } from '../../context/PropertyContext';
-import { InventoryCategory } from '../../types';
+import { InventoryCategory, InventoryItem } from '../../types';
 
 interface AddInventoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultPropertyId?: string;
+  itemToEdit?: InventoryItem | null;
 }
 
 export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
   isOpen,
   onClose,
   defaultPropertyId,
+  itemToEdit,
 }) => {
-  const { properties, addInventoryItem } = useProperty();
+  const { properties, addInventoryItem, updateInventoryItem } = useProperty();
 
   const [propertyId, setPropertyId] = useState(defaultPropertyId || properties[0]?.id || '');
   const [name, setName] = useState('');
@@ -30,37 +32,62 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const targetId = defaultPropertyId || (properties.length > 0 ? properties[0].id : '');
-      if (targetId) {
+      if (itemToEdit) {
+        setPropertyId(itemToEdit.propertyId || defaultPropertyId || properties[0]?.id || '');
+        setName(itemToEdit.name || '');
+        setCategory(itemToEdit.category || 'appliance');
+        setBrandModel(itemToEdit.brandModel || '');
+        setSerialNumber(itemToEdit.serialNumber || '');
+        setPurchaseDate(itemToEdit.purchaseDate ? itemToEdit.purchaseDate.split('T')[0] : '');
+        setWarrantyExpiresAt(itemToEdit.warrantyExpiresAt ? itemToEdit.warrantyExpiresAt.split('T')[0] : '');
+        setCost(itemToEdit.cost !== undefined && itemToEdit.cost !== null ? itemToEdit.cost : '');
+        setNotes(itemToEdit.notes || '');
+      } else {
+        const targetId = defaultPropertyId || (properties.length > 0 ? properties[0].id : '');
         setPropertyId(targetId);
+        setName('');
+        setCategory('appliance');
+        setBrandModel('');
+        setSerialNumber('');
+        setPurchaseDate('');
+        setWarrantyExpiresAt('');
+        setCost('');
+        setNotes('');
       }
     }
-  }, [isOpen, defaultPropertyId, properties]);
+  }, [isOpen, defaultPropertyId, properties, itemToEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await addInventoryItem({
-        propertyId,
-        name,
-        category,
-        brandModel,
-        serialNumber,
-        purchaseDate: purchaseDate || undefined,
-        warrantyExpiresAt: warrantyExpiresAt || undefined,
-        lifespanYears: 8,
-        cost: cost === '' ? 0 : Number(cost),
-        notes,
-      });
+      if (itemToEdit) {
+        await updateInventoryItem(itemToEdit.id, {
+          propertyId,
+          name,
+          category,
+          brandModel,
+          serialNumber,
+          purchaseDate: purchaseDate || undefined,
+          warrantyExpiresAt: warrantyExpiresAt || undefined,
+          cost: cost === '' ? 0 : Number(cost),
+          notes,
+        });
+      } else {
+        await addInventoryItem({
+          propertyId,
+          name,
+          category,
+          brandModel,
+          serialNumber,
+          purchaseDate: purchaseDate || undefined,
+          warrantyExpiresAt: warrantyExpiresAt || undefined,
+          lifespanYears: 8,
+          cost: cost === '' ? 0 : Number(cost),
+          notes,
+        });
+      }
       onClose();
-      setName('');
-      setBrandModel('');
-      setSerialNumber('');
-      setPurchaseDate('');
-      setWarrantyExpiresAt('');
-      setCost('');
-      setNotes('');
     } finally {
       setLoading(false);
     }
@@ -70,8 +97,8 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Zaevidovať spotrebič / inventár"
-      subtitle="Priraďte nové zariadenie alebo nábytok ku konkrétnemu bytu"
+      title={itemToEdit ? 'Upraviť položku inventára' : 'Zaevidovať spotrebič / inventár'}
+      subtitle={itemToEdit ? `Úprava parametrov položky ${itemToEdit.name}` : 'Priraďte nové zariadenie alebo nábytok ku konkrétnemu bytu'}
       maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -286,7 +313,7 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
             isLoading={loading}
             className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs px-4"
           >
-            Uložiť položku
+            {itemToEdit ? 'Uložiť zmeny' : 'Uložiť položku'}
           </Button>
         </div>
       </form>

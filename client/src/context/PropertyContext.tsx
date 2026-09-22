@@ -46,10 +46,12 @@ interface PropertyContextType {
   updateLease: (id: string, data: Partial<Lease>) => Promise<void>;
   deleteLease: (id: string) => Promise<void>;
   addInventoryItem: (data: Partial<InventoryItem>) => Promise<InventoryItem>;
+  updateInventoryItem: (id: string, data: Partial<InventoryItem>) => Promise<InventoryItem>;
   deleteInventoryItem: (id: string) => Promise<void>;
   addExpense: (data: Partial<Expense>) => Promise<Expense>;
   deleteExpense: (id: string) => Promise<void>;
   addDocument: (data: Partial<VaultDocument>) => Promise<VaultDocument>;
+  updateDocument: (id: string, data: Partial<VaultDocument>) => Promise<VaultDocument>;
   deleteDocument: (id: string) => Promise<void>;
   addHotelRevenue: (data: Partial<HotelRevenueMonth>) => Promise<HotelRevenueMonth>;
   deleteHotelRevenue: (id: string) => Promise<void>;
@@ -174,6 +176,14 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return created;
   };
 
+  const updateInventoryItem = async (id: string, data: Partial<InventoryItem>): Promise<InventoryItem> => {
+    const updated = await api.updateInventoryItem(id, data);
+    setInventory(prev => prev.map(i => (i.id === id ? { ...i, ...updated } : i)));
+    showToast(`Položka "${updated.name || 'inventára'}" bola aktualizovaná`);
+    refreshData();
+    return updated;
+  };
+
   const deleteInventoryItem = async (id: string) => {
     setInventory(prev => prev.filter(i => i.id !== id));
     await api.deleteInventoryItem(id);
@@ -202,6 +212,14 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     showToast(`Dokument "${created.name}" bol uložený do trezora`);
     refreshData();
     return created;
+  };
+
+  const updateDocument = async (id: string, data: Partial<VaultDocument>): Promise<VaultDocument> => {
+    const updated = await api.updateDocument(id, data);
+    setDocuments(prev => prev.map(d => (d.id === id ? { ...d, ...updated } : d)));
+    showToast(`Dokument "${updated.name || 'z trezora'}" bol aktualizovaný`);
+    refreshData();
+    return updated;
   };
 
   const deleteDocument = async (id: string) => {
@@ -256,10 +274,12 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateLease,
         deleteLease,
         addInventoryItem,
+        updateInventoryItem,
         deleteInventoryItem,
         addExpense,
         deleteExpense,
         addDocument,
+        updateDocument,
         deleteDocument,
         addHotelRevenue,
         deleteHotelRevenue,

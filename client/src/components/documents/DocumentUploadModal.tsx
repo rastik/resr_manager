@@ -3,15 +3,16 @@ import { Input, Select, SelectItem, Textarea, Progress, Button } from '@heroui/r
 import { Modal } from '../common/Modal';
 import { useProperty } from '../../context/PropertyContext';
 import { UploadCloud, File } from 'lucide-react';
-import { DocumentCategory } from '../../types';
+import { DocumentCategory, VaultDocument } from '../../types';
 
 interface DocumentUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
+  docToEdit?: VaultDocument | null;
 }
 
-export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen, onClose }) => {
-  const { properties, leases, addDocument } = useProperty();
+export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen, onClose, docToEdit }) => {
+  const { properties, leases, addDocument, updateDocument } = useProperty();
 
   const [file, setFile] = useState<File | null>(null);
   const [docName, setDocName] = useState('');
@@ -25,10 +26,26 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
-    if (isOpen && properties.length > 0 && !propertyId) {
-      setPropertyId(properties[0].id);
+    if (isOpen) {
+      if (docToEdit) {
+        setDocName(docToEdit.name || '');
+        setCategory(docToEdit.category || 'tenancy');
+        setPropertyId(docToEdit.propertyId || 'none');
+        setLeaseId(docToEdit.leaseId || '');
+        setExpiryDate(docToEdit.expiryDate ? docToEdit.expiryDate.split('T')[0] : '');
+        setNotes(docToEdit.notes || '');
+        setFile(null);
+      } else {
+        setPropertyId(properties[0]?.id || 'none');
+        setDocName('');
+        setCategory('tenancy');
+        setLeaseId('');
+        setExpiryDate('');
+        setNotes('');
+        setFile(null);
+      }
     }
-  }, [isOpen, properties, propertyId]);
+  }, [isOpen, properties, docToEdit]);
 
   const handlePropertySelect = (pId: string) => {
     if (!pId || pId === 'none') {
@@ -86,18 +103,32 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen
       clearInterval(interval);
       setUploadProgress(100);
 
-      const fileSizeStr = file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : '1.8 MB';
+      const fileSizeStr = file
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : docToEdit?.fileSize || '1.8 MB';
 
-      await addDocument({
-        propertyId: propertyId && propertyId !== 'none' ? propertyId : undefined,
-        leaseId: propertyId && propertyId !== 'none' ? (leaseId || undefined) : undefined,
-        name: docName || file?.name || 'Dokument',
-        category,
-        fileSize: fileSizeStr,
-        expiryDate: expiryDate || undefined,
-        fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        notes,
-      });
+      if (docToEdit) {
+        await updateDocument(docToEdit.id, {
+          propertyId: propertyId && propertyId !== 'none' ? propertyId : undefined,
+          leaseId: propertyId && propertyId !== 'none' ? (leaseId || undefined) : undefined,
+          name: docName || docToEdit.name,
+          category,
+          fileSize: fileSizeStr,
+          expiryDate: expiryDate || undefined,
+          notes,
+        });
+      } else {
+        await addDocument({
+          propertyId: propertyId && propertyId !== 'none' ? propertyId : undefined,
+          leaseId: propertyId && propertyId !== 'none' ? (leaseId || undefined) : undefined,
+          name: docName || file?.name || 'Dokument',
+          category,
+          fileSize: fileSizeStr,
+          expiryDate: expiryDate || undefined,
+          fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          notes,
+        });
+      }
 
       setIsUploading(false);
       setUploadProgress(0);
@@ -111,41 +142,43 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Nahrať dokument"
-      subtitle="Úložisko pre zmluvy, preberacie protokoly a faktúry"
+      title={docToEdit ? 'Upraviť dokument' : 'Nahrať dokument'}
+      subtitle={docToEdit ? `Úprava parametrov a údajov dokumentu "${docToEdit.name}"` : 'Úložisko pre zmluvy, preberacie protokoly a faktúry'}
       maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Drag & Drop Upload Zone */}
-        <div
-          onDragOver={e => e.preventDefault()}
-          onDrop={handleFileDrop}
-          className="border-2 border-dashed border-slate-200 hover:border-slate-300 bg-slate-50/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition relative"
-        >
-          <input
-            type="file"
-            onChange={handleFileInput}
-            className="absolute inset-0 opacity-0 cursor-pointer"
-            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-          />
-          <UploadCloud className="w-8 h-8 text-slate-400 mb-2" />
-          {file ? (
-            <div>
-              <p className="font-semibold text-slate-900 flex items-center justify-center gap-1.5">
-                <File className="w-3.5 h-3.5 text-slate-600" />
-                {file.name}
-              </p>
-              <p className="text-slate-500 text-[11px] mt-0.5">
-                {(file.size / (1024 * 1024)).toFixed(2)} MB • Pripravené na nahranie
-              </p>
-            </div>
-          ) : (
-            <div>
-              <p className="font-medium text-slate-700">Presuňte súbor sem, alebo kliknite pre výber</p>
-              <p className="text-slate-400 text-[11px] mt-0.5">PDF, PNG, JPG, DOC do 25MB</p>
-            </div>
-          )}
-        </div>
+        {/* Drag & Drop Upload Zone (optional if editing existing document) */}
+        {!docToEdit && (
+          <div
+            onDragOver={e => e.preventDefault()}
+            onDrop={handleFileDrop}
+            className="border-2 border-dashed border-slate-200 hover:border-slate-300 bg-slate-50/50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition relative"
+          >
+            <input
+              type="file"
+              onChange={handleFileInput}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+            />
+            <UploadCloud className="w-8 h-8 text-slate-400 mb-2" />
+            {file ? (
+              <div>
+                <p className="font-semibold text-slate-900 flex items-center justify-center gap-1.5">
+                  <File className="w-3.5 h-3.5 text-slate-600" />
+                  {file.name}
+                </p>
+                <p className="text-slate-500 text-[11px] mt-0.5">
+                  {(file.size / (1024 * 1024)).toFixed(2)} MB • Pripravené na nahranie
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="font-medium text-slate-700">Presuňte súbor sem, alebo kliknite pre výber</p>
+                <p className="text-slate-400 text-[11px] mt-0.5">PDF, PNG, JPG, DOC do 25MB</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* HeroUI Upload Progress Bar */}
         {isUploading && (
@@ -295,7 +328,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen
             isLoading={isUploading}
             className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs px-4"
           >
-            Nahrať dokument
+            {docToEdit ? 'Uložiť zmeny' : 'Nahrať dokument'}
           </Button>
         </div>
       </form>

@@ -69,7 +69,8 @@ import { ImageLightboxModal } from '../common/ImageLightboxModal';
 import { formatDate, getEffectiveLeaseStatus, isLeaseExpired } from '../../utils/date';
 import { compressImage } from '../../utils/imageCompressor';
 import { openLeasePdfWindow } from '../../utils/contractPdf';
-import { VaultDocument } from '../../types';
+import { VaultDocument, InventoryItem } from '../../types';
+import { AddInventoryModal } from '../inventory/AddInventoryModal';
 
 interface PropertyDetailPageProps {
   property: Property;
@@ -140,6 +141,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const [selectedPhoto, setSelectedPhoto] = useState<string>(property.imageUrl || '');
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [selectedLeaseToEdit, setSelectedLeaseToEdit] = useState<Lease | null>(null);
+  const [editingInventoryItem, setEditingInventoryItem] = useState<InventoryItem | null>(null);
   const [isEditLeaseModalOpen, setIsEditLeaseModalOpen] = useState<boolean>(false);
   const [isHotelRevenueModalOpen, setIsHotelRevenueModalOpen] = useState<boolean>(false);
   const [isUploadHotelInvoiceOpen, setIsUploadHotelInvoiceOpen] = useState<boolean>(false);
@@ -1380,20 +1382,32 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="light"
-                          onPress={() => {
-                            if (confirm(`Naozaj chcete vymazať položku ${item.name}?`)) {
-                              deleteInventoryItem(item.id);
-                            }
-                          }}
-                          className="min-w-7 w-7 h-7 text-slate-400 hover:text-rose-600"
-                          title="Vymazať"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            onPress={() => setEditingInventoryItem(item)}
+                            className="min-w-7 w-7 h-7 text-slate-400 hover:text-slate-900"
+                            title="Upraviť položku"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            onPress={() => {
+                              if (confirm(`Naozaj chcete vymazať položku ${item.name}?`)) {
+                                deleteInventoryItem(item.id);
+                              }
+                            }}
+                            className="min-w-7 w-7 h-7 text-slate-400 hover:text-rose-600"
+                            title="Vymazať"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -2024,6 +2038,16 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
         document={selectedInvoiceForPreview}
         onClose={() => setSelectedInvoiceForPreview(null)}
       />
+
+      {/* Edit Inventory Item Modal */}
+      {editingInventoryItem && (
+        <AddInventoryModal
+          isOpen={Boolean(editingInventoryItem)}
+          onClose={() => setEditingInventoryItem(null)}
+          defaultPropertyId={property.id}
+          itemToEdit={editingInventoryItem}
+        />
+      )}
     </div>
   );
 };

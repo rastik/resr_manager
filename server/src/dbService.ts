@@ -434,6 +434,37 @@ export const dbService = {
     return toCamelCase(data);
   },
 
+  async updateInventory(id: string, userId: string, data: any) {
+    const pgOk = await checkPostgresConnection();
+    const snake = toSnakeCase(data);
+    delete snake.id;
+    delete snake.user_id;
+
+    if (pgOk) {
+      try {
+        const keys = Object.keys(snake);
+        const values = Object.values(snake);
+        const setClauses = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
+        values.push(id, userId);
+        const res = await pool.query(
+          `UPDATE inventory_items SET ${setClauses} WHERE id = $${values.length - 1} AND user_id = $${values.length} RETURNING *`,
+          values
+        );
+        if (res.rows.length > 0) return toCamelCase(res.rows[0]);
+      } catch {}
+    }
+
+    const { data: updated, error } = await supabase
+      .from('inventory_items')
+      .update(snake)
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamelCase(updated);
+  },
+
   async deleteInventory(id: string, userId: string) {
     const pgOk = await checkPostgresConnection();
     if (pgOk) {
@@ -595,6 +626,37 @@ export const dbService = {
     const { data, error } = await supabase.from('vault_documents').insert(snake).select().single();
     if (error) throw error;
     return toCamelCase(data);
+  },
+
+  async updateDocument(id: string, userId: string, data: any) {
+    const pgOk = await checkPostgresConnection();
+    const snake = toSnakeCase(data);
+    delete snake.id;
+    delete snake.user_id;
+
+    if (pgOk) {
+      try {
+        const keys = Object.keys(snake);
+        const values = Object.values(snake);
+        const setClauses = keys.map((k, i) => `${k} = $${i + 1}`).join(', ');
+        values.push(id, userId);
+        const res = await pool.query(
+          `UPDATE vault_documents SET ${setClauses} WHERE id = $${values.length - 1} AND user_id = $${values.length} RETURNING *`,
+          values
+        );
+        if (res.rows.length > 0) return toCamelCase(res.rows[0]);
+      } catch {}
+    }
+
+    const { data: updated, error } = await supabase
+      .from('vault_documents')
+      .update(snake)
+      .eq('id', id)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    if (error) throw error;
+    return toCamelCase(updated);
   },
 
   async deleteDocument(id: string, userId: string) {

@@ -6,11 +6,13 @@ import {
   Download,
   Plus,
   Trash2,
+  Edit3,
 } from 'lucide-react';
-import { Property } from '../../types';
+import { Property, InventoryItem } from '../../types';
 import { useProperty } from '../../context/PropertyContext';
 import { Badge } from '../common/Badge';
 import { formatDate } from '../../utils/date';
+import { AddInventoryModal } from '../inventory/AddInventoryModal';
 
 interface PropertyDetailModalProps {
   property: Property | null;
@@ -40,6 +42,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'leases' | 'expenses'>('overview');
   const [rentInput, setRentInput] = useState<number>(property?.rentAmount || 0);
   const [statusInput, setStatusInput] = useState<string>(property?.status || 'vacant');
+  const [editingInventoryItem, setEditingInventoryItem] = useState<InventoryItem | null>(null);
 
   if (!property) return null;
 
@@ -249,12 +252,22 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                         <td className="text-slate-800 font-semibold">€{item.cost}</td>
                         <td className="text-slate-500">{item.warrantyExpiresAt || '—'}</td>
                         <td className="text-right">
-                          <button
-                            onClick={() => deleteInventoryItem(item.id)}
-                            className="text-slate-400 hover:text-rose-600 transition"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => setEditingInventoryItem(item)}
+                              className="text-slate-400 hover:text-slate-800 transition p-1"
+                              title="Upraviť"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => deleteInventoryItem(item.id)}
+                              className="text-slate-400 hover:text-rose-600 transition p-1"
+                              title="Vymazať"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -371,6 +384,15 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           )}
         </div>
       </div>
+
+      {editingInventoryItem && (
+        <AddInventoryModal
+          isOpen={Boolean(editingInventoryItem)}
+          onClose={() => setEditingInventoryItem(null)}
+          defaultPropertyId={property.id}
+          itemToEdit={editingInventoryItem}
+        />
+      )}
     </div>
   );
 };

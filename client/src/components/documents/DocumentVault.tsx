@@ -18,6 +18,7 @@ import {
   Eye,
   Trash2,
   FileCheck2,
+  Edit3,
 } from 'lucide-react';
 import { useProperty } from '../../context/PropertyContext';
 import { VaultDocument, DocumentCategory } from '../../types';
@@ -32,6 +33,7 @@ export const DocumentVault: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<DocumentCategory | 'all'>('all');
   const [search, setSearch] = useState<string>('');
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
+  const [editingDoc, setEditingDoc] = useState<VaultDocument | null>(null);
   const [previewDoc, setPreviewDoc] = useState<VaultDocument | null>(null);
 
   const handleOpenDocument = (doc: VaultDocument) => {
@@ -166,6 +168,7 @@ export const DocumentVault: React.FC = () => {
           <TableColumn key="uploaded">NAHRANÉ</TableColumn>
           <TableColumn key="expiry">PLATNOSŤ DO</TableColumn>
           <TableColumn key="size">VEĽKOSŤ</TableColumn>
+          <TableColumn key="notes">POZNÁMKA</TableColumn>
           <TableColumn key="actions">{''}</TableColumn>
         </TableHeader>
         <TableBody emptyContent="Nenašli sa žiadne dokumenty.">
@@ -205,6 +208,15 @@ export const DocumentVault: React.FC = () => {
               <TableCell className="text-slate-500 text-[11px]">{doc.uploadDate}</TableCell>
               <TableCell className="text-slate-700 text-[11px] font-medium">{doc.expiryDate || '—'}</TableCell>
               <TableCell className="text-slate-500 text-[11px]">{doc.fileSize}</TableCell>
+              <TableCell>
+                {doc.notes ? (
+                  <span className="text-slate-600 text-xs max-w-xs block truncate" title={doc.notes}>
+                    {doc.notes}
+                  </span>
+                ) : (
+                  <span className="text-slate-400">—</span>
+                )}
+              </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1">
                   <Button
@@ -226,20 +238,32 @@ export const DocumentVault: React.FC = () => {
                     <Download className="w-3.5 h-3.5" />
                   </a>
                   {!doc.id.startsWith('lease_doc_') && (
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      variant="light"
-                      onPress={() => {
-                        if (confirm(`Naozaj chcete vymazať dokument ${doc.name}?`)) {
-                          deleteDocument(doc.id);
-                        }
-                      }}
-                      className="min-w-7 w-7 h-7 text-slate-400 hover:text-rose-600"
-                      title="Zmazať"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
+                    <>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        onPress={() => setEditingDoc(doc)}
+                        className="min-w-7 w-7 h-7 text-slate-400 hover:text-slate-900"
+                        title="Upraviť dokument"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        onPress={() => {
+                          if (confirm(`Naozaj chcete vymazať dokument ${doc.name}?`)) {
+                            deleteDocument(doc.id);
+                          }
+                        }}
+                        className="min-w-7 w-7 h-7 text-slate-400 hover:text-rose-600"
+                        title="Zmazať"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </TableCell>
@@ -250,6 +274,13 @@ export const DocumentVault: React.FC = () => {
 
       {/* Modals */}
       <DocumentUploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
+      {editingDoc && (
+        <DocumentUploadModal
+          isOpen={Boolean(editingDoc)}
+          onClose={() => setEditingDoc(null)}
+          docToEdit={editingDoc}
+        />
+      )}
       <DocumentPreviewModal document={previewDoc} onClose={() => setPreviewDoc(null)} />
     </div>
   );

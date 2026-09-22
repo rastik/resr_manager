@@ -10,9 +10,10 @@ import {
   Button,
   Chip,
 } from '@heroui/react';
-import { Search, Plus, Trash2 } from 'lucide-react';
+import { Search, Plus, Trash2, Edit3 } from 'lucide-react';
 import { useProperty } from '../../context/PropertyContext';
-import { InventoryCategory } from '../../types';
+import { InventoryCategory, InventoryItem } from '../../types';
+import { AddInventoryModal } from './AddInventoryModal';
 
 interface InventoryManagerProps {
   onOpenAddInventory: (propertyId?: string) => void;
@@ -27,6 +28,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
 
   const [categoryFilter, setCategoryFilter] = useState<InventoryCategory | 'all'>('all');
   const [search, setSearch] = useState<string>('');
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
   const now = new Date();
 
@@ -181,20 +183,32 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    onPress={() => {
-                      if (confirm(`Naozaj chcete vymazať ${item.name}?`)) {
-                        deleteInventoryItem(item.id);
-                      }
-                    }}
-                    className="text-slate-400 hover:text-rose-600 min-w-7 w-7 h-7"
-                    title="Zmazať"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => setEditingItem(item)}
+                      className="text-slate-400 hover:text-slate-900 min-w-7 w-7 h-7"
+                      title="Upraviť položku"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => {
+                        if (confirm(`Naozaj chcete vymazať ${item.name}?`)) {
+                          deleteInventoryItem(item.id);
+                        }
+                      }}
+                      className="text-slate-400 hover:text-rose-600 min-w-7 w-7 h-7"
+                      title="Zmazať"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             );
@@ -206,6 +220,15 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
         <span>Zobrazených {filteredItems.length} položiek</span>
         <span>Celková hodnota inventára portfólia: €{totalValue.toLocaleString()}</span>
       </div>
+
+      {editingItem && (
+        <AddInventoryModal
+          isOpen={Boolean(editingItem)}
+          onClose={() => setEditingItem(null)}
+          defaultPropertyId={editingItem.propertyId}
+          itemToEdit={editingItem}
+        />
+      )}
     </div>
   );
 };

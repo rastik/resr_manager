@@ -458,6 +458,17 @@ app.post('/api/inventory', async (req: Request, res: Response) => {
   }
 });
 
+app.put('/api/inventory/:id', async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+  try {
+    const updated = await dbService.updateInventory(id, userId, req.body);
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.delete('/api/inventory/:id', async (req: Request, res: Response) => {
   const userId = getUserId(req);
   const { id } = req.params;
@@ -696,6 +707,17 @@ app.post('/api/documents', async (req: Request, res: Response) => {
       notes,
     });
     res.status(201).json(created);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/documents/:id', async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const { id } = req.params;
+  try {
+    const updated = await dbService.updateDocument(id, userId, req.body);
+    res.json(updated);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
