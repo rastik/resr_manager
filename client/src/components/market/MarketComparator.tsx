@@ -52,7 +52,7 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
 
   const initialProp = properties.length > 0 ? properties[0] : undefined;
 
-  // Selected apartment from portfolio
+  // Selected apartment from portfolio - always default to first property
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>(() => initialProp?.id || '');
 
   // Search parameters for Nehnutelnosti.sk (synced with active property)
@@ -64,12 +64,15 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
   const [data, setData] = useState<MarketComparisonResponse | null>(null);
   const [activeBreakdownId, setActiveBreakdownId] = useState<string | null>(null);
 
-  // Sync selected property when properties list loads
+  // Sync selected property when properties list loads (always ensure first property is selected by default)
   useEffect(() => {
-    if (!selectedPropertyId && properties.length > 0) {
-      const first = properties[0];
-      setSelectedPropertyId(first.id);
-      setRoomsFilter(String(first.bedrooms || 2));
+    if (properties.length > 0) {
+      const exists = properties.some(p => p.id === selectedPropertyId);
+      if (!selectedPropertyId || !exists) {
+        const first = properties[0];
+        setSelectedPropertyId(first.id);
+        setRoomsFilter(String(first.bedrooms || 2));
+      }
     }
   }, [properties, selectedPropertyId]);
 
@@ -288,7 +291,6 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-semibold border border-emerald-200 shadow-2xs">
             <MapPin className="w-3.5 h-3.5 text-emerald-600" />
             <span>{activeCity}</span>
-            <span className="text-[10px] text-emerald-600/80 font-normal hidden sm:inline">(iba nehnuteľnosti v rovnakom meste)</span>
           </div>
 
           <div className="flex items-center gap-1.5">
