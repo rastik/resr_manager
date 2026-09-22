@@ -1155,13 +1155,12 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  {/* Výmera bytu - hlavný parameter */}
-                  <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between shadow-2xs">
-                    <span className="font-semibold text-emerald-950 flex items-center gap-1.5">
-                      <Maximize2 className="w-4 h-4 text-emerald-700" />
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Maximize2 className="w-3.5 h-3.5 text-slate-400" />
                       Výmera bytu:
                     </span>
-                    <span className="text-sm font-extrabold text-emerald-950">
+                    <span className="font-medium text-slate-900">
                       {property.sizeSqm} m²
                     </span>
                   </div>
