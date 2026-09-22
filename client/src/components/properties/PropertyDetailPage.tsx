@@ -52,6 +52,10 @@ import {
   UserMinus,
   UserX,
   Globe,
+  Maximize2,
+  Bath,
+  Hash,
+  Calendar,
 } from 'lucide-react';
 import { Property, Lease } from '../../types';
 import { useProperty } from '../../context/PropertyContext';
@@ -1128,11 +1132,14 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
             {/* Quick Property Summary Card */}
             <Card shadow="sm" className="border border-slate-200 bg-white rounded-xl overflow-hidden">
-              <CardBody className="p-3.5 sm:p-4 space-y-3">
+              <CardBody className="p-3.5 sm:p-4 space-y-3.5">
                 <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
-                    Parametre nehnuteľnosti
-                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-slate-700" />
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                      Parametre nehnuteľnosti
+                    </h3>
+                  </div>
                   <Button
                     size="sm"
                     variant="light"
@@ -1144,72 +1151,166 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   </Button>
                 </div>
 
-                <div className="space-y-2.5 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Typ nehnuteľnosti:</span>
-                    <span className="font-semibold text-slate-900">
-                      {property.propertyType === 'apartment'
-                        ? <span className="flex items-center gap-1 justify-end"><Building2 className="w-3.5 h-3.5" /> Apartmán</span>
-                        : <span className="flex items-center gap-1 justify-end"><Home className="w-3.5 h-3.5" /> Byt</span>
-                      }
+                <div className="space-y-2 text-xs">
+                  {/* Výmera bytu - hlavný parameter */}
+                  <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between shadow-2xs">
+                    <span className="font-semibold text-emerald-950 flex items-center gap-1.5">
+                      <Maximize2 className="w-4 h-4 text-emerald-700" />
+                      Výmera bytu:
+                    </span>
+                    <span className="text-sm font-extrabold text-emerald-950">
+                      {property.sizeSqm} m²
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Mesto:</span>
-                    <span className="font-medium text-slate-900">{property.city}</span>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                      Typ nehnuteľnosti:
+                    </span>
+                    <span className="font-semibold text-slate-900">
+                      {property.propertyType === 'apartment' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold">
+                          <Building2 className="w-3 h-3 text-amber-600" /> Apartmán
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-semibold">
+                          <Home className="w-3 h-3 text-blue-600" /> Byt
+                        </span>
+                      )}
+                    </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Počet izieb:</span>
-                    <span className="font-medium text-slate-900">{property.bedrooms}</span>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Home className="w-3.5 h-3.5 text-slate-400" />
+                      Objekt / Budova:
+                    </span>
+                    <span className="font-medium text-slate-900">{property.name}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Poschodie:</span>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Hash className="w-3.5 h-3.5 text-slate-400" />
+                      Číslo jednotky / bytu:
+                    </span>
+                    <span className="font-bold text-slate-900 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[11px]">
+                      č. {property.unitNumber}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full inline-block bg-slate-400" />
+                      Stav obsadenosti:
+                    </span>
+                    <Badge variant={effectivePropertyStatus} />
+                  </div>
+
+                  <div className="flex justify-between items-start py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5 shrink-0">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      Adresa:
+                    </span>
+                    <span className="font-medium text-slate-900 text-right">{property.address}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      Mesto {property.postalCode ? 'a PSČ' : ''}:
+                    </span>
+                    <span className="font-medium text-slate-900">
+                      {property.postalCode ? `${property.postalCode} ${property.city}` : property.city}
+                    </span>
+                  </div>
+
+                  {property.neighborhood && (
+                    <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                      <span className="text-slate-500 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                        Mestská časť:
+                      </span>
+                      <span className="font-medium text-slate-900">{property.neighborhood}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-slate-400" />
+                      Počet izieb:
+                    </span>
+                    <span className="font-medium text-slate-900">
+                      {property.bedrooms} {property.bedrooms === 1 ? 'izba' : property.bedrooms < 5 ? 'izby' : 'izieb'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Bath className="w-3.5 h-3.5 text-slate-400" />
+                      Kúpeľňa / WC:
+                    </span>
+                    <span className="font-medium text-slate-900">
+                      {property.bathrooms ? `${property.bathrooms}x` : '1x'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-slate-400" />
+                      Poschodie:
+                    </span>
                     <span className="font-medium text-slate-900">
                       {property.floor !== undefined ? `${property.floor}. poschodie` : '—'}
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1">
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
                       <Box className="w-3.5 h-3.5 text-slate-400" />
                       Pivničná kobka:
                     </span>
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-slate-900 text-right">
                       {property.hasCellar
-                        ? `Áno (${property.cellarAreaSqm ? property.cellarAreaSqm + ' m²' : ''}${property.cellarNumber ? ', č. ' + property.cellarNumber : ''})`
+                        ? `Áno (${property.cellarAreaSqm ? property.cellarAreaSqm + ' m²' : ''}${property.cellarNumber ? (property.cellarAreaSqm ? ', ' : '') + 'č. ' + property.cellarNumber : ''})`
                         : 'Nie'}
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1">
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
                       <Car className="w-3.5 h-3.5 text-slate-400" />
                       Parkovacie státie:
                     </span>
-                    <span className="font-medium text-slate-900">
+                    <span className="font-medium text-slate-900 text-right">
                       {property.hasParking
                         ? `Áno (${property.parkingSpotNumber ? 'č. ' + property.parkingSpotNumber : 'priradené'})`
                         : 'Nie'}
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1">
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
                       <Wind className="w-3.5 h-3.5 text-slate-400" />
                       Klimatizácia:
                     </span>
-                    <span className="font-medium text-slate-900">
+                    <span className={`font-semibold ${property.hasAC ? 'text-emerald-700' : 'text-slate-600'}`}>
                       {property.hasAC ? 'Áno' : 'Nie'}
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1">
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
                       <Building2 className="w-3.5 h-3.5 text-slate-400" />
                       Balkón / Lodžia:
                     </span>
-                    <span className="font-medium text-slate-900">
+                    <span className={`font-semibold ${property.hasBalcony ? 'text-emerald-700' : 'text-slate-600'}`}>
                       {property.hasBalcony ? 'Áno' : 'Nie'}
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1">
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
                       <Armchair className="w-3.5 h-3.5 text-slate-400" />
                       Zariadenie:
                     </span>
@@ -1217,20 +1318,71 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       {property.furnishingStatus === 'unfurnished' ? 'Nezariadený' : 'Zariadený'}
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Inventárnych položiek:</span>
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+                      Mesačný nájom:
+                    </span>
+                    <span className="font-bold text-slate-900 text-right">
+                      €{effectiveRentAmount.toLocaleString()} / mes
+                      {effectiveBaseRent !== undefined || effectiveUtilities !== undefined ? (
+                        <span className="block text-[10px] text-slate-500 font-normal">
+                          (nájom €{(effectiveBaseRent ?? effectiveRentAmount).toLocaleString()} + energie €{(effectiveUtilities ?? 0).toLocaleString()})
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+
+                  {effectiveRentAmount > 0 && property.sizeSqm > 0 && (
+                    <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                      <span className="text-slate-500 flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5 text-slate-400" />
+                        Trhová sadzba za m²:
+                      </span>
+                      <span className="font-semibold text-emerald-700">
+                        €{rentPerSqm} / m²
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Package className="w-3.5 h-3.5 text-slate-400" />
+                      Inventárnych položiek:
+                    </span>
                     <span className="font-medium text-slate-900">{unitInventory.length} ks</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Evidované výdavky:</span>
-                    <span className="font-semibold text-rose-600">
+
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <FileCheck className="w-3.5 h-3.5 text-slate-400" />
+                      Evidované výdavky:
+                    </span>
+                    <span className="font-bold text-rose-600">
                       €{unitExpenses.reduce((sum, e) => sum + Number(e.amount), 0).toLocaleString()}
                     </span>
                   </div>
+
+                  {property.createdAt && (
+                    <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                      <span className="text-slate-500 flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        V evidencii od:
+                      </span>
+                      <span className="font-medium text-slate-700">
+                        {formatDate(property.createdAt)}
+                      </span>
+                    </div>
+                  )}
+
                   {property.notes && (
                     <div className="pt-2">
-                      <span className="text-slate-500 block mb-1">Poznámka k bytu:</span>
-                      <p className="p-2 bg-slate-50 rounded-lg text-slate-700 italic border border-slate-100">
+                      <span className="text-slate-500 block mb-1 font-medium flex items-center gap-1">
+                        <FileText className="w-3 h-3 text-slate-400" />
+                        Poznámka k bytu:
+                      </span>
+                      <p className="p-2 bg-slate-50 rounded-lg text-slate-700 italic border border-slate-100 text-[11px] leading-relaxed">
                         {property.notes}
                       </p>
                     </div>
