@@ -107,7 +107,7 @@ const TabLabel: React.FC<{
 );
 
 export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
-  property,
+  property: initialProperty,
   fromTabTitle = 'Prehľad',
   onBack,
   onOpenAddLease,
@@ -115,6 +115,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   onOpenAddExpense,
 }) => {
   const {
+    properties,
     leases,
     inventory,
     expenses,
@@ -131,6 +132,9 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
     deleteHotelRevenue,
     showToast,
   } = useProperty();
+
+  // Always use the up-to-date property object from context
+  const property = properties.find(p => p.id === initialProperty.id) || initialProperty;
 
   const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'expenses' | 'history' | 'photos' | 'booking' | 'maintenance' | 'leases'>('overview');
   const [selectedPhoto, setSelectedPhoto] = useState<string>(property.imageUrl || '');

@@ -282,7 +282,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
           </div>
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-slate-700">
-              Poschodie <span className="text-rose-500">*</span>
+              Poschodie <span className="text-slate-400 font-normal">(voliteľné)</span>
             </label>
             <Input
               type="number"
@@ -290,7 +290,6 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
               variant="bordered"
               aria-label="Poschodie"
               placeholder="napr. 3"
-              isRequired
               value={floor === '' ? '' : String(floor)}
               onChange={e => setFloor(e.target.value === '' ? '' : Number(e.target.value))}
               classNames={{

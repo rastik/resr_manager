@@ -46,7 +46,12 @@ class ApiService {
   async getProperties(): Promise<Property[]> {
     try {
       const res = await fetch(`${BASE_URL}/properties`, { headers: this.getHeaders() });
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const data = await res.json();
+        const key = `resr_props_${this.userId}`;
+        localStorage.setItem(key, JSON.stringify(data));
+        return data;
+      }
     } catch (e) {
       console.warn('API fallback for properties', e);
     }
@@ -103,32 +108,38 @@ class ApiService {
   }
 
   async updateProperty(id: string, data: Partial<Property>): Promise<Property> {
+    const key = localStorage.getItem(`resr_props_${this.userId}`)
+      ? `resr_props_${this.userId}`
+      : `hearthstone_props_${this.userId}`;
+    const cached = localStorage.getItem(key);
+
+    const updateCache = (propData: Property) => {
+      if (cached) {
+        try {
+          const props: Property[] = JSON.parse(cached);
+          const nextProps = props.map(p => (p.id === id ? { ...p, ...propData } : p));
+          localStorage.setItem(key, JSON.stringify(nextProps));
+        } catch {}
+      }
+    };
+
     try {
       const res = await fetch(`${BASE_URL}/properties/${id}`, {
         method: 'PUT',
         headers: this.getHeaders(),
         body: JSON.stringify(data),
       });
-      if (res.ok) return await res.json();
+      if (res.ok) {
+        const updated = await res.json();
+        updateCache(updated);
+        return updated;
+      }
     } catch (e) {
       console.warn('API fallback for update property', e);
     }
-    const key = localStorage.getItem(`resr_props_${this.userId}`)
-      ? `resr_props_${this.userId}`
-      : `hearthstone_props_${this.userId}`;
-    const cached = localStorage.getItem(key);
+
     let updated = { id, ...data } as Property;
-    if (cached) {
-      const props: Property[] = JSON.parse(cached);
-      const nextProps = props.map(p => {
-        if (p.id === id) {
-          updated = { ...p, ...data };
-          return updated;
-        }
-        return p;
-      });
-      localStorage.setItem(key, JSON.stringify(nextProps));
-    }
+    updateCache(updated);
     return updated;
   }
 
