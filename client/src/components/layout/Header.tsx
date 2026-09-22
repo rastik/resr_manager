@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   const titles: Record<string, string> = {
     dashboard: 'Prehľad portfólia',
     analytics: 'Analytika a cash flow',
-    properties: 'Nehnuteľnosti a byty',
+    properties: 'Nehnuteľnosti',
     documents: 'Dokumenty a zmluvy',
     market: 'Trhové porovnanie nájomného s Nehnutelnosti.sk',
   };
