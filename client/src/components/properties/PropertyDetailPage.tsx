@@ -669,26 +669,15 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     {activeLease && (
                       <>
                         {isHotelOperator && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="flat"
-                              onPress={() => setIsUploadHotelInvoiceOpen(true)}
-                              startContent={<UploadCloud className="w-3 h-3" />}
-                              className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium text-[11px] rounded-lg h-7 px-2"
-                            >
-                              Nahrať faktúru
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="flat"
-                              onPress={() => setIsHotelRevenueModalOpen(true)}
-                              startContent={<Plus className="w-3 h-3" />}
-                              className="bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium text-[11px] rounded-lg h-7 px-2"
-                            >
-                              Zaznamenať výnos
-                            </Button>
-                          </>
+                          <Button
+                            size="sm"
+                            variant="flat"
+                            onPress={() => setIsHotelRevenueModalOpen(true)}
+                            startContent={<Plus className="w-3 h-3" />}
+                            className="bg-amber-50 hover:bg-amber-100 text-amber-700 font-medium text-[11px] rounded-lg h-7 px-2"
+                          >
+                            Zaznamenať výnos
+                          </Button>
                         )}
                         <Button
                           size="sm"
@@ -1018,10 +1007,10 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                           </div>
                           <Button
                             size="sm"
-                            variant="light"
+                            variant="flat"
                             onPress={() => setIsUploadHotelInvoiceOpen(true)}
-                            startContent={<UploadCloud className="w-3 h-3 text-blue-600" />}
-                            className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 h-6 px-2"
+                            startContent={<UploadCloud className="w-3.5 h-3.5" />}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] h-7 px-2.5 rounded-lg shadow-xs"
                           >
                             + Nahrať faktúru
                           </Button>
