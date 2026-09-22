@@ -36,7 +36,7 @@ export const initialProperties = [
     id: 'prop_ovruc_deluxe',
     userId: 'user_demo_landlord',
     name: 'Apartmán Deluxe (Aplend Ovruč)',
-    unitNumber: 'Deluxe',
+    unitNumber: '100',
     address: 'K Vodopádom 4060',
     postalCode: '059 85',
     city: 'Štrbské Pleso',
