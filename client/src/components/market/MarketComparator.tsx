@@ -324,8 +324,8 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
         </div>
       </div>
 
-      {/* 7. Results count */}
-      <div className="flex items-center justify-end px-1 text-[11px] text-slate-500">
+      {/* 7. Results count (compact spacing) */}
+      <div className="flex items-center justify-end px-1 text-[11px] text-slate-500 -mt-4 -mb-3">
         <span className="font-medium text-slate-600">
           Nájdených {comparables.length} relevantných inzerátov
         </span>
