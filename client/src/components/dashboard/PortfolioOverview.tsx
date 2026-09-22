@@ -51,11 +51,8 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
 
         {/* Content Inside Card */}
         <div className="relative z-10 h-full flex flex-col justify-between p-3 w-full">
-          {/* Top: Unit Badge & Status Badge */}
-          <div className="flex items-center justify-between w-full">
-            <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold border border-white/20">
-              {property.propertyType === 'apartment' ? 'Apartmán' : 'Byt'} č. {property.unitNumber}
-            </span>
+          {/* Top: Status Badge */}
+          <div className="flex items-center justify-end w-full">
             <Badge variant={badgeVariant as any} />
           </div>
 
