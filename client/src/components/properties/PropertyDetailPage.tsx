@@ -1351,25 +1351,34 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   <TableColumn key="name">NÁZOV POLOŽKY</TableColumn>
                   <TableColumn key="category">KATEGÓRIA</TableColumn>
                   <TableColumn key="model">ZNAČKA / MODEL</TableColumn>
+                  <TableColumn key="serial">VÝROBNÉ ČÍSLO (S/N)</TableColumn>
+                  <TableColumn key="date">DÁTUM NÁKUPU</TableColumn>
                   <TableColumn key="cost">CENA</TableColumn>
                   <TableColumn key="warranty">ZÁRUKA DO</TableColumn>
+                  <TableColumn key="notes">POZNÁMKA</TableColumn>
                   <TableColumn key="actions">{''}</TableColumn>
                 </TableHeader>
                 <TableBody emptyContent="V tomto byte zatiaľ nie je evidovaný žiadny inventár.">
                   {unitInventory.map(item => (
                     <TableRow key={item.id}>
                       <TableCell>
-                        <div className="font-semibold text-slate-900">{item.name}</div>
-                        {item.notes && (
-                          <div className="text-[11px] text-slate-400 italic max-w-xs truncate" title={item.notes}>
-                            📝 {item.notes}
-                          </div>
-                        )}
+                        <span className="font-semibold text-slate-900">{item.name}</span>
                       </TableCell>
                       <TableCell className="capitalize text-slate-500">{item.category}</TableCell>
-                      <TableCell className="text-slate-500">{item.brandModel || '—'}</TableCell>
-                      <TableCell className="text-slate-800 font-semibold">€{item.cost}</TableCell>
-                      <TableCell className="text-slate-500">{item.warrantyExpiresAt || '—'}</TableCell>
+                      <TableCell className="text-slate-600 text-[11px]">{item.brandModel || '—'}</TableCell>
+                      <TableCell className="text-slate-600 text-[11px] font-mono">{item.serialNumber || '—'}</TableCell>
+                      <TableCell className="text-slate-500 text-[11px]">{item.purchaseDate || '—'}</TableCell>
+                      <TableCell className="text-slate-900 font-semibold whitespace-nowrap">€{item.cost.toLocaleString()}</TableCell>
+                      <TableCell className="text-slate-500 text-[11px]">{item.warrantyExpiresAt || '—'}</TableCell>
+                      <TableCell>
+                        {item.notes ? (
+                          <span className="text-slate-600 text-xs max-w-xs block truncate" title={item.notes}>
+                            {item.notes}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Button
                           isIconOnly

@@ -119,9 +119,11 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
           <TableColumn key="category">KATEGÓRIA</TableColumn>
           <TableColumn key="property">BYT / JEDNOTKA</TableColumn>
           <TableColumn key="brand">ZNAČKA A MODEL</TableColumn>
-          <TableColumn key="date">INŠTALÁCIA</TableColumn>
+          <TableColumn key="serial">VÝROBNÉ ČÍSLO (S/N)</TableColumn>
+          <TableColumn key="date">DÁTUM NÁKUPU</TableColumn>
           <TableColumn key="cost">CENA</TableColumn>
-          <TableColumn key="warranty">ZÁRUKA</TableColumn>
+          <TableColumn key="warranty">ZÁRUKA DO</TableColumn>
+          <TableColumn key="notes">POZNÁMKA</TableColumn>
           <TableColumn key="actions">{''}</TableColumn>
         </TableHeader>
         <TableBody emptyContent="Nenašli sa žiadne položky inventára.">
@@ -138,12 +140,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
             return (
               <TableRow key={item.id}>
                 <TableCell>
-                  <div className="font-semibold text-slate-900">{item.name}</div>
-                  {item.notes && (
-                    <div className="text-[11px] text-slate-400 italic max-w-xs truncate" title={item.notes}>
-                      📝 {item.notes}
-                    </div>
-                  )}
+                  <span className="font-semibold text-slate-900">{item.name}</span>
                 </TableCell>
                 <TableCell className="capitalize text-slate-500">
                   {categoryLabels[item.category] || item.category}
@@ -156,9 +153,10 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     {item.propertyName} ({item.propertyUnit})
                   </button>
                 </TableCell>
-                <TableCell className="text-slate-500 text-[11px]">{item.brandModel || '—'}</TableCell>
-                <TableCell className="text-slate-500 text-[11px]">{item.purchaseDate}</TableCell>
-                <TableCell className="text-slate-900 font-semibold">€{item.cost.toLocaleString()}</TableCell>
+                <TableCell className="text-slate-600 text-[11px]">{item.brandModel || '—'}</TableCell>
+                <TableCell className="text-slate-600 text-[11px] font-mono">{item.serialNumber || '—'}</TableCell>
+                <TableCell className="text-slate-500 text-[11px]">{item.purchaseDate || '—'}</TableCell>
+                <TableCell className="text-slate-900 font-semibold whitespace-nowrap">€{item.cost.toLocaleString()}</TableCell>
                 <TableCell>
                   {item.warrantyExpiresAt ? (
                     <Chip
@@ -169,6 +167,15 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     >
                       {item.warrantyExpiresAt} {isExpiringSoon && '(Končí)'}
                     </Chip>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {item.notes ? (
+                    <span className="text-slate-600 text-xs max-w-xs block truncate" title={item.notes}>
+                      {item.notes}
+                    </span>
                   ) : (
                     <span className="text-slate-400">—</span>
                   )}
