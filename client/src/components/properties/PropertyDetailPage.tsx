@@ -309,7 +309,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
       return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
     });
   
-  const effectivePropertyStatus = property.status === 'occupied' && !activeLease ? 'vacant' : property.status;
+  const effectivePropertyStatus = activeLease ? 'occupied' : (property.status === 'occupied' ? 'vacant' : property.status);
   const effectiveRentAmount = activeLease ? (property.rentAmount || activeLease.rentAmount || 0) : 0;
   const rentPerSqm = property.sizeSqm > 0 ? (effectiveRentAmount / property.sizeSqm).toFixed(2) : '0.00';
 

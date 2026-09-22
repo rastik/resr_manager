@@ -28,9 +28,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
     const imgUrl = property.imageUrl || fallbackImg;
 
     const activeLease = leases.find(l => l.propertyId === property.id && l.status === 'active');
-    const badgeVariant = (property.status === 'occupied' && activeLease?.leaseType === 'hotel_operator')
-      ? 'hotel'
-      : property.status;
+    const badgeVariant = activeLease ? 'occupied' : (property.status === 'occupied' ? 'vacant' : property.status);
 
     return (
       <Card

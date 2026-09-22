@@ -29,6 +29,11 @@ export const PropertyList: React.FC<PropertyListProps> = ({
   const [sortField, setSortField] = useState<'unitNumber' | 'name' | 'city' | 'sizeSqm' | 'rentAmount' | 'status'>('unitNumber');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
+  const getEffectiveStatus = (prop: typeof properties[0]) => {
+    const hasActiveLease = leases.some(l => l.propertyId === prop.id && l.status === 'active');
+    return hasActiveLease ? 'occupied' : (prop.status === 'occupied' ? 'vacant' : prop.status);
+  };
+
   const filteredProperties = properties
     .filter(prop => {
       const matchesSearch =
@@ -38,7 +43,8 @@ export const PropertyList: React.FC<PropertyListProps> = ({
         prop.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (prop.tenantName && prop.tenantName.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const matchesStatus = statusFilter === 'all' || prop.status === statusFilter;
+      const effectiveStatus = getEffectiveStatus(prop);
+      const matchesStatus = statusFilter === 'all' || effectiveStatus === statusFilter;
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
@@ -66,8 +72,8 @@ export const PropertyList: React.FC<PropertyListProps> = ({
         valA = a.rentAmount || 0;
         valB = b.rentAmount || 0;
       } else if (sortField === 'status') {
-        valA = a.status || '';
-        valB = b.status || '';
+        valA = getEffectiveStatus(a);
+        valB = getEffectiveStatus(b);
       }
 
       if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
@@ -257,13 +263,9 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                 <TableCell className="text-slate-600">
                   {property.sizeSqm} m²{property.floor !== undefined ? ` • ${property.floor}. posch.` : ''}
                 </TableCell>
-                <TableCell>
-                  {(() => {
-                    const al = leases.find(l => l.propertyId === property.id && l.status === 'active');
-                    const bv = property.status === 'occupied' && al?.leaseType === 'hotel_operator' ? 'hotel' : property.status;
-                    return <Badge variant={bv as any} />;
-                  })()}
-                </TableCell>
+                  <TableCell>
+                    <Badge variant={getEffectiveStatus(property) as any} />
+                  </TableCell>
                 <TableCell className="font-semibold text-slate-900">
                   {property.rentAmount && property.rentAmount > 0 ? (
                     `€${property.rentAmount.toLocaleString()}`
@@ -294,6 +296,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
             const fallbackImg =
               'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1000&q=80';
             const imgUrl = property.imageUrl || fallbackImg;
+            const cardBadgeVariant = getEffectiveStatus(property);
 
             return (
               <Card
@@ -316,7 +319,7 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                 <div className="relative z-10 h-full flex flex-col justify-between p-3 w-full">
                   {/* Top: Status Badge */}
                   <div className="flex items-center justify-end w-full">
-                    <Badge variant={property.status} />
+                    <Badge variant={cardBadgeVariant as any} />
                   </div>
 
                   {/* Bottom: Info, Specs & Price */}
