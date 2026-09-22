@@ -1,9 +1,11 @@
-import React from 'react';
-import { Card, CardBody, Button, Chip } from '@heroui/react';
-import { Clock, ShieldAlert, Plus, MapPin, ArrowRight, AlertTriangle, CheckCircle2, Calendar, Home, Building2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardBody, Button, Chip, Textarea } from '@heroui/react';
+import { Clock, ShieldAlert, Plus, MapPin, ArrowRight, AlertTriangle, CheckCircle2, Calendar, Home, Building2, FileText, Check } from 'lucide-react';
 import { useProperty } from '../../context/PropertyContext';
 import { Badge } from '../common/Badge';
+import { Modal } from '../common/Modal';
 import { formatDate, getEffectiveLeaseStatus } from '../../utils/date';
+import { Property } from '../../types';
 
 interface PortfolioOverviewProps {
   onSelectProperty: (id: string) => void;
@@ -17,7 +19,28 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
   onOpenAddProperty,
   onNavigateToTab,
 }) => {
-  const { properties, analytics, inventory, leases } = useProperty();
+  const { properties, analytics, inventory, leases, updateProperty } = useProperty();
+
+  const [activeNoteProperty, setActiveNoteProperty] = useState<Property | null>(null);
+  const [noteText, setNoteText] = useState<string>('');
+  const [isSavingNote, setIsSavingNote] = useState<boolean>(false);
+
+  const handleOpenNote = (e: React.MouseEvent, property: Property) => {
+    e.stopPropagation();
+    setActiveNoteProperty(property);
+    setNoteText(property.notes || '');
+  };
+
+  const handleSaveNote = async () => {
+    if (!activeNoteProperty) return;
+    setIsSavingNote(true);
+    try {
+      await updateProperty(activeNoteProperty.id, { notes: noteText.trim() || undefined });
+      setActiveNoteProperty(null);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
 
   const flats = properties.filter(p => (p.propertyType || 'flat') === 'flat');
   const apartments = properties.filter(p => p.propertyType === 'apartment');
@@ -49,8 +72,21 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
 
         {/* Content Inside Card */}
         <div className="relative z-10 h-full flex flex-col justify-between p-3 w-full">
-          {/* Top: Status Badge */}
-          <div className="flex items-center justify-end w-full">
+          {/* Top: Notes Button & Status Badge */}
+          <div className="flex items-center justify-between w-full">
+            <button
+              type="button"
+              onClick={(e) => handleOpenNote(e, property)}
+              title={property.notes ? `Poznámka: ${property.notes}` : 'Pridať poznámku'}
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium transition-all backdrop-blur-md border ${
+                property.notes
+                  ? 'bg-amber-400/25 text-amber-200 border-amber-300/40 hover:bg-amber-400/40 shadow-xs'
+                  : 'bg-black/35 text-slate-300 border-white/20 hover:bg-white/25 hover:text-white'
+              }`}
+            >
+              <FileText className="w-3 h-3" />
+              <span>{property.notes ? 'Poznámka' : '+ Poznámka'}</span>
+            </button>
             <Badge variant={badgeVariant as any} />
           </div>
 
@@ -401,6 +437,81 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
           </CardBody>
         </Card>
       </div>
+
+      {/* Modal na písanie / úpravu poznámok k bytu / apartmánu */}
+      {activeNoteProperty && (
+        <Modal
+          isOpen={Boolean(activeNoteProperty)}
+          onClose={() => setActiveNoteProperty(null)}
+          title={`Poznámka k nehnuteľnosti`}
+          subtitle={`${activeNoteProperty.name} (č. ${activeNoteProperty.unitNumber}), ${activeNoteProperty.city}`}
+          maxWidth="md"
+        >
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-slate-700">
+                Vaša interná poznámka
+              </label>
+              <Textarea
+                size="sm"
+                variant="bordered"
+                aria-label="Poznámka"
+                minRows={4}
+                maxRows={8}
+                placeholder="Sem napíšte akékoľvek poznámky k bytu (napr. kľúče, parkovanie, špecifiká nájomcu, plánované opravy)..."
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                classNames={{
+                  inputWrapper:
+                    'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg shadow-2xs',
+                  input: 'text-xs text-slate-900 leading-relaxed',
+                }}
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              {activeNoteProperty.notes ? (
+                <Button
+                  size="sm"
+                  variant="light"
+                  color="danger"
+                  isDisabled={isSavingNote}
+                  onPress={() => {
+                    setNoteText('');
+                  }}
+                  className="text-xs text-rose-600 hover:bg-rose-50"
+                >
+                  Vymazať text
+                </Button>
+              ) : (
+                <div />
+              )}
+
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="flat"
+                  isDisabled={isSavingNote}
+                  onPress={() => setActiveNoteProperty(null)}
+                  className="text-xs"
+                >
+                  Zrušiť
+                </Button>
+                <Button
+                  size="sm"
+                  color="primary"
+                  isLoading={isSavingNote}
+                  onPress={handleSaveNote}
+                  startContent={!isSavingNote && <Check className="w-3.5 h-3.5" />}
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs px-4"
+                >
+                  Uložiť poznámku
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
