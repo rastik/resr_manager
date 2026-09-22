@@ -53,7 +53,6 @@ import {
   UserX,
   Globe,
   Maximize2,
-  Bath,
   Hash,
   Calendar,
 } from 'lucide-react';
@@ -1165,24 +1164,6 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
                   <div className="flex justify-between items-center py-1 border-b border-slate-100">
                     <span className="text-slate-500 flex items-center gap-1.5">
-                      <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                      Typ nehnuteľnosti:
-                    </span>
-                    <span className="font-semibold text-slate-900">
-                      {property.propertyType === 'apartment' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold">
-                          <Building2 className="w-3 h-3 text-amber-600" /> Apartmán
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-semibold">
-                          <Home className="w-3 h-3 text-blue-600" /> Byt
-                        </span>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1.5">
                       <Home className="w-3.5 h-3.5 text-slate-400" />
                       Objekt / Budova:
                     </span>
@@ -1197,14 +1178,6 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     <span className="font-bold text-slate-900 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[11px]">
                       č. {property.unitNumber}
                     </span>
-                  </div>
-
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full inline-block bg-slate-400" />
-                      Stav obsadenosti:
-                    </span>
-                    <Badge variant={effectivePropertyStatus} />
                   </div>
 
                   <div className="flex justify-between items-start py-1 border-b border-slate-100">
@@ -1242,16 +1215,6 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     </span>
                     <span className="font-medium text-slate-900">
                       {property.bedrooms} {property.bedrooms === 1 ? 'izba' : property.bedrooms < 5 ? 'izby' : 'izieb'}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1.5">
-                      <Bath className="w-3.5 h-3.5 text-slate-400" />
-                      Kúpeľňa / WC:
-                    </span>
-                    <span className="font-medium text-slate-900">
-                      {property.bathrooms ? `${property.bathrooms}x` : '1x'}
                     </span>
                   </div>
 
@@ -1316,51 +1279,6 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     </span>
                     <span className="font-medium text-slate-900">
                       {property.furnishingStatus === 'unfurnished' ? 'Nezariadený' : 'Zariadený'}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1.5">
-                      <DollarSign className="w-3.5 h-3.5 text-slate-400" />
-                      Mesačný nájom:
-                    </span>
-                    <span className="font-bold text-slate-900 text-right">
-                      €{effectiveRentAmount.toLocaleString()} / mes
-                      {effectiveBaseRent !== undefined || effectiveUtilities !== undefined ? (
-                        <span className="block text-[10px] text-slate-500 font-normal">
-                          (nájom €{(effectiveBaseRent ?? effectiveRentAmount).toLocaleString()} + energie €{(effectiveUtilities ?? 0).toLocaleString()})
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-
-                  {effectiveRentAmount > 0 && property.sizeSqm > 0 && (
-                    <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                      <span className="text-slate-500 flex items-center gap-1.5">
-                        <TrendingUp className="w-3.5 h-3.5 text-slate-400" />
-                        Trhová sadzba za m²:
-                      </span>
-                      <span className="font-semibold text-emerald-700">
-                        €{rentPerSqm} / m²
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1.5">
-                      <Package className="w-3.5 h-3.5 text-slate-400" />
-                      Inventárnych položiek:
-                    </span>
-                    <span className="font-medium text-slate-900">{unitInventory.length} ks</span>
-                  </div>
-
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1.5">
-                      <FileCheck className="w-3.5 h-3.5 text-slate-400" />
-                      Evidované výdavky:
-                    </span>
-                    <span className="font-bold text-rose-600">
-                      €{unitExpenses.reduce((sum, e) => sum + Number(e.amount), 0).toLocaleString()}
                     </span>
                   </div>
 
