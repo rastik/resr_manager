@@ -71,6 +71,7 @@ import { compressImage } from '../../utils/imageCompressor';
 import { openLeasePdfWindow } from '../../utils/contractPdf';
 import { VaultDocument, InventoryItem } from '../../types';
 import { AddInventoryModal } from '../inventory/AddInventoryModal';
+import { DocumentUploadModal } from '../documents/DocumentUploadModal';
 
 interface PropertyDetailPageProps {
   property: Property;
@@ -146,6 +147,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const [isHotelRevenueModalOpen, setIsHotelRevenueModalOpen] = useState<boolean>(false);
   const [isUploadHotelInvoiceOpen, setIsUploadHotelInvoiceOpen] = useState<boolean>(false);
   const [selectedInvoiceForPreview, setSelectedInvoiceForPreview] = useState<VaultDocument | null>(null);
+  const [editingDoc, setEditingDoc] = useState<VaultDocument | null>(null);
   const [copiedContact, setCopiedContact] = useState<'email' | 'phone' | null>(null);
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
@@ -1052,43 +1054,57 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                                     </td>
                                     <td className="px-3 py-2.5 text-slate-600 whitespace-nowrap">{formatDate(inv.uploadDate)}</td>
                                     <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap">{inv.fileSize}</td>
-                                    <td className="px-3 py-2.5 text-slate-500 truncate max-w-[220px]" title={inv.notes || '—'}>
-                                      {inv.notes || '—'}
-                                    </td>
-                                    <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                                      <div className="flex items-center justify-end gap-1">
-                                        <button
-                                          type="button"
-                                          onClick={() => setSelectedInvoiceForPreview(inv)}
-                                          className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
-                                          title="Náhľad faktúry"
-                                        >
-                                          <ExternalLink className="w-3.5 h-3.5" />
-                                        </button>
-                                        <a
-                                          href={inv.fileUrl}
-                                          download={inv.name}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition"
-                                          title="Stiahnuť súbor"
-                                        >
-                                          <Download className="w-3.5 h-3.5" />
-                                        </a>
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            if (confirm(`Naozaj chcete vymazať faktúru "${inv.name}"?`)) {
-                                              deleteDocument(inv.id);
-                                            }
-                                          }}
-                                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition"
-                                          title="Vymazať"
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                      </div>
-                                    </td>
+                                     <td className="px-3 py-2.5 text-slate-500 max-w-[220px]">
+                                       {inv.notes ? (
+                                         <span className="line-clamp-2 break-words leading-relaxed text-xs text-slate-600 block" title={inv.notes}>
+                                           {inv.notes}
+                                         </span>
+                                       ) : (
+                                         '—'
+                                       )}
+                                     </td>
+                                     <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                                       <div className="flex items-center justify-end gap-1">
+                                         <button
+                                           type="button"
+                                           onClick={() => setSelectedInvoiceForPreview(inv)}
+                                           className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
+                                           title="Náhľad faktúry"
+                                         >
+                                           <ExternalLink className="w-3.5 h-3.5" />
+                                         </button>
+                                         <a
+                                           href={inv.fileUrl}
+                                           download={inv.name}
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           className="p-1.5 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition"
+                                           title="Stiahnuť súbor"
+                                         >
+                                           <Download className="w-3.5 h-3.5" />
+                                         </a>
+                                         <button
+                                           type="button"
+                                           onClick={() => setEditingDoc(inv)}
+                                           className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-md transition"
+                                           title="Upraviť faktúru"
+                                         >
+                                           <Edit3 className="w-3.5 h-3.5" />
+                                         </button>
+                                         <button
+                                           type="button"
+                                           onClick={() => {
+                                             if (confirm(`Naozaj chcete vymazať faktúru "${inv.name}"?`)) {
+                                               deleteDocument(inv.id);
+                                             }
+                                           }}
+                                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition"
+                                           title="Vymazať"
+                                         >
+                                           <Trash2 className="w-3.5 h-3.5" />
+                                         </button>
+                                       </div>
+                                     </td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -1361,9 +1377,9 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       <TableCell className="text-slate-500 text-[11px]">{item.purchaseDate || '—'}</TableCell>
                       <TableCell className="text-slate-900 font-semibold whitespace-nowrap">€{item.cost.toLocaleString()}</TableCell>
                       <TableCell className="text-slate-500 text-[11px]">{item.warrantyExpiresAt || '—'}</TableCell>
-                      <TableCell>
+                      <TableCell className="max-w-[200px] sm:max-w-[240px]">
                         {item.notes ? (
-                          <span className="text-slate-600 text-xs max-w-xs block truncate" title={item.notes}>
+                          <span className="text-slate-600 text-xs line-clamp-2 break-words leading-relaxed" title={item.notes}>
                             {item.notes}
                           </span>
                         ) : (
@@ -2035,6 +2051,15 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           onClose={() => setEditingInventoryItem(null)}
           defaultPropertyId={property.id}
           itemToEdit={editingInventoryItem}
+        />
+      )}
+
+      {/* Edit Document Modal */}
+      {editingDoc && (
+        <DocumentUploadModal
+          isOpen={Boolean(editingDoc)}
+          onClose={() => setEditingDoc(null)}
+          docToEdit={editingDoc}
         />
       )}
     </div>

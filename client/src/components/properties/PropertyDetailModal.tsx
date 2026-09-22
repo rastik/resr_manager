@@ -240,6 +240,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                       <th>Model</th>
                       <th>Cena</th>
                       <th>Záruka</th>
+                      <th>Poznámka</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -251,6 +252,15 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                         <td className="text-slate-500">{item.brandModel}</td>
                         <td className="text-slate-800 font-semibold">€{item.cost}</td>
                         <td className="text-slate-500">{item.warrantyExpiresAt || '—'}</td>
+                        <td className="max-w-[180px]">
+                          {item.notes ? (
+                            <span className="text-slate-600 text-xs line-clamp-2 break-words leading-relaxed" title={item.notes}>
+                              {item.notes}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
                         <td className="text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button

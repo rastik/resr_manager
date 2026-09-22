@@ -173,9 +173,9 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
                     <span className="text-slate-400">—</span>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="max-w-[200px] sm:max-w-[240px]">
                   {item.notes ? (
-                    <span className="text-slate-600 text-xs max-w-xs block truncate" title={item.notes}>
+                    <span className="text-slate-600 text-xs line-clamp-2 break-words block leading-relaxed" title={item.notes}>
                       {item.notes}
                     </span>
                   ) : (

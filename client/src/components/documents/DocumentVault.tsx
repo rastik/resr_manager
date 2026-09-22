@@ -21,11 +21,12 @@ import {
   Edit3,
 } from 'lucide-react';
 import { useProperty } from '../../context/PropertyContext';
-import { VaultDocument, DocumentCategory } from '../../types';
+import { VaultDocument, DocumentCategory, Lease } from '../../types';
 import { formatDate } from '../../utils/date';
 import { openLeasePdfWindow } from '../../utils/contractPdf';
 import { DocumentUploadModal } from './DocumentUploadModal';
 import { DocumentPreviewModal } from './DocumentPreviewModal';
+import { EditLeaseModal } from '../properties/EditLeaseModal';
 
 export const DocumentVault: React.FC = () => {
   const { documents, leases, properties, deleteDocument } = useProperty();
@@ -34,6 +35,7 @@ export const DocumentVault: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
   const [editingDoc, setEditingDoc] = useState<VaultDocument | null>(null);
+  const [editingLease, setEditingLease] = useState<Lease | null>(null);
   const [previewDoc, setPreviewDoc] = useState<VaultDocument | null>(null);
 
   const handleOpenDocument = (doc: VaultDocument) => {
@@ -208,9 +210,9 @@ export const DocumentVault: React.FC = () => {
               <TableCell className="text-slate-500 text-[11px]">{doc.uploadDate}</TableCell>
               <TableCell className="text-slate-700 text-[11px] font-medium">{doc.expiryDate || '—'}</TableCell>
               <TableCell className="text-slate-500 text-[11px]">{doc.fileSize}</TableCell>
-              <TableCell>
+              <TableCell className="max-w-[200px] sm:max-w-[260px]">
                 {doc.notes ? (
-                  <span className="text-slate-600 text-xs max-w-xs block truncate" title={doc.notes}>
+                  <span className="text-slate-600 text-xs line-clamp-2 break-words leading-relaxed" title={doc.notes}>
                     {doc.notes}
                   </span>
                 ) : (
@@ -237,7 +239,21 @@ export const DocumentVault: React.FC = () => {
                   >
                     <Download className="w-3.5 h-3.5" />
                   </a>
-                  {!doc.id.startsWith('lease_doc_') && (
+                  {doc.id.startsWith('lease_doc_') ? (
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      onPress={() => {
+                        const targetLease = leases.find(l => l.id === doc.leaseId);
+                        if (targetLease) setEditingLease(targetLease);
+                      }}
+                      className="min-w-7 w-7 h-7 text-slate-400 hover:text-slate-900"
+                      title="Upraviť zmluvu"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </Button>
+                  ) : (
                     <>
                       <Button
                         isIconOnly
@@ -279,6 +295,13 @@ export const DocumentVault: React.FC = () => {
           isOpen={Boolean(editingDoc)}
           onClose={() => setEditingDoc(null)}
           docToEdit={editingDoc}
+        />
+      )}
+      {editingLease && (
+        <EditLeaseModal
+          isOpen={Boolean(editingLease)}
+          onClose={() => setEditingLease(null)}
+          lease={editingLease}
         />
       )}
       <DocumentPreviewModal document={previewDoc} onClose={() => setPreviewDoc(null)} />
