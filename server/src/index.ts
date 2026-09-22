@@ -73,7 +73,9 @@ async function initDb() {
     initialDocuments
   );
 }
-initDb();
+initDb().catch((err) => {
+  console.warn('[DB] initDb warning during bootstrap:', err?.message || err);
+});
 
 // ----------------------------------------------------
 // Health Check & DB Status
@@ -652,15 +654,17 @@ app.post('/api/booking-monitor/sync', async (req: Request, res: Response) => {
   }
 });
 
-// Automated daily background sync (every 24 hours) for long-running Node processes
-setInterval(async () => {
-  try {
-    console.log('[SCHEDULER] Daily automatic sync for Booking.com Apartmán Deluxe...');
-    await BookingScraperService.syncBookingPrice('prop_ovruc_deluxe');
-  } catch (err) {
-    console.warn('[SCHEDULER] Daily Booking sync failed:', err);
-  }
-}, 24 * 60 * 60 * 1000);
+// Automated daily background sync (every 24 hours) for long-running Node processes (skip in serverless/Vercel)
+if (!process.env.VERCEL) {
+  setInterval(async () => {
+    try {
+      console.log('[SCHEDULER] Daily automatic sync for Booking.com Apartmán Deluxe...');
+      await BookingScraperService.syncBookingPrice('prop_ovruc_deluxe');
+    } catch (err) {
+      console.warn('[SCHEDULER] Daily Booking sync failed:', err);
+    }
+  }, 24 * 60 * 60 * 1000);
+}
 
 // ----------------------------------------------------
 // Vault Documents CRUD
