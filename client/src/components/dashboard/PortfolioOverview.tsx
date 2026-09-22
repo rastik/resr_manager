@@ -370,7 +370,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
               </div>
             </div>
 
-            <div className="divide-y divide-slate-100 max-h-[380px] overflow-y-auto pr-1">
+            <div className="divide-y divide-slate-100">
               {inventory
                 .filter(i => Boolean(i.warrantyExpiresAt && i.warrantyExpiresAt.trim()))
                 .sort((a, b) => new Date(a.warrantyExpiresAt!).getTime() - new Date(b.warrantyExpiresAt!).getTime())
