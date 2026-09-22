@@ -335,6 +335,322 @@ const TRNAVA_FALLBACK_LISTINGS: RawListing[] = [
   }
 ];
 
+const KOSICE_FALLBACK_LISTINGS: RawListing[] = [
+  {
+    id: "fb_ke_1",
+    title: "Nový 2-izbový byt v modernom projekte Albelli",
+    location: "Alvinczyho, Košice-Sever, okres Košice I",
+    district: "Košice - Sever",
+    totalRentPrice: 700,
+    baseRent: 550,
+    utilitiesAmount: 150,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "550 € nájom + 150 € energie",
+    rentPrice: 700,
+    sizeSqm: 55.0,
+    rooms: 2,
+    hasParking: true,
+    hasBalcony: true,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: true,
+    photoUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/kosice/byty/prenajom/"
+  },
+  {
+    id: "fb_ke_2",
+    title: "Kompletne zrekonštruovaný 2 izbový byt v centre mesta",
+    location: "Hlavná, Košice-Staré Mesto, okres Košice I",
+    district: "Košice - Staré Mesto",
+    totalRentPrice: 750,
+    baseRent: 600,
+    utilitiesAmount: 150,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "600 € nájom + 150 € energie",
+    rentPrice: 750,
+    sizeSqm: 60.0,
+    rooms: 2,
+    hasParking: true,
+    hasBalcony: false,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: true,
+    photoUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/kosice/byty/prenajom/"
+  },
+  {
+    id: "fb_ke_3",
+    title: "Príjemný 2 izbový byt na Terase po rekonštrukcii",
+    location: "Trieda SNP, Košice-Západ, okres Košice II",
+    district: "Košice - Západ",
+    totalRentPrice: 620,
+    baseRent: 480,
+    utilitiesAmount: 140,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "480 € nájom + 140 € energie",
+    rentPrice: 620,
+    sizeSqm: 52.0,
+    rooms: 2,
+    hasParking: false,
+    hasBalcony: true,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: false,
+    photoUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/kosice/byty/prenajom/"
+  },
+  {
+    id: "fb_ke_4",
+    title: "Svetlý 1-izbový byt pri Technickej univerzite",
+    location: "Letná, Košice-Sever, okres Košice I",
+    district: "Košice - Sever",
+    totalRentPrice: 480,
+    baseRent: 380,
+    utilitiesAmount: 100,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "380 € nájom + 100 € energie",
+    rentPrice: 480,
+    sizeSqm: 36.0,
+    rooms: 1,
+    hasParking: false,
+    hasBalcony: false,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: false,
+    photoUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/kosice/byty/prenajom/"
+  },
+  {
+    id: "fb_ke_5",
+    title: "Veľký 3 izbový byt s loggiou a garážou",
+    location: "Žižkova, Košice-Juh, okres Košice IV",
+    district: "Košice - Juh",
+    totalRentPrice: 850,
+    baseRent: 680,
+    utilitiesAmount: 170,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "680 € nájom + 170 € energie",
+    rentPrice: 850,
+    sizeSqm: 78.0,
+    rooms: 3,
+    hasParking: true,
+    hasBalcony: true,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: true,
+    photoUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/kosice/byty/prenajom/"
+  }
+];
+
+const ZILINA_FALLBACK_LISTINGS: RawListing[] = [
+  {
+    id: "fb_za_1",
+    title: "Moderný 2-izbový byt v novostavbe Rudiny II s parkovaním",
+    location: "Rudiny II, Žilina-Hliny, okres Žilina",
+    district: "Žilina - Hliny",
+    totalRentPrice: 680,
+    baseRent: 530,
+    utilitiesAmount: 150,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "530 € nájom + 150 € energie",
+    rentPrice: 680,
+    sizeSqm: 58.0,
+    rooms: 2,
+    hasParking: true,
+    hasBalcony: true,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: true,
+    photoUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/zilina/byty/prenajom/"
+  },
+  {
+    id: "fb_za_2",
+    title: "Zrekonštruovaný 2 izbový byt na Vlčincoch",
+    location: "Nanterská, Žilina-Vlčince, okres Žilina",
+    district: "Žilina - Vlčince",
+    totalRentPrice: 620,
+    baseRent: 480,
+    utilitiesAmount: 140,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "480 € nájom + 140 € energie",
+    rentPrice: 620,
+    sizeSqm: 54.0,
+    rooms: 2,
+    hasParking: true,
+    hasBalcony: true,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: false,
+    photoUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/zilina/byty/prenajom/"
+  },
+  {
+    id: "fb_za_3",
+    title: "1-izbový byt po rekonštrukcii na Hlinách",
+    location: "Hliny, Žilina, okres Žilina",
+    district: "Žilina - Hliny",
+    totalRentPrice: 460,
+    baseRent: 360,
+    utilitiesAmount: 100,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "360 € nájom + 100 € energie",
+    rentPrice: 460,
+    sizeSqm: 35.0,
+    rooms: 1,
+    hasParking: false,
+    hasBalcony: false,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: false,
+    photoUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/zilina/byty/prenajom/"
+  }
+];
+
+const NITRA_FALLBACK_LISTINGS: RawListing[] = [
+  {
+    id: "fb_nr_1",
+    title: "Zariadený 2-izbový byt s balkónom na Chrenovej",
+    location: "Dlhá, Nitra-Chrenová, okres Nitra",
+    district: "Nitra - Chrenová",
+    totalRentPrice: 620,
+    baseRent: 480,
+    utilitiesAmount: 140,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "480 € nájom + 140 € energie",
+    rentPrice: 620,
+    sizeSqm: 56.0,
+    rooms: 2,
+    hasParking: true,
+    hasBalcony: true,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: true,
+    photoUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/nitra/byty/prenajom/"
+  },
+  {
+    id: "fb_nr_2",
+    title: "Kompletne zariadený 2 izbový byt v centre Nitry",
+    location: "Štúrova, Nitra-Centrum, okres Nitra",
+    district: "Nitra - Centrum",
+    totalRentPrice: 680,
+    baseRent: 530,
+    utilitiesAmount: 150,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "530 € nájom + 150 € energie",
+    rentPrice: 680,
+    sizeSqm: 60.0,
+    rooms: 2,
+    hasParking: true,
+    hasBalcony: false,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: true,
+    photoUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/nitra/byty/prenajom/"
+  }
+];
+
+const BYSTRICA_FALLBACK_LISTINGS: RawListing[] = [
+  {
+    id: "fb_bb_1",
+    title: "Zrekonštruovaný 2 izbový byt na Fončorde",
+    location: "Tulská, Banská Bystrica-Fončorda, okres Banská Bystrica",
+    district: "Banská Bystrica - Fončorda",
+    totalRentPrice: 560,
+    baseRent: 430,
+    utilitiesAmount: 130,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "430 € nájom + 130 € energie",
+    rentPrice: 560,
+    sizeSqm: 54.0,
+    rooms: 2,
+    hasParking: true,
+    hasBalcony: true,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: false,
+    photoUrl: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/banska-bystrica/byty/prenajom/"
+  },
+  {
+    id: "fb_bb_2",
+    title: "Moderný 2-izbový byt v centre Banskej Bystrice",
+    location: "Námestie SNP, Banská Bystrica-Centrum, okres Banská Bystrica",
+    district: "Banská Bystrica - Centrum",
+    totalRentPrice: 630,
+    baseRent: 490,
+    utilitiesAmount: 140,
+    isUtilitiesInclusive: false,
+    priceBreakdownText: "490 € nájom + 140 € energie",
+    rentPrice: 630,
+    sizeSqm: 58.0,
+    rooms: 2,
+    hasParking: true,
+    hasBalcony: false,
+    hasCellar: true,
+    isFurnished: true,
+    hasAC: true,
+    photoUrl: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+    detailUrl: "https://www.nehnutelnosti.sk/banska-bystrica/byty/prenajom/"
+  }
+];
+
+function isLocationInCity(locationText: string, titleText: string, searchCity: string): boolean {
+  if (!searchCity || searchCity.toLowerCase() === "slovensko") return true;
+  const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const target = norm(searchCity);
+  const loc = norm(locationText);
+  const title = norm(titleText);
+
+  if (loc.includes(target) || title.includes(target)) return true;
+
+  if (target.includes("trnava")) {
+    if (loc.includes("bratislav") || loc.includes("kosic") || loc.includes("zilin") || loc.includes("nitr") || loc.includes("bystric")) {
+      return false;
+    }
+    const ttKeywords = ['trnava', 'arboria', 'cukrovar', 'hliny', 'druzba', 'prednadrazie', 'kopanka', 'lincianska', 'paulinska', 'veterna', 'novomestska'];
+    return ttKeywords.some(k => loc.includes(k) || title.includes(k));
+  }
+
+  if (target.includes("bratislava")) {
+    if (loc.includes("trnava") || loc.includes("kosic") || loc.includes("zilin") || loc.includes("nitr") || loc.includes("bystric")) {
+      return false;
+    }
+    const baKeywords = ['bratislava', 'stare mesto', 'ruzinov', 'petrzalka', 'nove mesto', 'dubravka', 'karlova ves', 'vajnory', 'raca', 'devin', 'koliba', 'zwirn', 'panorama city', 'sky park', 'slnecnice', 'eurovea', 'river park', 'blumental', 'vydrica', 'nivy'];
+    return baKeywords.some(k => loc.includes(k) || title.includes(k));
+  }
+
+  if (target.includes("kosic")) {
+    if (loc.includes("bratislav") || loc.includes("trnava")) return false;
+    const keKeywords = ['kosic', 'stare mesto', 'sever', 'zapad', 'terasa', 'juh', 'furca', 'nad jazerom', 'albelli', 'kvp'];
+    return keKeywords.some(k => loc.includes(k) || title.includes(k));
+  }
+
+  if (target.includes("zilin")) {
+    if (loc.includes("bratislav") || loc.includes("trnava")) return false;
+    const zaKeywords = ['zilin', 'hliny', 'vlcince', 'solinky', 'borik', 'centrum', 'rudiny'];
+    return zaKeywords.some(k => loc.includes(k) || title.includes(k));
+  }
+
+  if (target.includes("nitr")) {
+    if (loc.includes("bratislav") || loc.includes("trnava")) return false;
+    const nrKeywords = ['nitr', 'chrenova', 'klokocina', 'zobor', 'cerman'];
+    return nrKeywords.some(k => loc.includes(k) || title.includes(k));
+  }
+
+  if (target.includes("bystric")) {
+    if (loc.includes("bratislav") || loc.includes("trnava")) return false;
+    const bbKeywords = ['bansk', 'bystric', 'sasova', 'radvan', 'foncorda', 'rudlova'];
+    return bbKeywords.some(k => loc.includes(k) || title.includes(k));
+  }
+
+  return false;
+}
+
 // Helper to extract district/quarter name accurately for any Slovak city
 function extractDistrict(locationText: string, searchCity: string = "bratislava"): string {
   const formattedSearchCity = searchCity.charAt(0).toUpperCase() + searchCity.slice(1);
@@ -619,18 +935,8 @@ export class NehnutelnostiService {
       }
 
       // Filter out sponsored ads from other regions when searching for a specific city
-      const normSearch = searchCity.toLowerCase().trim();
-      if (normSearch !== "slovensko") {
-        const locLower = location.toLowerCase();
-        if (normSearch.includes("trnava") && locLower.includes("bratislava") && !locLower.includes("trnava")) {
-          continue;
-        }
-        if (normSearch.includes("bratislava") && !locLower.includes("bratislava") && locLower.includes("okres")) {
-          continue;
-        }
-        if (normSearch.includes("kosic") && !locLower.includes("košic") && !locLower.includes("kosic") && locLower.includes("okres")) {
-          continue;
-        }
+      if (!isLocationInCity(location, title, searchCity)) {
+        continue;
       }
 
       const district = extractDistrict(location, searchCity);
@@ -717,10 +1023,19 @@ export class NehnutelnostiService {
       return cached.data;
     }
 
-    const normCity = city.toLowerCase();
-    const cityFallbackPool = normCity.includes("trnava")
-      ? TRNAVA_FALLBACK_LISTINGS
-      : FALLBACK_LISTINGS;
+    const normCity = city.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    let cityFallbackPool = FALLBACK_LISTINGS;
+    if (normCity.includes("trnava")) {
+      cityFallbackPool = TRNAVA_FALLBACK_LISTINGS;
+    } else if (normCity.includes("kosic")) {
+      cityFallbackPool = KOSICE_FALLBACK_LISTINGS;
+    } else if (normCity.includes("zilin")) {
+      cityFallbackPool = ZILINA_FALLBACK_LISTINGS;
+    } else if (normCity.includes("nitr")) {
+      cityFallbackPool = NITRA_FALLBACK_LISTINGS;
+    } else if (normCity.includes("bystric")) {
+      cityFallbackPool = BYSTRICA_FALLBACK_LISTINGS;
+    }
 
     const filteredFallback = rooms
       ? cityFallbackPool.filter(l => l.rooms === rooms)

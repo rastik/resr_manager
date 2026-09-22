@@ -56,7 +56,6 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>(() => initialProp?.id || '');
 
   // Search parameters for Nehnutelnosti.sk (synced with active property)
-  const [cityFilter, setCityFilter] = useState<string>(() => getCityForProperty(initialProp));
   const [roomsFilter, setRoomsFilter] = useState<string>(() => String(initialProp?.bedrooms || 2));
   const [sortBy, setSortBy] = useState<'confidence' | 'priceAsc' | 'priceDesc' | 'sqmAsc'>('confidence');
 
@@ -70,50 +69,53 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
     if (!selectedPropertyId && properties.length > 0) {
       const first = properties[0];
       setSelectedPropertyId(first.id);
-      setCityFilter(getCityForProperty(first));
       setRoomsFilter(String(first.bedrooms || 2));
     }
   }, [properties, selectedPropertyId]);
 
   const activeProperty = properties.find(p => p.id === selectedPropertyId) || properties[0];
+  const activeCity = getCityForProperty(activeProperty);
 
-  // Fetch live comparables whenever selected property or main filters change
-  const fetchComparables = async () => {
-    if (!activeProperty) return;
-    setLoading(true);
-    try {
-      const targetCity = cityFilter || getCityForProperty(activeProperty);
-      const targetRooms = roomsFilter ? parseInt(roomsFilter, 10) : (activeProperty.bedrooms || 2);
+  // Request counter to avoid race conditions when switching apartments
+  const reqIdRef = React.useRef(0);
 
-      const res = await api.getMarketComparables({
-        propertyId: activeProperty.id,
-        city: targetCity,
-        rooms: targetRooms,
-        sizeSqm: activeProperty.sizeSqm,
-        rentAmount: activeProperty.rentAmount,
-      });
-
-      if (res) {
-        setData(res);
-      }
-    } catch (e) {
-      console.error('Failed to load live market comparables', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // When selected property changes, automatically sync room filter to that property's bedrooms
   useEffect(() => {
     if (activeProperty) {
-      const propCity = getCityForProperty(activeProperty);
-      setCityFilter(propCity);
       setRoomsFilter(String(activeProperty.bedrooms || 2));
     }
   }, [selectedPropertyId]);
 
+  // Fetch live comparables automatically for the same city as the selected property
   useEffect(() => {
-    fetchComparables();
-  }, [selectedPropertyId, cityFilter, roomsFilter]);
+    if (!activeProperty) return;
+
+    const currentReqId = ++reqIdRef.current;
+    setLoading(true);
+
+    const targetCity = getCityForProperty(activeProperty);
+    const targetRooms = roomsFilter ? parseInt(roomsFilter, 10) : (activeProperty.bedrooms || 2);
+
+    api.getMarketComparables({
+      propertyId: activeProperty.id,
+      city: targetCity,
+      rooms: targetRooms,
+      sizeSqm: activeProperty.sizeSqm,
+      rentAmount: activeProperty.rentAmount,
+    }).then(res => {
+      if (currentReqId === reqIdRef.current && res) {
+        setData(res);
+      }
+    }).catch(e => {
+      if (currentReqId === reqIdRef.current) {
+        console.error('Failed to load live market comparables', e);
+      }
+    }).finally(() => {
+      if (currentReqId === reqIdRef.current) {
+        setLoading(false);
+      }
+    });
+  }, [selectedPropertyId, roomsFilter]);
 
   // Sorted comparables
   const comparables = data?.comparables ? [...data.comparables] : [];
@@ -145,7 +147,7 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
             </span>
           </div>
           <span className="text-[11px] text-slate-400">
-            Trhové porovnanie sa automaticky prispôsobí zvolenému bytu
+            Trhové porovnanie sa automaticky prispôsobí zvolenému bytu a porovnáva len ponuky v meste {activeCity}
           </span>
         </div>
 
@@ -268,7 +270,7 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
                 <span className="text-xs text-slate-500">inzerátov</span>
               </div>
               <span className="text-[11px] text-emerald-700 font-medium mt-1 block">
-                Nehnutelnosti.sk • {cityFilter}
+                Nehnutelnosti.sk • {activeCity}
               </span>
             </CardBody>
           </Card>
@@ -280,24 +282,17 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
         <div className="flex flex-wrap items-center gap-3 text-xs w-full sm:w-auto">
           <div className="flex items-center gap-1.5 text-slate-500 font-medium">
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Filtrovať ponuky z portálu:</span>
+            <span>Porovnáva sa v meste:</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={cityFilter}
-              onChange={e => setCityFilter(e.target.value)}
-              className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            >
-              <option value="Bratislava">Bratislava</option>
-              <option value="Kosice">Košice</option>
-              <option value="Trnava">Trnava</option>
-              <option value="Zilina">Žilina</option>
-              <option value="Nitra">Nitra</option>
-              <option value="Banska-Bystrica">Banská Bystrica</option>
-              <option value="Slovensko">Celé Slovensko</option>
-            </select>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-semibold border border-emerald-200 shadow-2xs">
+            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{activeCity}</span>
+            <span className="text-[10px] text-emerald-600/80 font-normal hidden sm:inline">(iba nehnuteľnosti v rovnakom meste)</span>
+          </div>
 
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-500 font-medium">Kategória:</span>
             <select
               value={roomsFilter}
               onChange={e => setRoomsFilter(e.target.value)}

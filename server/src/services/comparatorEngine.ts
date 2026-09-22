@@ -69,6 +69,71 @@ export interface MarketComparisonResult {
 }
 
 export class ComparatorEngine {
+  public static normalizeText(text?: string | null): string {
+    return (text || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  public static isListingInTargetCity(comp: RawListing, targetCity: string): boolean {
+    if (!targetCity) return true;
+    const normTarget = ComparatorEngine.normalizeText(targetCity);
+    if (!normTarget || normTarget === 'slovensko') return true;
+
+    const loc = ComparatorEngine.normalizeText(comp.location);
+    const dist = ComparatorEngine.normalizeText(comp.district);
+    const title = ComparatorEngine.normalizeText(comp.title);
+    const url = ComparatorEngine.normalizeText(comp.detailUrl);
+
+    // Direct match of target city name
+    if (loc.includes(normTarget) || dist.includes(normTarget) || title.includes(normTarget) || url.includes(normTarget)) {
+      return true;
+    }
+
+    // Specific Slovak city zones
+    if (normTarget.includes('trnava')) {
+      const ttKeywords = [
+        'trnava', 'arboria', 'cukrovar', 'hliny', 'druzba', 'prednadrazie',
+        'kopanka', 'lincianska', 'paulinska', 'veterna', 'novomestska', 'spiegelsaall'
+      ];
+      return ttKeywords.some(k => loc.includes(k) || dist.includes(k) || title.includes(k) || url.includes(k));
+    }
+
+    if (normTarget.includes('bratislava')) {
+      const baKeywords = [
+        'bratislava', 'stare mesto', 'ruzinov', 'petrzalka', 'nove mesto',
+        'dubravka', 'karlova ves', 'vajnory', 'raca', 'devin', 'koliba',
+        'kollwitz', 'zwirn', 'panorama city', 'sky park', 'slnecnice',
+        'eurovea', 'river park', 'blumental', 'vydrica', 'nivy'
+      ];
+      return baKeywords.some(k => loc.includes(k) || dist.includes(k) || title.includes(k) || url.includes(k));
+    }
+
+    if (normTarget.includes('kosic')) {
+      const keKeywords = ['kosic', 'stare mesto', 'sever', 'zapad', 'terasa', 'juh', 'furca', 'nad jazerom', 'albelli', 'kvp'];
+      return keKeywords.some(k => loc.includes(k) || dist.includes(k) || title.includes(k) || url.includes(k));
+    }
+
+    if (normTarget.includes('zilin')) {
+      const zaKeywords = ['zilin', 'hliny', 'vlcince', 'solinky', 'borik', 'centrum', 'rudiny'];
+      return zaKeywords.some(k => loc.includes(k) || dist.includes(k) || title.includes(k) || url.includes(k));
+    }
+
+    if (normTarget.includes('nitr')) {
+      const nrKeywords = ['nitr', 'chrenova', 'klokocina', 'zobor', 'cerman'];
+      return nrKeywords.some(k => loc.includes(k) || dist.includes(k) || title.includes(k) || url.includes(k));
+    }
+
+    if (normTarget.includes('bystric')) {
+      const bbKeywords = ['bansk', 'bystric', 'sasova', 'radvan', 'foncorda', 'rudlova'];
+      return bbKeywords.some(k => loc.includes(k) || dist.includes(k) || title.includes(k) || url.includes(k));
+    }
+
+    return false;
+  }
+
   /**
    * Evaluates how similar an external listing is to the target property
    */
@@ -126,18 +191,16 @@ export class ComparatorEngine {
     // 3. Location / District Score (Max: 25)
     let locationScore = 0;
     let locationLabel = "";
-    const targetNeighborhood = (target.neighborhood || "").toLowerCase().trim();
-    const targetCity = (target.city || "trnava").toLowerCase().trim();
-    const compLocationLower = (comp.location || "").toLowerCase();
-    const compDistrictLower = (comp.district || "").toLowerCase();
-
-    const targetNameLower = (target.name || "").toLowerCase();
-    const targetAddressLower = (target.name || "").toLowerCase() + " " + (target.id || "");
+    const targetNeighborhood = ComparatorEngine.normalizeText(target.neighborhood || "");
+    const targetCity = ComparatorEngine.normalizeText(target.city || "trnava");
+    const compLocationLower = ComparatorEngine.normalizeText(comp.location || "");
+    const compDistrictLower = ComparatorEngine.normalizeText(comp.district || "");
+    const targetNameLower = ComparatorEngine.normalizeText(target.name || "");
 
     // Check district/quarter/project matching (e.g. Arboria, Cukrovar, Ružinov, Staré Mesto, Veterná)
-    const knownZones = ["arboria", "cukrovar", "hliny", "družba", "prednádražie", "kopánka", "linčianska", "ružinov", "staré mesto", "petržalka", "nové mesto", "dúbravka", "karlova ves", "kollwitz", "spreeufer"];
+    const knownZones = ["arboria", "cukrovar", "hliny", "druzba", "prednadrazie", "kopanka", "lincianska", "ruzinov", "stare mesto", "petrzalka", "nove mesto", "dubravka", "karlova ves", "kollwitz", "spreeufer"];
     const matchedZone = knownZones.find(z => 
-      (targetNeighborhood.includes(z) || targetNameLower.includes(z) || (comp.district || "").toLowerCase().includes(z)) &&
+      (targetNeighborhood.includes(z) || targetNameLower.includes(z) || compDistrictLower.includes(z)) &&
       (compLocationLower.includes(z) || compDistrictLower.includes(z))
     );
 
@@ -149,23 +212,21 @@ export class ComparatorEngine {
         compDistrictLower.includes(targetNeighborhood) ||
         targetNeighborhood.includes(compDistrictLower)));
 
-    // Check city matching
-    const cityMatch =
-      compLocationLower.includes(targetCity) ||
-      compDistrictLower.includes(targetCity);
+    // Check city matching strictly with diacritics normalization
+    const cityMatch = ComparatorEngine.isListingInTargetCity(comp, target.city);
 
-    if (districtMatch) {
+    if (districtMatch && cityMatch) {
       locationScore = 25;
       locationLabel = `Rovnaká zóna (${comp.district || target.neighborhood})`;
     } else if (cityMatch) {
       locationScore = 20;
-      locationLabel = `Rovnaké mesto (${comp.district || target.city})`;
+      locationLabel = `Rovnaké mesto (${target.city})`;
     } else if (targetCity.includes("berlin") || targetCity.includes("central")) {
       locationScore = 15;
       locationLabel = `Slovenský trh (${comp.district || comp.location})`;
     } else {
-      locationScore = 6;
-      locationLabel = `Iná lokalita (${comp.district || comp.location})`;
+      locationScore = 0;
+      locationLabel = `Iné mesto (${comp.district || comp.location})`;
     }
 
     // 4. Amenities & Quality Score (Max: 20)
@@ -268,7 +329,17 @@ export class ComparatorEngine {
     target: TargetPropertyCriteria,
     listings: RawListing[]
   ): MarketComparisonResult {
-    const scoredListings: ComparableListing[] = listings.map(l => {
+    // Strictly filter listings to the target city if target.city is specified
+    const targetCity = (target.city || '').trim();
+    let eligibleListings = listings;
+    if (targetCity && ComparatorEngine.normalizeText(targetCity) !== 'slovensko') {
+      const filteredByCity = listings.filter(l => ComparatorEngine.isListingInTargetCity(l, targetCity));
+      if (filteredByCity.length > 0) {
+        eligibleListings = filteredByCity;
+      }
+    }
+
+    const scoredListings: ComparableListing[] = eligibleListings.map(l => {
       const { confidenceScore, breakdown } = this.evaluateListing(l, target);
       const pricePerSqm =
         l.rentPrice && l.sizeSqm ? Number((l.rentPrice / l.sizeSqm).toFixed(2)) : null;

@@ -552,10 +552,10 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
         const isNewBuilding = /novostavb|arboria|rezidenc|urban/i.test(notesAndName);
         const furnishingStatus = p.furnishingStatus || (/nezariaden/i.test(notesAndName) ? 'unfurnished' : 'furnished');
 
-        let cleanCity = (city as string) || p.city || 'Trnava';
+        let cleanCity = p.city || (city as string) || 'Trnava';
         if (cleanCity === 'Central') cleanCity = 'Trnava';
 
-        let cleanNeighborhood = (neighborhood as string) || p.neighborhood || '';
+        let cleanNeighborhood = p.neighborhood || (neighborhood as string) || '';
         if (cleanNeighborhood.toLowerCase() === 'central') {
           cleanNeighborhood = '';
         }
@@ -582,7 +582,7 @@ app.get('/api/market/comparables', async (req: Request, res: Response) => {
       }
     }
 
-    const searchCity = (city as string) || targetCriteria.city || 'Bratislava';
+    const searchCity = targetCriteria.city || (city as string) || 'Trnava';
     const searchRooms = rooms ? Number(rooms) : targetCriteria.bedrooms;
 
     const listings = await NehnutelnostiService.getListings(searchCity, searchRooms);
