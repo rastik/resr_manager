@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Input, Button } from '@heroui/react';
 import { Modal } from '../common/Modal';
+import { DecimalInput } from '../common/DecimalInput';
 import { useProperty } from '../../context/PropertyContext';
 import { TrendingUp } from 'lucide-react';
 
@@ -25,8 +26,8 @@ export const AddHotelRevenueModal: React.FC<AddHotelRevenueModalProps> = ({
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   const [month, setMonth] = useState(defaultMonth);
-  const [revenueAmount, setRevenueAmount] = useState<number | ''>('');
-  const [occupancyPercent, setOccupancyPercent] = useState<number | ''>('');
+  const [revenueAmount, setRevenueAmount] = useState<string>('');
+  const [occupancyPercent, setOccupancyPercent] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +38,7 @@ export const AddHotelRevenueModal: React.FC<AddHotelRevenueModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!revenueAmount && revenueAmount !== 0) return;
+    if (revenueAmount === '') return;
     setLoading(true);
     try {
       await addHotelRevenue({
@@ -102,15 +103,14 @@ export const AddHotelRevenueModal: React.FC<AddHotelRevenueModalProps> = ({
               <label className="block text-xs font-medium text-slate-700">
                 Výnos (€) <span className="text-rose-500">*</span>
               </label>
-              <Input
-                type="number"
+              <DecimalInput
                 size="sm"
                 variant="bordered"
                 aria-label="Výnos"
                 placeholder="napr. 4500"
                 isRequired
-                value={revenueAmount === '' ? '' : String(revenueAmount)}
-                onChange={e => setRevenueAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                value={revenueAmount}
+                onValueChange={val => setRevenueAmount(val)}
                 classNames={{
                   inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                   input: 'text-xs text-slate-900 font-semibold',
@@ -121,16 +121,13 @@ export const AddHotelRevenueModal: React.FC<AddHotelRevenueModalProps> = ({
               <label className="block text-xs font-medium text-slate-700">
                 Obsadenosť (%) <span className="text-slate-400 font-normal">nepovinné</span>
               </label>
-              <Input
-                type="number"
+              <DecimalInput
                 size="sm"
                 variant="bordered"
                 aria-label="Obsadenosť"
                 placeholder="napr. 85"
-                min="0"
-                max="100"
-                value={occupancyPercent === '' ? '' : String(occupancyPercent)}
-                onChange={e => setOccupancyPercent(e.target.value === '' ? '' : Number(e.target.value))}
+                value={occupancyPercent}
+                onValueChange={val => setOccupancyPercent(val)}
                 classNames={{
                   inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                   input: 'text-xs text-slate-900',

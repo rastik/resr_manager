@@ -1278,7 +1278,9 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       Balkón / Lodžia:
                     </span>
                     <span className={`font-semibold ${property.hasBalcony ? 'text-emerald-700' : 'text-slate-600'}`}>
-                      {property.hasBalcony ? 'Áno' : 'Nie'}
+                      {property.hasBalcony
+                        ? `Áno${property.balconyAreaSqm ? ` (${property.balconyAreaSqm} m²)` : ''}`
+                        : 'Nie'}
                     </span>
                   </div>
 

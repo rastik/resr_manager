@@ -22,6 +22,8 @@ function getUserId(req: Request): string {
 async function initDb() {
   try {
     await pool.query(`
+      ALTER TABLE properties ADD COLUMN IF NOT EXISTS floor INT;
+      ALTER TABLE properties ADD COLUMN IF NOT EXISTS balcony_area_sqm NUMERIC(6, 2);
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS base_rent NUMERIC(10, 2);
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS utilities_amount NUMERIC(10, 2);
       ALTER TABLE properties ADD COLUMN IF NOT EXISTS notes TEXT;
@@ -175,6 +177,7 @@ app.post('/api/properties', async (req: Request, res: Response) => {
     city,
     neighborhood,
     sizeSqm,
+    floor,
     bedrooms,
     bathrooms,
     rentAmount,
@@ -192,6 +195,7 @@ app.post('/api/properties', async (req: Request, res: Response) => {
     propertyType = 'apartment',
     hasAC = false,
     hasBalcony = false,
+    balconyAreaSqm,
     furnishingStatus = 'furnished',
   } = req.body;
 
@@ -215,6 +219,7 @@ app.post('/api/properties', async (req: Request, res: Response) => {
       city: city || 'Bratislava',
       neighborhood: neighborhood || '',
       sizeSqm: Number(sizeSqm) || 50,
+      floor: floor !== undefined && floor !== null && floor !== '' ? Number(floor) : null,
       bedrooms: Number(bedrooms) || 1,
       bathrooms: Number(bathrooms) || 1,
       rentAmount: numRent,
@@ -232,6 +237,7 @@ app.post('/api/properties', async (req: Request, res: Response) => {
       utilitiesAmount: numUtils,
       hasAC: Boolean(hasAC),
       hasBalcony: Boolean(hasBalcony),
+      balconyAreaSqm: balconyAreaSqm !== undefined && balconyAreaSqm !== '' ? Number(balconyAreaSqm) : null,
       furnishingStatus: furnishingStatus || 'furnished',
     });
     res.status(201).json(created);

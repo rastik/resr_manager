@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Input, Button, Checkbox, Textarea } from '@heroui/react';
 import { Home, Building2, Wind, Armchair } from 'lucide-react';
 import { Modal } from '../common/Modal';
+import { DecimalInput } from '../common/DecimalInput';
 import { useProperty } from '../../context/PropertyContext';
 
 interface AddPropertyModalProps {
@@ -16,16 +17,17 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
   const [unitNumber, setUnitNumber] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
-  const [sizeSqm, setSizeSqm] = useState<number | ''>('');
-  const [bedrooms, setBedrooms] = useState<number | ''>('');
-  const [floor, setFloor] = useState<number | ''>('');
+  const [sizeSqm, setSizeSqm] = useState('');
+  const [bedrooms, setBedrooms] = useState('');
+  const [floor, setFloor] = useState('');
   const [hasCellar, setHasCellar] = useState(false);
-  const [cellarAreaSqm, setCellarAreaSqm] = useState<number | ''>('');
+  const [cellarAreaSqm, setCellarAreaSqm] = useState('');
   const [cellarNumber, setCellarNumber] = useState('');
   const [hasParking, setHasParking] = useState(false);
   const [parkingSpotNumber, setParkingSpotNumber] = useState('');
   const [hasAC, setHasAC] = useState(false);
   const [hasBalcony, setHasBalcony] = useState(false);
+  const [balconyAreaSqm, setBalconyAreaSqm] = useState('');
   const [furnishingStatus, setFurnishingStatus] = useState<'furnished' | 'unfurnished'>('furnished');
   const [notes, setNotes] = useState('');
   const [propertyType, setPropertyType] = useState<'apartment' | 'flat'>('flat');
@@ -48,6 +50,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
       setHasParking(false);
       setHasAC(false);
       setHasBalcony(false);
+      setBalconyAreaSqm('');
       setFurnishingStatus('furnished');
       setPropertyType('flat');
     }
@@ -69,7 +72,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
         neighborhood: '',
         sizeSqm: Number(sizeSqm),
         bedrooms: Number(bedrooms),
-        floor: Number(floor),
+        floor: floor !== '' ? Number(floor) : undefined,
         bathrooms: 1,
         rentAmount: 0,
         status: 'vacant',
@@ -81,6 +84,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
         parkingSpotNumber: hasParking ? parkingSpotNumber : undefined,
         hasAC,
         hasBalcony,
+        balconyAreaSqm: hasBalcony && balconyAreaSqm !== '' ? Number(balconyAreaSqm) : undefined,
         furnishingStatus,
         photos: [defaultImageUrl],
         notes,
@@ -229,15 +233,14 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
             <label className="block text-xs font-semibold text-slate-700">
               Výmera (m²) <span className="text-rose-500">*</span>
             </label>
-            <Input
-              type="number"
+            <DecimalInput
               size="sm"
               variant="bordered"
               aria-label="Výmera (m²)"
-              placeholder="napr. 65"
+              placeholder="napr. 65.5"
               isRequired
-              value={sizeSqm === '' ? '' : String(sizeSqm)}
-              onChange={e => setSizeSqm(e.target.value === '' ? '' : Number(e.target.value))}
+              value={sizeSqm}
+              onValueChange={val => setSizeSqm(val)}
               classNames={{
                 inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                 input: 'text-xs text-slate-900 placeholder:text-slate-400',
@@ -248,15 +251,15 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
             <label className="block text-xs font-semibold text-slate-700">
               Počet izieb <span className="text-rose-500">*</span>
             </label>
-            <Input
-              type="number"
+            <DecimalInput
               size="sm"
               variant="bordered"
               aria-label="Počet izieb"
               placeholder="napr. 2"
+              allowDecimals={false}
               isRequired
-              value={bedrooms === '' ? '' : String(bedrooms)}
-              onChange={e => setBedrooms(e.target.value === '' ? '' : Number(e.target.value))}
+              value={bedrooms}
+              onValueChange={val => setBedrooms(val)}
               classNames={{
                 inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                 input: 'text-xs text-slate-900 placeholder:text-slate-400',
@@ -267,15 +270,15 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
             <label className="block text-xs font-semibold text-slate-700">
               Poschodie <span className="text-rose-500">*</span>
             </label>
-            <Input
-              type="number"
+            <DecimalInput
               size="sm"
               variant="bordered"
               aria-label="Poschodie"
               placeholder="napr. 3"
+              allowDecimals={false}
               isRequired
-              value={floor === '' ? '' : String(floor)}
-              onChange={e => setFloor(e.target.value === '' ? '' : Number(e.target.value))}
+              value={floor}
+              onValueChange={val => setFloor(val)}
               classNames={{
                 inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                 input: 'text-xs text-slate-900 placeholder:text-slate-400',
@@ -305,18 +308,15 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
               <div className="grid grid-cols-2 gap-3 pl-6 pt-1">
                 <div className="space-y-1">
                   <label className="block text-[11px] font-semibold text-slate-600">
-                    Výmera kobky (m²) <span className="text-rose-500">*</span>
+                    Výmera kobky (m²) <span className="text-slate-400 font-normal">(nepovinné)</span>
                   </label>
-                  <Input
-                    type="number"
-                    step="0.1"
+                  <DecimalInput
                     size="sm"
                     variant="bordered"
                     aria-label="Výmera kobky"
                     placeholder="napr. 4.5"
-                    isRequired
-                    value={cellarAreaSqm === '' ? '' : String(cellarAreaSqm)}
-                    onChange={e => setCellarAreaSqm(e.target.value === '' ? '' : Number(e.target.value))}
+                    value={cellarAreaSqm}
+                    onValueChange={val => setCellarAreaSqm(val)}
                     classNames={{
                       inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-8 shadow-2xs',
                       input: 'text-xs text-slate-900 placeholder:text-slate-400',
@@ -412,6 +412,26 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
                 <Building2 className="w-3.5 h-3.5 text-slate-500" />
                 <span>Balkón / Lodžia / Terasa</span>
               </Checkbox>
+
+              {hasBalcony && (
+                <div className="pl-6 pt-1 space-y-1">
+                  <label className="block text-[11px] font-semibold text-slate-600">
+                    Výmera balkóna / lodžie (m²) <span className="text-slate-400 font-normal">(nepovinné)</span>
+                  </label>
+                  <DecimalInput
+                    size="sm"
+                    variant="bordered"
+                    aria-label="Výmera balkóna / lodžie (m²)"
+                    placeholder="napr. 5.2"
+                    value={balconyAreaSqm}
+                    onValueChange={val => setBalconyAreaSqm(val)}
+                    classNames={{
+                      inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-8 shadow-2xs',
+                      input: 'text-xs text-slate-900 placeholder:text-slate-400',
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Zariadenie */}

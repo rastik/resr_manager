@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Input, Button } from '@heroui/react';
 import { Modal } from '../common/Modal';
 import { ImageLightboxModal } from '../common/ImageLightboxModal';
+import { DecimalInput } from '../common/DecimalInput';
 import { useProperty } from '../../context/PropertyContext';
 import { Lease, LeaseType } from '../../types';
 import { Trash2, UploadCloud, FileText, Download, Check, X, Camera, Home, Hotel, Building2, UserMinus } from 'lucide-react';
@@ -26,9 +27,9 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
   const [tenantEmail, setTenantEmail] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
   const [operatorCompany, setOperatorCompany] = useState('');
-  const [baseRent, setBaseRent] = useState<number | ''>('');
-  const [utilitiesAmount, setUtilitiesAmount] = useState<number | ''>('');
-  const [depositAmount, setDepositAmount] = useState<number | ''>('');
+  const [baseRent, setBaseRent] = useState<string>('');
+  const [utilitiesAmount, setUtilitiesAmount] = useState<string>('');
+  const [depositAmount, setDepositAmount] = useState<string>('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [contractFileName, setContractFileName] = useState('');
@@ -47,9 +48,9 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
       setTenantEmail(lease.tenantEmail || '');
       setTenantPhone(lease.tenantPhone || '');
       setOperatorCompany(lease.operatorCompany || '');
-      setBaseRent(lease.baseRent !== undefined ? lease.baseRent : lease.rentAmount || '');
-      setUtilitiesAmount(lease.utilitiesAmount !== undefined ? lease.utilitiesAmount : 0);
-      setDepositAmount(lease.depositAmount !== undefined ? lease.depositAmount : '');
+      setBaseRent(lease.baseRent !== undefined ? String(lease.baseRent) : (lease.rentAmount !== undefined ? String(lease.rentAmount) : ''));
+      setUtilitiesAmount(lease.utilitiesAmount !== undefined ? String(lease.utilitiesAmount) : '0');
+      setDepositAmount(lease.depositAmount !== undefined ? String(lease.depositAmount) : '');
       setStartDate(lease.startDate ? lease.startDate.split('T')[0] : '');
       setEndDate(lease.endDate ? lease.endDate.split('T')[0] : '');
       setContractFileName(lease.contractFileName || '');
@@ -303,15 +304,14 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
               <label className="block text-xs font-semibold text-slate-700">
                 Výška kaucie / zábezpeky (€) <span className="text-rose-500">*</span>
               </label>
-              <Input
-                type="number"
+              <DecimalInput
                 size="sm"
                 variant="bordered"
                 aria-label="Výška kaucie"
                 placeholder="napr. 1500"
                 isRequired
-                value={depositAmount === '' ? '' : String(depositAmount)}
-                onChange={e => setDepositAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                value={depositAmount}
+                onValueChange={val => setDepositAmount(val)}
                 classNames={inputClass}
               />
             </div>
@@ -352,18 +352,14 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
                 <label className="block text-xs font-medium text-slate-700">
                   Čistý nájom (€/mes) <span className="text-rose-500">*</span>
                 </label>
-                <Input
-                  type="number"
+                <DecimalInput
                   size="sm"
                   variant="bordered"
                   aria-label="Čistý nájom"
                   placeholder="napr. 600"
                   isRequired
-                  value={baseRent === '' ? '' : String(baseRent)}
-                  onChange={e => {
-                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                    setBaseRent(val);
-                  }}
+                  value={baseRent}
+                  onValueChange={val => setBaseRent(val)}
                   classNames={{
                     inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                     input: 'text-xs text-slate-900 font-semibold',
@@ -375,18 +371,14 @@ export const EditLeaseModal: React.FC<EditLeaseModalProps> = ({
                 <label className="block text-xs font-medium text-slate-700">
                   Energie a služby (€/mes) <span className="text-rose-500">*</span>
                 </label>
-                <Input
-                  type="number"
+                <DecimalInput
                   size="sm"
                   variant="bordered"
                   aria-label="Energie a služby"
                   placeholder="napr. 150"
                   isRequired
-                  value={utilitiesAmount === '' ? '' : String(utilitiesAmount)}
-                  onChange={e => {
-                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                    setUtilitiesAmount(val);
-                  }}
+                  value={utilitiesAmount}
+                  onValueChange={val => setUtilitiesAmount(val)}
                   classNames={{
                     inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                     input: 'text-xs text-slate-900 font-semibold',

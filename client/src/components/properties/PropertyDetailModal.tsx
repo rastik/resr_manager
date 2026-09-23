@@ -13,6 +13,7 @@ import { useProperty } from '../../context/PropertyContext';
 import { Badge } from '../common/Badge';
 import { formatDate } from '../../utils/date';
 import { AddInventoryModal } from '../inventory/AddInventoryModal';
+import { DecimalInput } from '../common/DecimalInput';
 
 interface PropertyDetailModalProps {
   property: Property | null;
@@ -40,7 +41,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   } = useProperty();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'inventory' | 'leases' | 'expenses'>('overview');
-  const [rentInput, setRentInput] = useState<number>(property?.rentAmount || 0);
+  const [rentInput, setRentInput] = useState<string>(property?.rentAmount !== undefined ? String(property.rentAmount) : '0');
   const [statusInput, setStatusInput] = useState<string>(property?.status || 'vacant');
   const [editingInventoryItem, setEditingInventoryItem] = useState<InventoryItem | null>(null);
 
@@ -50,11 +51,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   const activeLease = unitLeases.find(l => l.id === property.activeLeaseId || l.status === 'active') || unitLeases[0];
   const unitInventory = inventory.filter(i => i.propertyId === property.id);
   const unitExpenses = expenses.filter(e => e.propertyId === property.id);
-  const rentPerSqm = (property.rentAmount / property.sizeSqm).toFixed(2);
+  const rentPerSqm = (property.sizeSqm ? (property.rentAmount / property.sizeSqm).toFixed(2) : '0.00');
 
   const handleSaveStatusAndRent = async () => {
     await updateProperty(property.id, {
-      rentAmount: Number(rentInput),
+      rentAmount: Number(rentInput) || 0,
       status: statusInput as any,
     });
   };
@@ -144,18 +145,22 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
                 <div className="flex items-center gap-2">
                   <span className="text-slate-600 font-medium">Nájomné:</span>
-                  <div className="relative w-24">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400">€</span>
-                    <input
-                      type="number"
+                  <div className="relative w-28">
+                    <DecimalInput
                       value={rentInput}
-                      onChange={e => setRentInput(Number(e.target.value))}
-                      className="w-full bg-white border border-slate-300 rounded-md pl-6 pr-1 py-1 text-slate-900 font-semibold focus:outline-none"
+                      onValueChange={val => setRentInput(val)}
+                      startContent={<span className="text-slate-400 text-xs">€</span>}
+                      size="sm"
+                      variant="bordered"
+                      classNames={{
+                        inputWrapper: 'bg-white border-slate-300 rounded-md h-8 shadow-2xs',
+                        input: 'text-slate-900 font-semibold text-xs',
+                      }}
                     />
                   </div>
                   <button
                     onClick={handleSaveStatusAndRent}
-                    className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-md transition text-xs"
+                    className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-md transition text-xs shrink-0"
                   >
                     Uložiť
                   </button>

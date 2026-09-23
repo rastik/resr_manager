@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Select, SelectItem, Textarea, Button } from '@heroui/react';
 import { Modal } from '../common/Modal';
+import { DecimalInput } from '../common/DecimalInput';
 import { useProperty } from '../../context/PropertyContext';
 import { InventoryCategory, InventoryItem } from '../../types';
 
@@ -26,7 +27,7 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
   const [serialNumber, setSerialNumber] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
   const [warrantyExpiresAt, setWarrantyExpiresAt] = useState('');
-  const [cost, setCost] = useState<number | ''>('');
+  const [cost, setCost] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -40,7 +41,7 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
         setSerialNumber(itemToEdit.serialNumber || '');
         setPurchaseDate(itemToEdit.purchaseDate ? itemToEdit.purchaseDate.split('T')[0] : '');
         setWarrantyExpiresAt(itemToEdit.warrantyExpiresAt ? itemToEdit.warrantyExpiresAt.split('T')[0] : '');
-        setCost(itemToEdit.cost !== undefined && itemToEdit.cost !== null ? itemToEdit.cost : '');
+        setCost(itemToEdit.cost !== undefined && itemToEdit.cost !== null ? String(itemToEdit.cost) : '');
         setNotes(itemToEdit.notes || '');
       } else {
         const targetId = defaultPropertyId || (properties.length > 0 ? properties[0].id : '');
@@ -61,6 +62,7 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
     e.preventDefault();
     setLoading(true);
     try {
+      const numCost = cost === '' ? 0 : Number(cost);
       if (itemToEdit) {
         await updateInventoryItem(itemToEdit.id, {
           propertyId,
@@ -70,7 +72,7 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
           serialNumber,
           purchaseDate: purchaseDate || undefined,
           warrantyExpiresAt: warrantyExpiresAt || undefined,
-          cost: cost === '' ? 0 : Number(cost),
+          cost: isNaN(numCost) ? 0 : numCost,
           notes,
         });
       } else {
@@ -83,7 +85,7 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
           purchaseDate: purchaseDate || undefined,
           warrantyExpiresAt: warrantyExpiresAt || undefined,
           lifespanYears: 8,
-          cost: cost === '' ? 0 : Number(cost),
+          cost: isNaN(numCost) ? 0 : numCost,
           notes,
         });
       }
@@ -264,14 +266,13 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
           <label className="block text-xs font-semibold text-slate-700">
             Obstarávacia cena (€)
           </label>
-          <Input
-            type="number"
+          <DecimalInput
             size="sm"
             variant="bordered"
             aria-label="Obstarávacia cena"
             placeholder="0.00"
-            value={cost === '' ? '' : String(cost)}
-            onChange={e => setCost(e.target.value === '' ? '' : Number(e.target.value))}
+            value={cost}
+            onValueChange={val => setCost(val)}
             classNames={{
               inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
               input: 'text-xs text-slate-900 font-bold',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Select, SelectItem, Textarea, Button } from '@heroui/react';
 import { Modal } from '../common/Modal';
+import { DecimalInput } from '../common/DecimalInput';
 import { useProperty } from '../../context/PropertyContext';
 import { ExpenseCategory } from '../../types';
 import { Package } from 'lucide-react';
@@ -21,7 +22,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   const [propertyId, setPropertyId] = useState(defaultPropertyId || properties[0]?.id || '');
   const [category, setCategory] = useState<ExpenseCategory>('replacement');
   const [selectedInventoryId, setSelectedInventoryId] = useState<string>('');
-  const [amount, setAmount] = useState(250);
+  const [amount, setAmount] = useState('250');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -130,14 +131,13 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             <label className="block text-xs font-semibold text-slate-700">
               Suma (€) <span className="text-rose-500">*</span>
             </label>
-            <Input
-              type="number"
+            <DecimalInput
               size="sm"
               variant="bordered"
               aria-label="Suma"
               isRequired
-              value={amount === 0 ? '' : String(amount)}
-              onChange={e => setAmount(e.target.value === '' ? 0 : Number(e.target.value))}
+              value={amount}
+              onValueChange={val => setAmount(val)}
               classNames={{
                 inputWrapper: 'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg h-9 shadow-2xs',
                 input: 'text-xs text-rose-600 font-bold',

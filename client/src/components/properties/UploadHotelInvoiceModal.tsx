@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Input, Textarea, Progress } from '@heroui/react';
 import { Modal } from '../common/Modal';
+import { DecimalInput } from '../common/DecimalInput';
 import { useProperty } from '../../context/PropertyContext';
 import { UploadCloud, FileText, CheckCircle2, DollarSign, Calendar, File } from 'lucide-react';
 import { compressImage } from '../../utils/imageCompressor';
@@ -251,13 +252,12 @@ export const UploadHotelInvoiceModal: React.FC<UploadHotelInvoiceModalProps> = (
               <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
                 Fakturovaná suma výnosu (€)
               </label>
-              <Input
+              <DecimalInput
                 size="sm"
-                type="number"
                 variant="bordered"
                 placeholder="napr. 1520"
                 value={revenueAmount}
-                onChange={e => setRevenueAmount(e.target.value)}
+                onValueChange={val => setRevenueAmount(val)}
                 startContent={<DollarSign className="w-4 h-4 text-slate-400" />}
               />
               <span className="text-[10px] text-slate-400 block mt-0.5">

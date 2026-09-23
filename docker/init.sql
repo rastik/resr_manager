@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS properties (
     city VARCHAR(100) NOT NULL,
     neighborhood VARCHAR(100) NOT NULL,
     size_sqm NUMERIC(8, 2) NOT NULL,
+    floor INT,
     bedrooms INT NOT NULL DEFAULT 1,
     bathrooms NUMERIC(4, 1) NOT NULL DEFAULT 1.0,
     rent_amount NUMERIC(10, 2) NOT NULL,
@@ -33,6 +34,12 @@ CREATE TABLE IF NOT EXISTS properties (
     cellar_number VARCHAR(64),
     has_parking BOOLEAN DEFAULT FALSE,
     parking_spot_number VARCHAR(64),
+    has_ac BOOLEAN DEFAULT FALSE,
+    has_balcony BOOLEAN DEFAULT FALSE,
+    balcony_area_sqm NUMERIC(6, 2),
+    furnishing_status VARCHAR(32) DEFAULT 'furnished',
+    property_type VARCHAR(64) DEFAULT 'flat',
+    notes TEXT,
     photos TEXT[] DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

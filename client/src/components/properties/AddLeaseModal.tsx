@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input, Select, SelectItem, Button } from '@heroui/react';
 import { Modal } from '../common/Modal';
+import { DecimalInput } from '../common/DecimalInput';
 import { ImageLightboxModal } from '../common/ImageLightboxModal';
 import { useProperty } from '../../context/PropertyContext';
 import { Camera, UploadCloud, X, Home, Building2, Hotel } from 'lucide-react';
@@ -27,9 +28,9 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
   const [tenantEmail, setTenantEmail] = useState('');
   const [tenantPhone, setTenantPhone] = useState('');
   const [operatorCompany, setOperatorCompany] = useState('');
-  const [baseRent, setBaseRent] = useState<number | ''>('');
-  const [utilitiesAmount, setUtilitiesAmount] = useState<number | ''>('');
-  const [depositAmount, setDepositAmount] = useState<number | ''>('');
+  const [baseRent, setBaseRent] = useState('');
+  const [utilitiesAmount, setUtilitiesAmount] = useState('');
+  const [depositAmount, setDepositAmount] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(
     new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
@@ -62,14 +63,14 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
         setLeaseType('standard');
       }
       if (prop.baseRent !== undefined && prop.baseRent !== null && prop.baseRent > 0) {
-        setBaseRent(prop.baseRent);
-        setUtilitiesAmount(prop.utilitiesAmount ?? 0);
+        setBaseRent(String(prop.baseRent));
+        setUtilitiesAmount(String(prop.utilitiesAmount ?? 0));
         const tot = Number(prop.baseRent) + Number(prop.utilitiesAmount || 0);
-        setDepositAmount(tot * 2);
+        setDepositAmount(String(tot * 2));
       } else if (prop.rentAmount && prop.rentAmount > 0) {
-        setBaseRent(prop.rentAmount);
-        setUtilitiesAmount(0);
-        setDepositAmount(prop.rentAmount * 2);
+        setBaseRent(String(prop.rentAmount));
+        setUtilitiesAmount('0');
+        setDepositAmount(String(prop.rentAmount * 2));
       } else {
         setBaseRent('');
         setUtilitiesAmount('');
@@ -303,15 +304,14 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
               <label className="block text-xs font-semibold text-slate-700">
                 Výška kaucie / zábezpeky (€) <span className="text-rose-500">*</span>
               </label>
-              <Input
-                type="number"
+              <DecimalInput
                 size="sm"
                 variant="bordered"
                 aria-label="Výška kaucie"
                 placeholder="napr. 1500"
                 isRequired
-                value={depositAmount === '' ? '' : String(depositAmount)}
-                onChange={e => setDepositAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                value={depositAmount}
+                onValueChange={val => setDepositAmount(val)}
                 classNames={inputClass}
               />
             </div>
@@ -354,21 +354,19 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
                 <label className="block text-xs font-medium text-slate-700">
                   Čistý nájom (€/mes) <span className="text-rose-500">*</span>
                 </label>
-                <Input
-                  type="number"
+                <DecimalInput
                   size="sm"
                   variant="bordered"
                   aria-label="Čistý nájom"
                   placeholder="napr. 600"
                   isRequired
-                  value={baseRent === '' ? '' : String(baseRent)}
-                  onChange={e => {
-                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                  value={baseRent}
+                  onValueChange={val => {
                     setBaseRent(val);
-                    if (depositAmount === '' || depositAmount === 0) {
-                      const u = typeof utilitiesAmount === 'number' ? utilitiesAmount : 0;
-                      const b = typeof val === 'number' ? val : 0;
-                      setDepositAmount((b + u) * 2);
+                    if (depositAmount === '' || depositAmount === '0') {
+                      const u = Number(utilitiesAmount) || 0;
+                      const b = Number(val) || 0;
+                      setDepositAmount(String((b + u) * 2));
                     }
                   }}
                   classNames={{
@@ -382,21 +380,19 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
                 <label className="block text-xs font-medium text-slate-700">
                   Energie a služby (€/mes) <span className="text-rose-500">*</span>
                 </label>
-                <Input
-                  type="number"
+                <DecimalInput
                   size="sm"
                   variant="bordered"
                   aria-label="Energie a služby"
                   placeholder="napr. 150"
                   isRequired
-                  value={utilitiesAmount === '' ? '' : String(utilitiesAmount)}
-                  onChange={e => {
-                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                  value={utilitiesAmount}
+                  onValueChange={val => {
                     setUtilitiesAmount(val);
-                    if (depositAmount === '' || depositAmount === 0) {
-                      const b = typeof baseRent === 'number' ? baseRent : 0;
-                      const u = typeof val === 'number' ? val : 0;
-                      setDepositAmount((b + u) * 2);
+                    if (depositAmount === '' || depositAmount === '0') {
+                      const b = Number(baseRent) || 0;
+                      const u = Number(val) || 0;
+                      setDepositAmount(String((b + u) * 2));
                     }
                   }}
                   classNames={{

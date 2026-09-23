@@ -27,6 +27,7 @@ export interface Property {
   parkingSpotNumber?: string;
   hasAC?: boolean;
   hasBalcony?: boolean;
+  balconyAreaSqm?: number;
   furnishingStatus?: 'furnished' | 'unfurnished';
   photos?: string[];
   notes?: string;
