@@ -1,5 +1,49 @@
 import { pool, toCamelCase, toSnakeCase, supabase } from './db';
 
+// Helpers to transparently pack and unpack extra property attributes (floor, balconyAreaSqm) into notes field
+function packPropertyNotes(record: any): string {
+  let existingNotes = typeof record.notes === 'string' ? record.notes : '';
+  const meta: Record<string, any> = {};
+
+  if (record.floor !== undefined && record.floor !== null && record.floor !== '') {
+    meta.floor = Number(record.floor);
+  }
+  if (record.balconyAreaSqm !== undefined && record.balconyAreaSqm !== null && record.balconyAreaSqm !== '') {
+    meta.balconyAreaSqm = Number(record.balconyAreaSqm);
+  } else if (record.balcony_area_sqm !== undefined && record.balcony_area_sqm !== null && record.balcony_area_sqm !== '') {
+    meta.balconyAreaSqm = Number(record.balcony_area_sqm);
+  }
+
+  // Remove existing __META__ block if present
+  existingNotes = existingNotes.replace(/\n*<!--__META__:.*?-->/gs, '').trim();
+
+  if (Object.keys(meta).length > 0) {
+    const metaTag = `<!--__META__:${JSON.stringify(meta)}-->`;
+    return existingNotes ? `${existingNotes}\n${metaTag}` : metaTag;
+  }
+  return existingNotes;
+}
+
+function unpackPropertyNotes(prop: any): any {
+  if (!prop) return prop;
+  let rawNotes = prop.notes || '';
+  const match = rawNotes.match(/<!--__META__:(.*?)-->/s);
+  if (match) {
+    try {
+      const meta = JSON.parse(match[1]);
+      if (meta.floor !== undefined && (prop.floor === undefined || prop.floor === null)) {
+        prop.floor = meta.floor;
+      }
+      if (meta.balconyAreaSqm !== undefined && (prop.balconyAreaSqm === undefined || prop.balconyAreaSqm === null || prop.balcony_area_sqm === undefined || prop.balcony_area_sqm === null)) {
+        prop.balconyAreaSqm = meta.balconyAreaSqm;
+        prop.balcony_area_sqm = meta.balconyAreaSqm;
+      }
+      prop.notes = rawNotes.replace(/\n*<!--__META__:.*?-->/gs, '').trim();
+    } catch {}
+  }
+  return prop;
+}
+
 // Quick check if local Postgres is connected
 let isPostgresAvailable = false;
 let lastCheckTime = 0;
@@ -126,8 +170,9 @@ export const dbService = {
 
     const enriched = (props || []).map((p: any) => {
       const l = p.active_lease_id ? leasesMap[p.active_lease_id] : null;
+      const unpacked = unpackPropertyNotes(p);
       return {
-        ...p,
+        ...unpacked,
         tenant_name: l?.tenant_name || null,
         tenant_email: l?.tenant_email || null,
         tenant_phone: l?.tenant_phone || null,
@@ -149,7 +194,7 @@ export const dbService = {
           const expResult = await pool.query('SELECT * FROM expenses WHERE property_id = $1 ORDER BY date DESC', [id]);
           const docResult = await pool.query('SELECT * FROM vault_documents WHERE property_id = $1 ORDER BY upload_date DESC', [id]);
           return {
-            property: toCamelCase(propResult.rows[0]),
+            property: toCamelCase(unpackPropertyNotes(propResult.rows[0])),
             leases: toCamelCase(leaseResult.rows),
             inventory: toCamelCase(invResult.rows),
             expenses: toCamelCase(expResult.rows),
@@ -170,7 +215,7 @@ export const dbService = {
     ]);
 
     return {
-      property: toCamelCase(prop),
+      property: toCamelCase(unpackPropertyNotes(prop)),
       leases: toCamelCase(leases.data || []),
       inventory: toCamelCase(inventory.data || []),
       expenses: toCamelCase(expenses.data || []),
@@ -188,17 +233,52 @@ export const dbService = {
         const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
         const query = `INSERT INTO properties (${keys.join(', ')}) VALUES (${placeholders}) RETURNING *`;
         const res = await pool.query(query, values);
-        return toCamelCase(res.rows[0]);
+        return toCamelCase(unpackPropertyNotes(res.rows[0]));
       } catch {}
     }
-    const snake = toSnakeCase(record);
-    const { data, error } = await supabase.from('properties').insert(snake).select().single();
-    if (error) throw error;
-    return toCamelCase(data);
+
+    // Prepare record with packed notes for fallback cloud compatibility
+    const packedRecord = { ...record };
+    packedRecord.notes = packPropertyNotes(record);
+
+    let snake = toSnakeCase(packedRecord);
+    try {
+      const { data, error } = await supabase.from('properties').insert(snake).select().single();
+      if (error) throw error;
+      return toCamelCase(unpackPropertyNotes(data));
+    } catch (err: any) {
+      // If error is about missing floor or balcony_area_sqm column, strip them and retry
+      if (err?.code === 'PGRST204' || /floor|balcony_area_sqm/i.test(err?.message || '')) {
+        delete snake.floor;
+        delete snake.balcony_area_sqm;
+        const { data, error } = await supabase.from('properties').insert(snake).select().single();
+        if (error) throw error;
+        return toCamelCase(unpackPropertyNotes(data));
+      }
+      throw err;
+    }
   },
 
   async updateProperty(id: string, userId: string, updateData: any) {
-    const snake = toSnakeCase(updateData);
+    // If updateData contains floor or balconyAreaSqm, pack it into notes
+    const packedUpdate = { ...updateData };
+    if (updateData.floor !== undefined || updateData.balconyAreaSqm !== undefined || updateData.balcony_area_sqm !== undefined) {
+      // First fetch current notes if not provided in updateData
+      let currentNotes = updateData.notes;
+      if (currentNotes === undefined) {
+        try {
+          const { data: cur } = await supabase.from('properties').select('notes, floor, balcony_area_sqm').eq('id', id).single();
+          currentNotes = cur?.notes || '';
+          if (packedUpdate.floor === undefined && cur?.floor !== undefined) packedUpdate.floor = cur.floor;
+          if (packedUpdate.balconyAreaSqm === undefined && packedUpdate.balcony_area_sqm === undefined) {
+            packedUpdate.balconyAreaSqm = cur?.balcony_area_sqm;
+          }
+        } catch {}
+      }
+      packedUpdate.notes = packPropertyNotes({ ...packedUpdate, notes: currentNotes });
+    }
+
+    const snake = toSnakeCase(packedUpdate);
     delete snake.id;
     delete snake.user_id;
 
@@ -213,19 +293,37 @@ export const dbService = {
           `UPDATE properties SET ${setClauses} WHERE id = $${values.length - 1} AND user_id = $${values.length} RETURNING *`,
           values
         );
-        if (res.rows.length > 0) return toCamelCase(res.rows[0]);
+        if (res.rows.length > 0) return toCamelCase(unpackPropertyNotes(res.rows[0]));
       } catch {}
     }
 
-    const { data, error } = await supabase
-      .from('properties')
-      .update(snake)
-      .eq('id', id)
-      .eq('user_id', userId)
-      .select()
-      .single();
-    if (error) throw error;
-    return toCamelCase(data);
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .update(snake)
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .single();
+      if (error) throw error;
+      return toCamelCase(unpackPropertyNotes(data));
+    } catch (err: any) {
+      // If error is about missing schema columns, strip them and retry
+      if (err?.code === 'PGRST204' || /floor|balcony_area_sqm/i.test(err?.message || '')) {
+        delete snake.floor;
+        delete snake.balcony_area_sqm;
+        const { data, error } = await supabase
+          .from('properties')
+          .update(snake)
+          .eq('id', id)
+          .eq('user_id', userId)
+          .select()
+          .single();
+        if (error) throw error;
+        return toCamelCase(unpackPropertyNotes(data));
+      }
+      throw err;
+    }
   },
 
   async deleteProperty(id: string, userId: string) {

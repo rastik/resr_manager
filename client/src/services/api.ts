@@ -1,7 +1,28 @@
 import { Property, Lease, HotelRevenueMonth, InventoryItem, Expense, MarketComp, VaultDocument, PortfolioAnalytics, UserProfile, MarketComparisonResponse, BookingPrivateRentalComparison } from '../types';
 import { initialProperties, initialLeases, initialInventory, initialExpenses, initialMarketComps, initialDocuments, initialUser } from './mockData';
 
+import { supabase } from './supabaseClient';
+
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+function unpackClientNotes(prop: any): any {
+  if (!prop) return prop;
+  const rawNotes = prop.notes || '';
+  const match = rawNotes.match(/<!--__META__:(.*?)-->/s);
+  if (match) {
+    try {
+      const meta = JSON.parse(match[1]);
+      if (meta.floor !== undefined && (prop.floor === undefined || prop.floor === null)) {
+        prop.floor = meta.floor;
+      }
+      if (meta.balconyAreaSqm !== undefined && (prop.balconyAreaSqm === undefined || prop.balconyAreaSqm === null)) {
+        prop.balconyAreaSqm = meta.balconyAreaSqm;
+      }
+      prop.notes = rawNotes.replace(/\n*<!--__META__:.*?-->/gs, '').trim();
+    } catch {}
+  }
+  return prop;
+}
 
 class ApiService {
   private userId: string = 'user_demo_landlord';
@@ -47,7 +68,8 @@ class ApiService {
     try {
       const res = await fetch(`${BASE_URL}/properties`, { headers: this.getHeaders() });
       if (res.ok) {
-        const data = await res.json();
+        const rawData = await res.json();
+        const data = Array.isArray(rawData) ? rawData.map(unpackClientNotes) : rawData;
         const key = `resr_props_${this.userId}`;
         localStorage.setItem(key, JSON.stringify(data));
         return data;
@@ -56,7 +78,7 @@ class ApiService {
       console.warn('API fallback for properties', e);
     }
     const cached = localStorage.getItem(`resr_props_${this.userId}`) || localStorage.getItem(`hearthstone_props_${this.userId}`);
-    return cached ? JSON.parse(cached) : initialProperties;
+    return cached ? JSON.parse(cached).map(unpackClientNotes) : initialProperties;
   }
 
   async getPropertyDetails(id: string) {
