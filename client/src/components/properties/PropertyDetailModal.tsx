@@ -306,7 +306,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <span className="text-slate-600">História a zmluvy</span>
                 <button
                   onClick={() => onOpenAddLease(property.id)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-medium transition"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary hover:bg-primary/90 text-white font-medium transition"
                 >
                   <Plus className="w-3 h-3" />
                   <span>Nová zmluva</span>

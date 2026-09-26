@@ -445,9 +445,10 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
+                color="primary"
                 onPress={() => onOpenAddLease(property.id)}
                 startContent={<Plus className="w-3.5 h-3.5" />}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-xs"
+                className="font-semibold text-xs shadow-xs"
               >
                 Nová zmluva
               </Button>
@@ -1774,7 +1775,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium shadow-xs transition">
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-medium shadow-xs transition">
                       <UploadCloud className="w-3.5 h-3.5" />
                       <span>Pridať fotky</span>
                       <input
