@@ -10,7 +10,7 @@ export interface Property {
   city: string;
   neighborhood?: string;
   sizeSqm: number;
-  floor?: number;
+  floor?: number | null;
   bedrooms: number;
   bathrooms?: number;
   rentAmount: number;
@@ -21,13 +21,13 @@ export interface Property {
   activeLeaseId?: string;
   imageUrl?: string;
   hasCellar?: boolean;
-  cellarAreaSqm?: number;
-  cellarNumber?: string;
+  cellarAreaSqm?: number | null;
+  cellarNumber?: string | null;
   hasParking?: boolean;
-  parkingSpotNumber?: string;
+  parkingSpotNumber?: string | null;
   hasAC?: boolean;
   hasBalcony?: boolean;
-  balconyAreaSqm?: number;
+  balconyAreaSqm?: number | null;
   furnishingStatus?: 'furnished' | 'unfurnished';
   photos?: string[];
   notes?: string;

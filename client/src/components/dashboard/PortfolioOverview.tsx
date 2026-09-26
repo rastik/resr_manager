@@ -19,28 +19,7 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
   onOpenAddProperty,
   onNavigateToTab,
 }) => {
-  const { properties, analytics, inventory, leases, updateProperty } = useProperty();
-
-  const [activeNoteProperty, setActiveNoteProperty] = useState<Property | null>(null);
-  const [noteText, setNoteText] = useState<string>('');
-  const [isSavingNote, setIsSavingNote] = useState<boolean>(false);
-
-  const handleOpenNote = (e: React.MouseEvent, property: Property) => {
-    e.stopPropagation();
-    setActiveNoteProperty(property);
-    setNoteText(property.notes || '');
-  };
-
-  const handleSaveNote = async () => {
-    if (!activeNoteProperty) return;
-    setIsSavingNote(true);
-    try {
-      await updateProperty(activeNoteProperty.id, { notes: noteText.trim() || undefined });
-      setActiveNoteProperty(null);
-    } finally {
-      setIsSavingNote(false);
-    }
-  };
+  const { properties, analytics, inventory, leases } = useProperty();
 
   const flats = properties.filter(p => (p.propertyType || 'flat') === 'flat');
   const apartments = properties.filter(p => p.propertyType === 'apartment');
@@ -72,21 +51,8 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
 
         {/* Content Inside Card */}
         <div className="relative z-10 h-full flex flex-col justify-between p-3 w-full">
-          {/* Top: Notes Button & Status Badge */}
-          <div className="flex items-center justify-between w-full">
-            <button
-              type="button"
-              onClick={(e) => handleOpenNote(e, property)}
-              title={property.notes ? `Poznámka: ${property.notes}` : 'Pridať poznámku'}
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium transition-all backdrop-blur-md border ${
-                property.notes
-                  ? 'bg-amber-400/25 text-amber-200 border-amber-300/40 hover:bg-amber-400/40 shadow-xs'
-                  : 'bg-black/35 text-slate-300 border-white/20 hover:bg-white/25 hover:text-white'
-              }`}
-            >
-              <FileText className="w-3 h-3" />
-              <span>{property.notes ? 'Poznámka' : '+ Poznámka'}</span>
-            </button>
+          {/* Top: Status Badge */}
+          <div className="flex items-center justify-end w-full">
             <Badge variant={badgeVariant as any} />
           </div>
 
@@ -135,19 +101,22 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
 
   return (
     <div className="space-y-4 w-full">
-      {/* Key Metrics Bar (Easy on the eyes, warm tinted container with soft borders) */}
-      <div className="bg-[#fcfdfd] border border-slate-200/80 rounded-2xl shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/60 overflow-hidden">
+      {/* Key Metrics Bar (Clean, modern with subtle color accents) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 overflow-hidden">
         {/* 1. Mesačný nájom */}
-        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
-          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
-            Mesačný nájom
-          </span>
+        <div className="p-3.5 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[76px] sm:min-h-[82px] hover:bg-emerald-50/20 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+              Mesačný nájom
+            </span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-emerald-100/80" />
+          </div>
           <div className="mt-1">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
+              <span className="text-lg sm:text-xl lg:text-2xl font-black text-emerald-950 leading-tight">
                 €{analytics?.monthlyGrossRent.toLocaleString() || 0}
               </span>
-              <span className="text-[11px] sm:text-xs text-slate-500 font-medium">/ mes</span>
+              <span className="text-[11px] sm:text-xs text-emerald-700 font-semibold">/ mes</span>
             </div>
             <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
               Ročne: €{((analytics?.monthlyGrossRent || 0) * 12).toLocaleString()}
@@ -156,13 +125,21 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         </div>
 
         {/* 2. Obsadenosť portfólia */}
-        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
-          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
-            Obsadenosť portfólia
-          </span>
+        <div className="p-3.5 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[76px] sm:min-h-[82px] hover:bg-teal-50/20 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+              Obsadenosť portfólia
+            </span>
+            <span className="w-2 h-2 rounded-full bg-teal-500 ring-4 ring-teal-100/80" />
+          </div>
           <div className="mt-1">
-            <div className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
-              {analytics?.occupancyRate || 0}%
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 leading-tight">
+                {analytics?.occupancyRate || 0}%
+              </span>
+              <span className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200/80 px-1.5 py-0.2 rounded">
+                {(analytics?.occupancyRate || 0) >= 90 ? 'Vysoká' : 'Štandard'}
+              </span>
             </div>
             <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
               {analytics?.occupiedUnits || 0} z {analytics?.totalUnits || 0} jednotiek obsadených
@@ -171,10 +148,13 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         </div>
 
         {/* 3. Končiace zmluvy */}
-        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
-          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
-            Končiace zmluvy
-          </span>
+        <div className="p-3.5 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[76px] sm:min-h-[82px] hover:bg-amber-50/30 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+              Končiace zmluvy
+            </span>
+            <span className={`w-2 h-2 rounded-full ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'bg-amber-500 ring-4 ring-amber-100' : 'bg-slate-300'}`} />
+          </div>
           <div className="mt-1">
             <div className={`text-lg sm:text-xl lg:text-2xl font-black leading-tight ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'text-amber-600' : 'text-slate-800'}`}>
               {analytics?.expiringIn60DaysCount || 0}
@@ -186,12 +166,15 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         </div>
 
         {/* 4. Výdavky na údržbu */}
-        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
-          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
-            Výdavky na údržbu
-          </span>
+        <div className="p-3.5 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[76px] sm:min-h-[82px] hover:bg-rose-50/20 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+              Výdavky na údržbu
+            </span>
+            <span className="w-2 h-2 rounded-full bg-rose-500 ring-4 ring-rose-100/80" />
+          </div>
           <div className="mt-1">
-            <div className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
+            <div className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 leading-tight">
               €{analytics?.totalExpenses.toLocaleString() || 0}
             </div>
             <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
@@ -437,81 +420,6 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
           </CardBody>
         </Card>
       </div>
-
-      {/* Modal na písanie / úpravu poznámok k bytu / apartmánu */}
-      {activeNoteProperty && (
-        <Modal
-          isOpen={Boolean(activeNoteProperty)}
-          onClose={() => setActiveNoteProperty(null)}
-          title={`Poznámka k nehnuteľnosti`}
-          subtitle={`${activeNoteProperty.name} (č. ${activeNoteProperty.unitNumber}), ${activeNoteProperty.city}`}
-          maxWidth="md"
-        >
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
-                Vaša interná poznámka
-              </label>
-              <Textarea
-                size="sm"
-                variant="bordered"
-                aria-label="Poznámka"
-                minRows={4}
-                maxRows={8}
-                placeholder="Sem napíšte akékoľvek poznámky k bytu (napr. kľúče, parkovanie, špecifiká nájomcu, plánované opravy)..."
-                value={noteText}
-                onChange={e => setNoteText(e.target.value)}
-                classNames={{
-                  inputWrapper:
-                    'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg shadow-2xs',
-                  input: 'text-xs text-slate-900 leading-relaxed',
-                }}
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              {activeNoteProperty.notes ? (
-                <Button
-                  size="sm"
-                  variant="light"
-                  color="danger"
-                  isDisabled={isSavingNote}
-                  onPress={() => {
-                    setNoteText('');
-                  }}
-                  className="text-xs text-rose-600 hover:bg-rose-50"
-                >
-                  Vymazať text
-                </Button>
-              ) : (
-                <div />
-              )}
-
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="flat"
-                  isDisabled={isSavingNote}
-                  onPress={() => setActiveNoteProperty(null)}
-                  className="text-xs"
-                >
-                  Zrušiť
-                </Button>
-                <Button
-                  size="sm"
-                  color="primary"
-                  isLoading={isSavingNote}
-                  onPress={handleSaveNote}
-                  startContent={!isSavingNote && <Check className="w-3.5 h-3.5" />}
-                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs px-4"
-                >
-                  Uložiť poznámku
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 };

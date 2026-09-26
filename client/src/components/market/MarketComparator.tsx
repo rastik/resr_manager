@@ -50,34 +50,31 @@ function getCityForProperty(p?: Property): string {
 export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProperty }) => {
   const { properties } = useProperty();
 
-  const initialProp = properties.length > 0 ? properties[0] : undefined;
-
-  // Selected apartment from portfolio - always default to first property
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string>(() => initialProp?.id || '');
+  // Selected apartment from portfolio - default to none
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
 
   // Search parameters for Nehnutelnosti.sk (synced with active property)
-  const [roomsFilter, setRoomsFilter] = useState<string>(() => String(initialProp?.bedrooms || 2));
+  const [roomsFilter, setRoomsFilter] = useState<string>('2');
   const [sortBy, setSortBy] = useState<'confidence' | 'priceAsc' | 'priceDesc' | 'sqmAsc'>('confidence');
 
   // Live comparison data state
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [data, setData] = useState<MarketComparisonResponse | null>(null);
   const [activeBreakdownId, setActiveBreakdownId] = useState<string | null>(null);
 
-  // Sync selected property when properties list loads (always ensure first property is selected by default)
+  // If a property was previously selected but no longer exists, clear it
   useEffect(() => {
-    if (properties.length > 0) {
+    if (selectedPropertyId && properties.length > 0) {
       const exists = properties.some(p => p.id === selectedPropertyId);
-      if (!selectedPropertyId || !exists) {
-        const first = properties[0];
-        setSelectedPropertyId(first.id);
-        setRoomsFilter(String(first.bedrooms || 2));
+      if (!exists) {
+        setSelectedPropertyId('');
+        setData(null);
       }
     }
   }, [properties, selectedPropertyId]);
 
-  const activeProperty = properties.find(p => p.id === selectedPropertyId) || properties[0];
-  const activeCity = getCityForProperty(activeProperty);
+  const activeProperty = properties.find(p => p.id === selectedPropertyId);
+  const activeCity = activeProperty ? getCityForProperty(activeProperty) : 'Trnava';
 
   // Request counter to avoid race conditions when switching apartments
   const reqIdRef = React.useRef(0);
@@ -91,7 +88,11 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
 
   // Fetch live comparables automatically for the same city as the selected property
   useEffect(() => {
-    if (!activeProperty) return;
+    if (!activeProperty) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
 
     const currentReqId = ++reqIdRef.current;
     setLoading(true);
@@ -200,7 +201,7 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
               <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
                 Rozdiel nášho nájmu vs trh
               </span>
-              {activeProperty.rentAmount && activeProperty.rentAmount > 0 ? (
+              {activeProperty && activeProperty.rentAmount && activeProperty.rentAmount > 0 ? (
                 <>
                   <div className="mt-1 flex items-baseline gap-2">
                     <span
@@ -280,56 +281,60 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
         </div>
       )}
 
-      {/* 6. Search & Sort Controls */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 border border-slate-200 rounded-xl shadow-xs">
-        <div className="flex flex-wrap items-center gap-3 text-xs w-full sm:w-auto">
-          <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Porovnáva sa v meste:</span>
+      {/* 6. Search & Sort Controls (only when property selected) */}
+      {selectedPropertyId && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 border border-slate-200 rounded-xl shadow-xs">
+          <div className="flex flex-wrap items-center gap-3 text-xs w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Porovnáva sa v meste:</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-semibold border border-emerald-200 shadow-2xs">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{activeCity}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-500 font-medium">Kategória:</span>
+              <select
+                value={roomsFilter}
+                onChange={e => setRoomsFilter(e.target.value)}
+                className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              >
+                <option value="1">1-izbové byty / garzónky</option>
+                <option value="2">2-izbové byty</option>
+                <option value="3">3-izbové byty</option>
+                <option value="4">4-izbové byty</option>
+                <option value="5">5 a viac-izbové</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-semibold border border-emerald-200 shadow-2xs">
-            <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{activeCity}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="text-slate-500 font-medium">Kategória:</span>
+          <div className="flex items-center gap-2 text-xs w-full sm:w-auto justify-end">
+            <span className="text-slate-500">Zoradiť:</span>
             <select
-              value={roomsFilter}
-              onChange={e => setRoomsFilter(e.target.value)}
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as any)}
               className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
             >
-              <option value="1">1-izbové byty / garzónky</option>
-              <option value="2">2-izbové byty</option>
-              <option value="3">3-izbové byty</option>
-              <option value="4">4-izbové byty</option>
-              <option value="5">5 a viac-izbové</option>
+              <option value="confidence">Najvyššia zhoda (Confidence)</option>
+              <option value="priceAsc">Celková cena (od najlacnejších)</option>
+              <option value="priceDesc">Celková cena (od najdrahších)</option>
+              <option value="sqmAsc">Cena za m² (vzostupne)</option>
             </select>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 text-xs w-full sm:w-auto justify-end">
-          <span className="text-slate-500">Zoradiť:</span>
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value as any)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          >
-            <option value="confidence">Najvyššia zhoda (Confidence)</option>
-            <option value="priceAsc">Celková cena (od najlacnejších)</option>
-            <option value="priceDesc">Celková cena (od najdrahších)</option>
-            <option value="sqmAsc">Cena za m² (vzostupne)</option>
-          </select>
-        </div>
-      </div>
+      )}
 
       {/* 7. Results count (compact spacing) */}
-      <div className="flex items-center justify-end px-1 text-[11px] text-slate-500 -mt-4 -mb-3">
-        <span className="font-medium text-slate-600">
-          Nájdených {comparables.length} relevantných inzerátov
-        </span>
-      </div>
+      {selectedPropertyId && (
+        <div className="flex items-center justify-end px-1 text-[11px] text-slate-500 -mt-4 -mb-3">
+          <span className="font-medium text-slate-600">
+            Nájdených {comparables.length} relevantných inzerátov
+          </span>
+        </div>
+      )}
 
       {/* 8. Loading state */}
       {loading && (
@@ -344,8 +349,22 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
         </div>
       )}
 
-      {/* 9. Empty State */}
-      {!loading && comparables.length === 0 && (
+      {/* 9. Empty State or Prompt to Select Property */}
+      {!selectedPropertyId ? (
+        <div className="p-12 text-center bg-white border border-slate-200 rounded-2xl shadow-xs space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto text-emerald-600">
+            <Building className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-800">
+              Vyberte byt z vášho portfólia
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Pre zobrazenie trhového porovnania, odhadovanej ceny a relevantných inzerátov z Nehnutelnosti.sk vyberte konkrétny byt v rozbaľovacom zozname vyššie.
+            </p>
+          </div>
+        </div>
+      ) : !loading && comparables.length === 0 ? (
         <div className="p-12 text-center bg-white border border-slate-200 rounded-2xl">
           <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
           <p className="text-sm font-semibold text-slate-800">
@@ -355,7 +374,7 @@ export const MarketComparator: React.FC<MarketComparatorProps> = ({ onSelectProp
             Skúste zmeniť mesto alebo počet izieb vo filtri vyššie.
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* 10. List of Comparables Cards */}
       {!loading && comparables.length > 0 && (

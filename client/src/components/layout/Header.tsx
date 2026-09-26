@@ -89,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({
           size="sm"
           onClick={onOpenAddProperty}
           startContent={<Plus className="w-4 h-4" />}
-          className="bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm shadow-xs h-9 rounded-lg px-3.5"
+          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-sm shadow-emerald-600/20 h-9 rounded-lg px-3.5 transition-all"
         >
           Pridať nehnuteľnosť
         </Button>

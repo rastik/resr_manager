@@ -9,9 +9,19 @@ interface DocumentUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   docToEdit?: VaultDocument | null;
+  defaultPropertyId?: string;
+  defaultCategory?: DocumentCategory;
+  defaultName?: string;
 }
 
-export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen, onClose, docToEdit }) => {
+export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  docToEdit,
+  defaultPropertyId,
+  defaultCategory,
+  defaultName,
+}) => {
   const { properties, leases, addDocument, updateDocument } = useProperty();
 
   const [file, setFile] = useState<File | null>(null);
@@ -36,16 +46,18 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({ isOpen
         setNotes(docToEdit.notes || '');
         setFile(null);
       } else {
-        setPropertyId(properties[0]?.id || 'none');
-        setDocName('');
-        setCategory('tenancy');
-        setLeaseId('');
+        const initialPropId = defaultPropertyId || properties[0]?.id || 'none';
+        setPropertyId(initialPropId);
+        setDocName(defaultName || '');
+        setCategory(defaultCategory || 'tenancy');
+        const relatedLease = leases.find(l => l.propertyId === initialPropId && l.status === 'active');
+        setLeaseId(relatedLease ? relatedLease.id : '');
         setExpiryDate('');
         setNotes('');
         setFile(null);
       }
     }
-  }, [isOpen, properties, docToEdit]);
+  }, [isOpen, properties, leases, docToEdit, defaultPropertyId, defaultCategory, defaultName]);
 
   const handlePropertySelect = (pId: string) => {
     if (!pId || pId === 'none') {

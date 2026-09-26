@@ -27,31 +27,10 @@ export const PropertyList: React.FC<PropertyListProps> = ({
   onSelectProperty,
   onOpenAddProperty,
 }) => {
-  const { properties, leases, searchQuery, setSearchQuery, statusFilter, setStatusFilter, updateProperty } = useProperty();
+  const { properties, leases, searchQuery, setSearchQuery, statusFilter, setStatusFilter } = useProperty();
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [sortField, setSortField] = useState<'unitNumber' | 'name' | 'city' | 'sizeSqm' | 'rentAmount' | 'status'>('unitNumber');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-
-  const [activeNoteProperty, setActiveNoteProperty] = useState<Property | null>(null);
-  const [noteText, setNoteText] = useState<string>('');
-  const [isSavingNote, setIsSavingNote] = useState<boolean>(false);
-
-  const handleOpenNote = (e: React.MouseEvent, property: Property) => {
-    e.stopPropagation();
-    setActiveNoteProperty(property);
-    setNoteText(property.notes || '');
-  };
-
-  const handleSaveNote = async () => {
-    if (!activeNoteProperty) return;
-    setIsSavingNote(true);
-    try {
-      await updateProperty(activeNoteProperty.id, { notes: noteText.trim() || undefined });
-      setActiveNoteProperty(null);
-    } finally {
-      setIsSavingNote(false);
-    }
-  };
 
   const getEffectiveStatus = (prop: typeof properties[0]) => {
     const hasActiveLease = leases.some(l => l.propertyId === prop.id && l.status === 'active');
@@ -192,19 +171,31 @@ export const PropertyList: React.FC<PropertyListProps> = ({
           </div>
 
           <div className="flex items-center bg-slate-100/90 border border-slate-200/80 rounded-lg p-0.5">
-            {(['all', 'occupied', 'vacant'] as const).map(st => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-2.5 py-1 text-xs rounded-md transition ${
-                  statusFilter === st
-                    ? 'bg-white text-slate-900 font-semibold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {statusLabels[st]}
-              </button>
-            ))}
+            {(['all', 'occupied', 'vacant'] as const).map(st => {
+              const isActive = statusFilter === st;
+              let activeClass = 'bg-white text-slate-900 font-semibold shadow-xs';
+              if (isActive && st === 'occupied') {
+                activeClass = 'bg-emerald-600 text-white font-semibold shadow-xs';
+              } else if (isActive && st === 'vacant') {
+                activeClass = 'bg-rose-600 text-white font-semibold shadow-xs';
+              } else if (isActive && st === 'all') {
+                activeClass = 'bg-slate-900 text-white font-semibold shadow-xs';
+              }
+
+              return (
+                <button
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-2.5 py-1 text-xs rounded-md transition ${
+                    isActive
+                      ? activeClass
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {statusLabels[st]}
+                </button>
+              );
+            })}
           </div>
 
           <ButtonGroup size="sm" variant="flat" className="border border-slate-200 rounded-lg p-0.5 bg-slate-100/90">
@@ -274,7 +265,6 @@ export const PropertyList: React.FC<PropertyListProps> = ({
             <TableColumn key="status" allowsSorting>STAV</TableColumn>
             <TableColumn key="rent" allowsSorting>MESAČNÉ NÁJOMNÉ</TableColumn>
             <TableColumn key="tenant">NÁJOMCA</TableColumn>
-            <TableColumn key="notes">POZNÁMKA</TableColumn>
             <TableColumn key="action">{''}</TableColumn>
           </TableHeader>
           <TableBody emptyContent="Žiadne nehnuteľnosti nezodpovedajú zvolenému filtru.">
@@ -304,21 +294,6 @@ export const PropertyList: React.FC<PropertyListProps> = ({
                   ) : (
                     <span className="text-slate-400">—</span>
                   )}
-                </TableCell>
-                <TableCell onClick={e => e.stopPropagation()}>
-                  <button
-                    type="button"
-                    onClick={e => handleOpenNote(e, property)}
-                    title={property.notes ? `Poznámka: ${property.notes}` : 'Pridať poznámku'}
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs transition border ${
-                      property.notes
-                        ? 'bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-100 max-w-[140px] truncate'
-                        : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100 border-transparent'
-                    }`}
-                  >
-                    <FileText className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{property.notes || '+ Poznámka'}</span>
-                  </button>
                 </TableCell>
                 <TableCell className="text-right">
                   <ArrowRight className="w-3.5 h-3.5 text-slate-400 inline" />
@@ -357,21 +332,8 @@ export const PropertyList: React.FC<PropertyListProps> = ({
 
                 {/* Content Inside Card */}
                 <div className="relative z-10 h-full flex flex-col justify-between p-3 w-full">
-                  {/* Top: Notes Button & Status Badge */}
-                  <div className="flex items-center justify-between w-full">
-                    <button
-                      type="button"
-                      onClick={e => handleOpenNote(e, property)}
-                      title={property.notes ? `Poznámka: ${property.notes}` : 'Pridať poznámku'}
-                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium transition-all backdrop-blur-md border ${
-                        property.notes
-                          ? 'bg-amber-400/25 text-amber-200 border-amber-300/40 hover:bg-amber-400/40 shadow-xs'
-                          : 'bg-black/35 text-slate-300 border-white/20 hover:bg-white/25 hover:text-white'
-                      }`}
-                    >
-                      <FileText className="w-3 h-3" />
-                      <span>{property.notes ? 'Poznámka' : '+ Poznámka'}</span>
-                    </button>
+                  {/* Top: Status Badge */}
+                  <div className="flex items-center justify-end w-full">
                     <Badge variant={cardBadgeVariant as any} />
                   </div>
 
@@ -424,81 +386,6 @@ export const PropertyList: React.FC<PropertyListProps> = ({
             );
           })}
         </div>
-      )}
-
-      {/* Modal na písanie / úpravu poznámok k bytu / apartmánu */}
-      {activeNoteProperty && (
-        <Modal
-          isOpen={Boolean(activeNoteProperty)}
-          onClose={() => setActiveNoteProperty(null)}
-          title={`Poznámka k nehnuteľnosti`}
-          subtitle={`${activeNoteProperty.name} (č. ${activeNoteProperty.unitNumber}), ${activeNoteProperty.city}`}
-          maxWidth="md"
-        >
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
-                Vaša interná poznámka
-              </label>
-              <Textarea
-                size="sm"
-                variant="bordered"
-                aria-label="Poznámka"
-                minRows={4}
-                maxRows={8}
-                placeholder="Sem napíšte akékoľvek poznámky k bytu (napr. kľúče, parkovanie, špecifiká nájomcu, plánované opravy)..."
-                value={noteText}
-                onChange={e => setNoteText(e.target.value)}
-                classNames={{
-                  inputWrapper:
-                    'border-slate-300 bg-white hover:border-slate-400 focus-within:!border-slate-900 rounded-lg shadow-2xs',
-                  input: 'text-xs text-slate-900 leading-relaxed',
-                }}
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-              {activeNoteProperty.notes ? (
-                <Button
-                  size="sm"
-                  variant="light"
-                  color="danger"
-                  isDisabled={isSavingNote}
-                  onPress={() => {
-                    setNoteText('');
-                  }}
-                  className="text-xs text-rose-600 hover:bg-rose-50"
-                >
-                  Vymazať text
-                </Button>
-              ) : (
-                <div />
-              )}
-
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="flat"
-                  isDisabled={isSavingNote}
-                  onPress={() => setActiveNoteProperty(null)}
-                  className="text-xs"
-                >
-                  Zrušiť
-                </Button>
-                <Button
-                  size="sm"
-                  color="primary"
-                  isLoading={isSavingNote}
-                  onPress={handleSaveNote}
-                  startContent={!isSavingNote && <Check className="w-3.5 h-3.5" />}
-                  className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs px-4"
-                >
-                  Uložiť poznámku
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Modal>
       )}
     </div>
   );

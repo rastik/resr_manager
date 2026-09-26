@@ -10,10 +10,11 @@ import {
   Button,
   Chip,
 } from '@heroui/react';
-import { Search, Plus, Trash2, Edit3 } from 'lucide-react';
+import { Search, Plus, Trash2, Edit3, UploadCloud, FileText } from 'lucide-react';
 import { useProperty } from '../../context/PropertyContext';
 import { InventoryCategory, InventoryItem } from '../../types';
 import { AddInventoryModal } from './AddInventoryModal';
+import { DocumentUploadModal } from '../documents/DocumentUploadModal';
 
 interface InventoryManagerProps {
   onOpenAddInventory: (propertyId?: string) => void;
@@ -29,6 +30,7 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
   const [categoryFilter, setCategoryFilter] = useState<InventoryCategory | 'all'>('all');
   const [search, setSearch] = useState<string>('');
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [isUploadDocOpen, setIsUploadDocOpen] = useState<boolean>(false);
 
   const now = new Date();
 
@@ -91,6 +93,16 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
               </button>
             ))}
           </div>
+
+          <Button
+            size="sm"
+            variant="flat"
+            onClick={() => setIsUploadDocOpen(true)}
+            className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs h-8 rounded-lg px-3 shadow-2xs"
+            startContent={<UploadCloud className="w-3.5 h-3.5 text-slate-500" />}
+          >
+            Nahrať dokument inventára
+          </Button>
 
           <Button
             size="sm"
@@ -229,6 +241,14 @@ export const InventoryManager: React.FC<InventoryManagerProps> = ({
           itemToEdit={editingItem}
         />
       )}
+
+      {/* Upload Inventory Document Modal */}
+      <DocumentUploadModal
+        isOpen={isUploadDocOpen}
+        onClose={() => setIsUploadDocOpen(false)}
+        defaultCategory="inspection"
+        defaultName="Inventárny súpis / Preberací protokol"
+      />
     </div>
   );
 };

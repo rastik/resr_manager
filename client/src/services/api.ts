@@ -152,7 +152,8 @@ class ApiService {
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        const updated = await res.json();
+        const rawUpdated = await res.json();
+        const updated = unpackClientNotes(rawUpdated);
         updateCache(updated);
         return updated;
       }
@@ -160,7 +161,7 @@ class ApiService {
       console.warn('API fallback for update property', e);
     }
 
-    let updated = { id, ...data } as Property;
+    let updated = unpackClientNotes({ id, ...data }) as Property;
     updateCache(updated);
     return updated;
   }

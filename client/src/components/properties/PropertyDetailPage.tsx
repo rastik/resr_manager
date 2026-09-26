@@ -10,6 +10,7 @@ import {
   Select,
   SelectItem,
   Input,
+  Textarea,
   Table,
   TableHeader,
   TableBody,
@@ -55,10 +56,13 @@ import {
   Maximize2,
   Hash,
   Calendar,
+  DoorClosed,
+  ArrowUpDown,
 } from 'lucide-react';
 import { Property, Lease } from '../../types';
 import { useProperty } from '../../context/PropertyContext';
 import { Badge } from '../common/Badge';
+import { Modal } from '../common/Modal';
 import { EditPropertyModal } from './EditPropertyModal';
 import { EditLeaseModal } from './EditLeaseModal';
 import { AddHotelRevenueModal } from './AddHotelRevenueModal';
@@ -92,14 +96,14 @@ const TabLabel: React.FC<{
       isSelected ? 'scale-105' : 'scale-100'
     }`}
   >
-    <Icon className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isSelected ? 'text-slate-900' : 'text-slate-400'}`} />
+    <Icon className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isSelected ? 'text-emerald-600' : 'text-slate-400'}`} />
     <span className="inline-grid [grid-template-areas:'stack'] text-left">
       <span className="[grid-area:stack] font-semibold invisible select-none pointer-events-none" aria-hidden="true">
         {label}
       </span>
       <span
         className={`[grid-area:stack] transition-colors duration-200 ${
-          isSelected ? 'font-semibold text-slate-900' : 'font-medium text-slate-500 hover:text-slate-700'
+          isSelected ? 'font-semibold text-emerald-800' : 'font-medium text-slate-500 hover:text-slate-700'
         }`}
       >
         {label}
@@ -148,7 +152,28 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
   const [isUploadHotelInvoiceOpen, setIsUploadHotelInvoiceOpen] = useState<boolean>(false);
   const [selectedInvoiceForPreview, setSelectedInvoiceForPreview] = useState<VaultDocument | null>(null);
   const [editingDoc, setEditingDoc] = useState<VaultDocument | null>(null);
+  const [isUploadInventoryDocOpen, setIsUploadInventoryDocOpen] = useState<boolean>(false);
   const [copiedContact, setCopiedContact] = useState<'email' | 'phone' | null>(null);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState<boolean>(false);
+  const [noteText, setNoteText] = useState<string>('');
+  const [isSavingNote, setIsSavingNote] = useState<boolean>(false);
+
+  const handleOpenNoteModal = () => {
+    setNoteText(property.notes || '');
+    setIsNoteModalOpen(true);
+  };
+
+  const handleSaveNote = async () => {
+    setIsSavingNote(true);
+    try {
+      await updateProperty(property.id, { notes: noteText.trim() || undefined });
+      setIsNoteModalOpen(false);
+      showToast('Poznámka k nehnuteľnosti bola uložená');
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
     photos: string[];
@@ -482,7 +507,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
               color="primary"
               classNames={{
                 tabList: 'gap-6 border-b border-slate-200 p-0',
-                cursor: 'w-full bg-slate-900',
+                cursor: 'w-full bg-emerald-600 h-[2px]',
                 tab: 'max-w-fit px-2 h-10 text-sm font-medium transition-colors',
               }}
             >
@@ -1185,7 +1210,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       <Hash className="w-3.5 h-3.5 text-slate-400" />
                       Číslo jednotky / bytu:
                     </span>
-                    <span className="font-bold text-slate-900 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-[11px]">
+                    <span className="font-medium text-slate-900">
                       č. {property.unitNumber}
                     </span>
                   </div>
@@ -1195,16 +1220,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
                       Adresa:
                     </span>
-                    <span className="font-medium text-slate-900 text-right">{property.address}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                    <span className="text-slate-500 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      Mesto {property.postalCode ? 'a PSČ' : ''}:
-                    </span>
-                    <span className="font-medium text-slate-900">
-                      {property.postalCode ? `${property.postalCode} ${property.city}` : property.city}
+                    <span className="font-medium text-slate-900 text-right">
+                      {[property.address, property.city].filter(Boolean).join(', ')}
                     </span>
                   </div>
 
@@ -1220,7 +1237,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
                   <div className="flex justify-between items-center py-1 border-b border-slate-100">
                     <span className="text-slate-500 flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-slate-400" />
+                      <DoorClosed className="w-3.5 h-3.5 text-slate-400" />
                       Počet izieb:
                     </span>
                     <span className="font-medium text-slate-900">
@@ -1306,17 +1323,38 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     </div>
                   )}
 
-                  {property.notes && (
-                    <div className="pt-2">
-                      <span className="text-slate-500 block mb-1 font-medium flex items-center gap-1">
-                        <FileText className="w-3 h-3 text-slate-400" />
+                  <div className="pt-2 border-t border-slate-100 mt-2">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-slate-500 font-medium flex items-center gap-1.5 text-xs">
+                        <FileText className="w-3.5 h-3.5 text-slate-400" />
                         Poznámka k bytu:
                       </span>
-                      <p className="p-2 bg-slate-50 rounded-lg text-slate-700 italic border border-slate-100 text-[11px] leading-relaxed">
+                      <button
+                        type="button"
+                        onClick={handleOpenNoteModal}
+                        className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        {property.notes ? 'Upraviť' : 'Pridať'}
+                      </button>
+                    </div>
+                    {property.notes ? (
+                      <p 
+                        onClick={handleOpenNoteModal}
+                        className="p-2.5 bg-amber-50/50 hover:bg-amber-50 rounded-lg text-slate-700 italic border border-amber-200/50 text-[11px] leading-relaxed cursor-pointer transition-colors"
+                        title="Kliknite pre úpravu poznámky"
+                      >
                         {property.notes}
                       </p>
-                    </div>
-                  )}
+                    ) : (
+                      <p 
+                        onClick={handleOpenNoteModal}
+                        className="p-2 text-slate-400 text-[11px] italic cursor-pointer hover:text-slate-600"
+                      >
+                        Bez poznámky. Kliknite sem pre pridanie...
+                      </p>
+                    )}
+                  </div>
                 </div>
               </CardBody>
             </Card>
@@ -1333,14 +1371,26 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   <h3 className="text-sm font-semibold text-slate-900">Inventár a spotrebiče v byte</h3>
                   <p className="text-xs text-slate-500">Evidencia vybavenia, modelov a záručných lehôt</p>
                 </div>
-                <Button
-                  size="sm"
-                  className="bg-slate-900 text-white font-medium shadow-xs"
-                  onPress={() => onOpenAddInventory(property.id)}
-                  startContent={<Plus className="w-3.5 h-3.5" />}
-                >
-                  Pridať položku
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="flat"
+                    className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs shadow-2xs"
+                    onPress={() => setIsUploadInventoryDocOpen(true)}
+                    startContent={<UploadCloud className="w-3.5 h-3.5 text-slate-500" />}
+                  >
+                    Nahrať dokument inventára
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    className="bg-slate-900 text-white font-medium shadow-xs"
+                    onPress={() => onOpenAddInventory(property.id)}
+                    startContent={<Plus className="w-3.5 h-3.5" />}
+                  >
+                    Pridať položku
+                  </Button>
+                </div>
               </div>
 
               <Table
@@ -2064,6 +2114,70 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
           docToEdit={editingDoc}
         />
       )}
+
+      {/* Upload Inventory Document Modal for this Property */}
+      <DocumentUploadModal
+        isOpen={isUploadInventoryDocOpen}
+        onClose={() => setIsUploadInventoryDocOpen(false)}
+        defaultPropertyId={property.id}
+        defaultCategory="inspection"
+        defaultName={`Inventárny súpis – ${property.name} (${property.unitNumber})`}
+      />
+
+      {/* Property Note Modal */}
+      <Modal
+        isOpen={isNoteModalOpen}
+        onClose={() => setIsNoteModalOpen(false)}
+        title={`Poznámka k nehnuteľnosti — ${property.name} (č. ${property.unitNumber})`}
+        maxWidth="md"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-500">
+            Sem si môžete zapísať interné poznámky, postrehy k bytu, informácie o kľúčoch, kódoch alebo technických špecifikách.
+          </p>
+          <Textarea
+            label="Poznámka"
+            placeholder="Zadajte poznámku k nehnuteľnosti..."
+            value={noteText}
+            onValueChange={setNoteText}
+            minRows={4}
+            maxRows={10}
+            variant="bordered"
+            autoFocus
+          />
+          <div className="flex justify-between items-center pt-2">
+            {property.notes ? (
+              <Button
+                size="sm"
+                color="danger"
+                variant="light"
+                onPress={() => {
+                  setNoteText('');
+                }}
+              >
+                Vymazať text
+              </Button>
+            ) : <div />}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="flat"
+                onPress={() => setIsNoteModalOpen(false)}
+              >
+                Zrušiť
+              </Button>
+              <Button
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                isLoading={isSavingNote}
+                onPress={handleSaveNote}
+              >
+                Uložiť poznámku
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
