@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Breadcrumbs,
   BreadcrumbItem,
@@ -173,6 +173,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
       setIsSavingNote(false);
     }
   };
+
+  const photoFileInputRef = useRef<HTMLInputElement>(null);
 
   const [lightboxState, setLightboxState] = useState<{
     isOpen: boolean;
@@ -1775,17 +1777,23 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-medium shadow-xs transition">
-                      <UploadCloud className="w-3.5 h-3.5" />
-                      <span>Pridať fotky</span>
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                    </label>
+                    <input
+                      ref={photoFileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      size="sm"
+                      color="primary"
+                      className="font-medium shadow-xs"
+                      onPress={() => photoFileInputRef.current?.click()}
+                      startContent={<UploadCloud className="w-3.5 h-3.5" />}
+                    >
+                      Pridať fotky
+                    </Button>
                   </div>
                 </div>
 
