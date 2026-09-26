@@ -101,22 +101,19 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
 
   return (
     <div className="space-y-4 w-full">
-      {/* Key Metrics Bar (Clean, modern with subtle color accents) */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 overflow-hidden">
+      {/* Key Metrics Bar (Easy on the eyes, warm tinted container with soft borders) */}
+      <div className="bg-[#fcfdfd] border border-slate-200/80 rounded-2xl shadow-xs grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/60 overflow-hidden">
         {/* 1. Mesačný nájom */}
-        <div className="p-3.5 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[76px] sm:min-h-[82px] hover:bg-emerald-50/20 transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
-              Mesačný nájom
-            </span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 ring-4 ring-emerald-100/80" />
-          </div>
+        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+            Mesačný nájom
+          </span>
           <div className="mt-1">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg sm:text-xl lg:text-2xl font-black text-emerald-950 leading-tight">
+              <span className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
                 €{analytics?.monthlyGrossRent.toLocaleString() || 0}
               </span>
-              <span className="text-[11px] sm:text-xs text-emerald-700 font-semibold">/ mes</span>
+              <span className="text-[11px] sm:text-xs text-slate-500 font-medium">/ mes</span>
             </div>
             <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
               Ročne: €{((analytics?.monthlyGrossRent || 0) * 12).toLocaleString()}
@@ -125,21 +122,13 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         </div>
 
         {/* 2. Obsadenosť portfólia */}
-        <div className="p-3.5 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[76px] sm:min-h-[82px] hover:bg-teal-50/20 transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
-              Obsadenosť portfólia
-            </span>
-            <span className="w-2 h-2 rounded-full bg-teal-500 ring-4 ring-teal-100/80" />
-          </div>
+        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+            Obsadenosť portfólia
+          </span>
           <div className="mt-1">
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 leading-tight">
-                {analytics?.occupancyRate || 0}%
-              </span>
-              <span className="text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200/80 px-1.5 py-0.2 rounded">
-                {(analytics?.occupancyRate || 0) >= 90 ? 'Vysoká' : 'Štandard'}
-              </span>
+            <div className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
+              {analytics?.occupancyRate || 0}%
             </div>
             <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">
               {analytics?.occupiedUnits || 0} z {analytics?.totalUnits || 0} jednotiek obsadených
@@ -148,13 +137,10 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         </div>
 
         {/* 3. Končiace zmluvy */}
-        <div className="p-3.5 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[76px] sm:min-h-[82px] hover:bg-amber-50/30 transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
-              Končiace zmluvy
-            </span>
-            <span className={`w-2 h-2 rounded-full ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'bg-amber-500 ring-4 ring-amber-100' : 'bg-slate-300'}`} />
-          </div>
+        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+            Končiace zmluvy
+          </span>
           <div className="mt-1">
             <div className={`text-lg sm:text-xl lg:text-2xl font-black leading-tight ${(analytics?.expiringIn60DaysCount || 0) > 0 ? 'text-amber-600' : 'text-slate-800'}`}>
               {analytics?.expiringIn60DaysCount || 0}
@@ -166,15 +152,12 @@ export const PortfolioOverview: React.FC<PortfolioOverviewProps> = ({
         </div>
 
         {/* 4. Výdavky na údržbu */}
-        <div className="p-3.5 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[76px] sm:min-h-[82px] hover:bg-rose-50/20 transition-colors">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
-              Výdavky na údržbu
-            </span>
-            <span className="w-2 h-2 rounded-full bg-rose-500 ring-4 ring-rose-100/80" />
-          </div>
+        <div className="p-3 sm:p-4 lg:p-4.5 flex flex-col justify-between min-h-[72px] sm:min-h-[78px] hover:bg-slate-100/40 transition">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-wider text-slate-500 block leading-tight">
+            Výdavky na údržbu
+          </span>
           <div className="mt-1">
-            <div className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 leading-tight">
+            <div className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 leading-tight">
               €{analytics?.totalExpenses.toLocaleString() || 0}
             </div>
             <span className="text-[11px] text-slate-500 block truncate leading-tight mt-0.5">

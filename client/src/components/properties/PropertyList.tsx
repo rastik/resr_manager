@@ -171,31 +171,19 @@ export const PropertyList: React.FC<PropertyListProps> = ({
           </div>
 
           <div className="flex items-center bg-slate-100/90 border border-slate-200/80 rounded-lg p-0.5">
-            {(['all', 'occupied', 'vacant'] as const).map(st => {
-              const isActive = statusFilter === st;
-              let activeClass = 'bg-white text-slate-900 font-semibold shadow-xs';
-              if (isActive && st === 'occupied') {
-                activeClass = 'bg-emerald-600 text-white font-semibold shadow-xs';
-              } else if (isActive && st === 'vacant') {
-                activeClass = 'bg-rose-600 text-white font-semibold shadow-xs';
-              } else if (isActive && st === 'all') {
-                activeClass = 'bg-slate-900 text-white font-semibold shadow-xs';
-              }
-
-              return (
-                <button
-                  key={st}
-                  onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 text-xs rounded-md transition ${
-                    isActive
-                      ? activeClass
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {statusLabels[st]}
-                </button>
-              );
-            })}
+            {(['all', 'occupied', 'vacant'] as const).map(st => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-2.5 py-1 text-xs rounded-md transition ${
+                  statusFilter === st
+                    ? 'bg-white text-slate-900 font-semibold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {statusLabels[st]}
+              </button>
+            ))}
           </div>
 
           <ButtonGroup size="sm" variant="flat" className="border border-slate-200 rounded-lg p-0.5 bg-slate-100/90">

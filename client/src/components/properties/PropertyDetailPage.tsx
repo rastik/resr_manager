@@ -96,14 +96,14 @@ const TabLabel: React.FC<{
       isSelected ? 'scale-105' : 'scale-100'
     }`}
   >
-    <Icon className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isSelected ? 'text-emerald-600' : 'text-slate-400'}`} />
+    <Icon className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isSelected ? 'text-slate-900' : 'text-slate-400'}`} />
     <span className="inline-grid [grid-template-areas:'stack'] text-left">
       <span className="[grid-area:stack] font-semibold invisible select-none pointer-events-none" aria-hidden="true">
         {label}
       </span>
       <span
         className={`[grid-area:stack] transition-colors duration-200 ${
-          isSelected ? 'font-semibold text-emerald-800' : 'font-medium text-slate-500 hover:text-slate-700'
+          isSelected ? 'font-semibold text-slate-900' : 'font-medium text-slate-500 hover:text-slate-700'
         }`}
       >
         {label}
@@ -507,7 +507,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
               color="primary"
               classNames={{
                 tabList: 'gap-6 border-b border-slate-200 p-0',
-                cursor: 'w-full bg-emerald-600 h-[2px]',
+                cursor: 'w-full bg-slate-900',
                 tab: 'max-w-fit px-2 h-10 text-sm font-medium transition-colors',
               }}
             >
