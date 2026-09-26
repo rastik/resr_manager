@@ -500,9 +500,10 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({ isOpen, onCl
           </Button>
           <Button
             size="sm"
+            color="primary"
             type="submit"
             isLoading={loading}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs px-4"
+            className="font-medium rounded-lg shadow-xs px-4"
           >
             Zaregistrovať byt
           </Button>

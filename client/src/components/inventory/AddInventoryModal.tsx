@@ -310,9 +310,10 @@ export const AddInventoryModal: React.FC<AddInventoryModalProps> = ({
           </Button>
           <Button
             size="sm"
+            color="primary"
             type="submit"
             isLoading={loading}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs px-4"
+            className="font-medium rounded-lg shadow-xs px-4"
           >
             {itemToEdit ? 'Uložiť zmeny' : 'Uložiť položku'}
           </Button>

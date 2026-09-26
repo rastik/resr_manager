@@ -513,10 +513,11 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
           </Button>
           <Button
             size="sm"
+            color={isHotel ? 'warning' : 'primary'}
             type="submit"
             isLoading={loading}
-            className={`text-white font-medium rounded-lg shadow-xs px-4 ${
-              isHotel ? 'bg-amber-600 hover:bg-amber-700' : 'bg-slate-900 hover:bg-slate-800'
+            className={`font-medium rounded-lg shadow-xs px-4 ${
+              isHotel ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''
             }`}
           >
             {isHotel ? 'Zaregistrovať zmluvu s operátorom' : 'Vystaviť zmluvu'}

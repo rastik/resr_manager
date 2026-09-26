@@ -211,8 +211,8 @@ export const PropertyList: React.FC<PropertyListProps> = ({
 
           <Button
             size="sm"
-            color="default"
-            className="bg-slate-900 text-white font-medium h-8 rounded-lg px-3 shadow-xs"
+            color="primary"
+            className="font-medium h-8 rounded-lg px-3 shadow-xs"
             onPress={onOpenAddProperty}
             startContent={<Plus className="w-3.5 h-3.5" />}
           >

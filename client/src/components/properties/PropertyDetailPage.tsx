@@ -1155,7 +1155,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     <p className="text-slate-500 text-xs">Tento byt je momentálne voľný a nemá evidovaného nájomcu.</p>
                     <Button
                       size="sm"
-                      className="bg-slate-900 text-white font-medium text-xs h-7 px-3"
+                      color="primary"
+                      className="font-medium text-xs h-7 px-3"
                       onPress={() => onOpenAddLease(property.id)}
                     >
                       + Zaevidovať nového nájomcu
@@ -1384,7 +1385,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
 
                   <Button
                     size="sm"
-                    className="bg-slate-900 text-white font-medium shadow-xs"
+                    color="primary"
+                    className="font-medium shadow-xs"
                     onPress={() => onOpenAddInventory(property.id)}
                     startContent={<Plus className="w-3.5 h-3.5" />}
                   >
@@ -1540,7 +1542,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   </div>
                   <Button
                     size="sm"
-                    className="bg-slate-900 text-white font-medium shadow-xs"
+                    color="primary"
+                    className="font-medium shadow-xs"
                     onPress={() => onOpenAddExpense(property.id)}
                     startContent={<Plus className="w-3.5 h-3.5" />}
                   >
@@ -1630,7 +1633,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                   </div>
                   <Button
                     size="sm"
-                    className="bg-slate-900 text-white font-medium shadow-xs"
+                    color="primary"
+                    className="font-medium shadow-xs"
                     onPress={() => onOpenAddLease(property.id)}
                     startContent={<Plus className="w-3.5 h-3.5" />}
                   >
@@ -2168,7 +2172,8 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
               </Button>
               <Button
                 size="sm"
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                color="primary"
+                className="font-semibold"
                 isLoading={isSavingNote}
                 onPress={handleSaveNote}
               >

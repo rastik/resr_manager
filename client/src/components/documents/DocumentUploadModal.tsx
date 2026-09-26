@@ -336,9 +336,10 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
           </Button>
           <Button
             size="sm"
+            color="primary"
             type="submit"
             isLoading={isUploading}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs px-4"
+            className="font-medium rounded-lg shadow-xs px-4"
           >
             {docToEdit ? 'Uložiť zmeny' : 'Nahrať dokument'}
           </Button>

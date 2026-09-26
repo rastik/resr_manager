@@ -116,7 +116,8 @@ export const DocumentPreviewModal: React.FC<DocumentPreviewModalProps> = ({
               href={document.fileUrl}
               download
               size="sm"
-              className="bg-slate-900 hover:bg-slate-800 text-white font-medium shadow-xs"
+              color="primary"
+              className="font-medium shadow-xs"
               startContent={<Download className="w-3.5 h-3.5" />}
             >
               Stiahnuť

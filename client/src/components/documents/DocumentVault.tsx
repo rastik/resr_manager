@@ -141,8 +141,9 @@ export const DocumentVault: React.FC = () => {
 
           <Button
             size="sm"
+            color="primary"
             onClick={() => setIsUploadOpen(true)}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs h-8 rounded-lg px-3 shadow-xs"
+            className="font-medium text-xs h-8 rounded-lg px-3 shadow-xs"
             startContent={<Plus className="w-3.5 h-3.5" />}
           >
             Nahrať dokument
