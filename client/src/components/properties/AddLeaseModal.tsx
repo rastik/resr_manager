@@ -302,7 +302,7 @@ export const AddLeaseModal: React.FC<AddLeaseModalProps> = ({
           ) : (
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-700">
-                Výška kaucie / zábezpeky (€) <span className="text-rose-500">*</span>
+                Výška kaucie (€) <span className="text-rose-500">*</span>
               </label>
               <DecimalInput
                 size="sm"
