@@ -40,8 +40,8 @@ app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 import { supabase } from './supabaseClient';
 
-// Helper for extracting active user ID (authenticates JWT or falls back to demo)
-async function resolveUserId(req: Request): Promise<string> {
+// Helper for extracting active user ID (authenticates JWT or enforces authorization in production)
+async function resolveUser(req: Request): Promise<{ userId: string | null; email?: string }> {
   const authHeader = req.headers['authorization'];
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7).trim();
@@ -49,8 +49,10 @@ async function resolveUserId(req: Request): Promise<string> {
       try {
         const { data: { user }, error } = await supabase.auth.getUser(token);
         if (!error && user) {
-          // If the authenticated user is the landlord/admin, map to landlord portfolio
-          return (req.headers['x-user-id'] as string) || 'user_demo_landlord';
+          return {
+            userId: (req.headers['x-user-id'] as string) || 'user_demo_landlord',
+            email: user.email,
+          };
         }
       } catch (err) {
         console.warn('[AUTH] Error verifying JWT token:', err);
@@ -58,22 +60,44 @@ async function resolveUserId(req: Request): Promise<string> {
     }
   }
 
-  // Fallback for local demo mode or explicit user-id
-  return (req.headers['x-user-id'] as string) || 'user_demo_landlord';
+  // Allow localhost/development fallback or authenticated user header
+  if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    return { userId: (req.headers['x-user-id'] as string) || 'user_demo_landlord' };
+  }
+
+  // Explicit user-id if present from trusted environment, otherwise null
+  const headerUserId = req.headers['x-user-id'] as string;
+  if (headerUserId) {
+    return { userId: headerUserId };
+  }
+
+  return { userId: null };
 }
 
 function getUserId(req: Request): string {
   return (req as any).resolvedUserId || (req.headers['x-user-id'] as string) || 'user_demo_landlord';
 }
 
-// Global Auth Resolver Middleware
-app.use(async (req: Request, _res: Response, next) => {
-  try {
-    (req as any).resolvedUserId = await resolveUserId(req);
-  } catch {
+// Global Auth Resolver & Protection Middleware
+app.use(async (req: Request, res: Response, next) => {
+  // Public endpoints that do not require login
+  const publicPaths = ['/api/health', '/api/booking-monitor/sync'];
+  if (publicPaths.includes(req.path)) {
     (req as any).resolvedUserId = 'user_demo_landlord';
+    return next();
   }
-  next();
+
+  try {
+    const authResult = await resolveUser(req);
+    if (!authResult.userId) {
+      return res.status(401).json({ error: 'Neautorizovaný prístup. Vyžaduje sa prihlásenie.' });
+    }
+    (req as any).resolvedUserId = authResult.userId;
+    (req as any).userEmail = authResult.email;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Chyba pri overovaní autentifikácie' });
+  }
 });
 
 async function initDb() {
