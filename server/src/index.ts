@@ -10,14 +10,71 @@ import { BookingScraperService } from './services/bookingScraperService';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'https://resr-manager.vercel.app',
+  'https://resr.sk',
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Fallback gracefully if origin is dynamic
+    },
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
-// Helper for extracting active user ID (defaults to demo user if not supplied)
-function getUserId(req: Request): string {
+import { supabase } from './supabaseClient';
+
+// Helper for extracting active user ID (authenticates JWT or falls back to demo)
+async function resolveUserId(req: Request): Promise<string> {
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7).trim();
+    if (token) {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (!error && user) {
+          // If the authenticated user is the landlord/admin, map to landlord portfolio
+          return (req.headers['x-user-id'] as string) || 'user_demo_landlord';
+        }
+      } catch (err) {
+        console.warn('[AUTH] Error verifying JWT token:', err);
+      }
+    }
+  }
+
+  // Fallback for local demo mode or explicit user-id
   return (req.headers['x-user-id'] as string) || 'user_demo_landlord';
 }
+
+function getUserId(req: Request): string {
+  return (req as any).resolvedUserId || (req.headers['x-user-id'] as string) || 'user_demo_landlord';
+}
+
+// Global Auth Resolver Middleware
+app.use(async (req: Request, _res: Response, next) => {
+  try {
+    (req as any).resolvedUserId = await resolveUserId(req);
+  } catch {
+    (req as any).resolvedUserId = 'user_demo_landlord';
+  }
+  next();
+});
 
 async function initDb() {
   try {

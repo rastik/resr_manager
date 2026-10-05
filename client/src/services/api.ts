@@ -28,19 +28,29 @@ class ApiService {
   private userId: string = 'user_demo_landlord';
   private isOnlineWithBackend: boolean = true;
 
+  private token: string | null = null;
+
   setUserId(id: string) {
     this.userId = id;
+  }
+
+  setToken(token: string | null) {
+    this.token = token;
   }
 
   getUserId() {
     return this.userId;
   }
 
-  private getHeaders() {
-    return {
+  private getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-user-id': this.userId,
     };
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+    return headers;
   }
 
   // Health / Connection status check

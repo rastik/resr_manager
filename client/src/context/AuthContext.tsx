@@ -51,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setUser(profile);
           api.setUserId(profile.id);
+          api.setToken(session.access_token || null);
           localStorage.setItem('resr_current_user', JSON.stringify(profile));
         } else if (!session && mounted) {
           // If no active supabase session and not demo user
@@ -59,8 +60,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const parsed = JSON.parse(saved);
             setUser(parsed);
             api.setUserId(parsed.id);
+            api.setToken(null);
           } else {
             setUser(null);
+            api.setToken(null);
           }
         }
       } catch (err) {
@@ -82,12 +85,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(profile);
         api.setUserId(profile.id);
+        api.setToken(session.access_token || null);
         localStorage.setItem('resr_current_user', JSON.stringify(profile));
       } else {
         // If explicitly logged out
         const saved = localStorage.getItem('resr_current_user');
         if (!saved) {
           setUser(null);
+          api.setToken(null);
         }
       }
       setIsLoading(false);
@@ -123,6 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(profile);
         api.setUserId(profile.id);
+        api.setToken(data.session?.access_token || null);
         localStorage.setItem('resr_current_user', JSON.stringify(profile));
         return { success: true };
       }
@@ -163,6 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(profile);
         api.setUserId(profile.id);
+        api.setToken(data.session.access_token || null);
         localStorage.setItem('resr_current_user', JSON.stringify(profile));
         return { success: true };
       }
