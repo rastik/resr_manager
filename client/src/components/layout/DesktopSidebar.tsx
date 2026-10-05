@@ -57,7 +57,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         }}
         className="px-5 lg:px-6 py-4 lg:py-5 border-b border-slate-200/80 bg-[#fcfdfd] hover:bg-slate-100/60 transition-all duration-150 w-full cursor-pointer flex items-center justify-center group"
       >
-        <h1 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight group-hover:text-emerald-700 transition-colors text-center">
+        <h1 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight group-hover:text-primary transition-colors text-center">
           RESR, s.r.o.
         </h1>
       </button>
