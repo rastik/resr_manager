@@ -1288,7 +1288,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       <Wind className="w-3.5 h-3.5 text-slate-400" />
                       Klimatizácia:
                     </span>
-                    <span className={`font-semibold ${property.hasAC ? 'text-emerald-700' : 'text-slate-600'}`}>
+                    <span className="font-medium text-slate-900">
                       {property.hasAC ? 'Áno' : 'Nie'}
                     </span>
                   </div>
@@ -1298,7 +1298,7 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                       <Building2 className="w-3.5 h-3.5 text-slate-400" />
                       Balkón / Lodžia:
                     </span>
-                    <span className={`font-semibold ${property.hasBalcony ? 'text-emerald-700' : 'text-slate-600'}`}>
+                    <span className="font-medium text-slate-900">
                       {property.hasBalcony
                         ? `Áno${property.balconyAreaSqm ? ` (${property.balconyAreaSqm} m²)` : ''}`
                         : 'Nie'}
