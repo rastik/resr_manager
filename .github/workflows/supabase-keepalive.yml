@@ -1,0 +1,25 @@
+name: Ping Supabase Keepalive
+
+on:
+  schedule:
+    # Runs every 4 days at 06:00 UTC (preventing the 7-day inactivity pause)
+    - cron: '0 6 */4 * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
+
+jobs:
+  keepalive:
+    name: Ping Supabase REST API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database
+        run: |
+          echo "Pinging Supabase database to prevent inactivity pause..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_qQS3OGeQl-bUnfpl9RUdUA_sBuk5TiH' }}" \
+            "https://jjplixpjdyefibboerlq.supabase.co/rest/v1/properties?select=id&limit=1")
+          echo "HTTP response status code: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 400 ]; then
+            echo "Supabase ping successful! Database is active."
+          else
+            echo "Warning: Received unexpected status code $STATUS"
+          fi
