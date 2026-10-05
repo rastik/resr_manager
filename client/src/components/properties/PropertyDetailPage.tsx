@@ -669,11 +669,11 @@ export const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({
                     <div className="text-sm sm:text-base font-bold text-slate-900 truncate leading-tight mt-0.5" title={activeLease?.tenantName || 'Voľný byt'}>
                       {activeLease?.tenantName || 'Voľný byt'}
                     </div>
-                    <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
-                      {activeLease
-                        ? `Do ${formatDate(activeLease.endDate)}`
-                        : 'Pripravené k prenájmu'}
-                    </span>
+                    {activeLease && (
+                      <span className="text-[10px] text-slate-500 block truncate leading-tight mt-0.5">
+                        Do {formatDate(activeLease.endDate)}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
